@@ -1,4 +1,4 @@
-"""A histogram (grid) Bayes filter over the turtle's *position*.
+"""A histogram (grid) Bayes filter over the mower's *position*.
 
 The belief is a probability table over the cells of a regular grid.  With the
 heading known from the compass, the two steps of the Bayes filter become
@@ -44,7 +44,7 @@ class GridFilter(Filter):
         if heading is not None:
             self.heading = heading
         step, h = u[0], self.heading
-        # shift (in cells; rows are y, columns are x); mass leaving the arena is lost
+        # shift (in cells; rows are y, columns are x); mass leaving the lawn is lost
         shifted = ndimage.shift(self.belief, (step * np.sin(h) / self.cell, step * np.cos(h) / self.cell), order=1, mode="constant")
         # blur: along-track step noise + across-track compass noise, isotropic approximation
         sigma = np.hypot(self.sigma_step, step * self.sigma_compass) / self.cell

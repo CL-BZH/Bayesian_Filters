@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bayesian-filters"
 version = "1.0.0"
-description = "Bayesian filtering for a turtle robot: Kalman, EKF, UKF, grid and particle filters"
+description = "Bayesian filtering for a robot lawnmower: Kalman, EKF, UKF, grid and particle filters"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7"]

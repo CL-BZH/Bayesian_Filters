@@ -2,7 +2,7 @@
 
 ## Motion
 
-The turtle turns by $\delta$, then walks $s$ along its new heading $\theta' = \theta + \delta$:
+The mower turns by $\delta$, then drives $s$ along its new heading $\theta' = \theta + \delta$:
 
 $$
 f(x, u) = \begin{pmatrix} p^x + s\cos\theta' \\ p^y + s\sin\theta' \\ \theta' \end{pmatrix},
@@ -20,7 +20,7 @@ after a few steps the true distribution is curved (a "banana"), not elliptical. 
 handles this with an augmented state $(x, \varepsilon)$ of dimension 5; the particle filter
 simply samples $\varepsilon$.
 
-The commands follow a figure of eight (walk 4, turn $\pm\pi/50$, flip direction each loop),
+The commands follow a figure of eight (drive 4, turn $\pm\pi/50$, flip direction each loop),
 plus a steering term towards the centre near the walls. The filters are told the full command.
 
 ## Range–bearing to landmark $j$

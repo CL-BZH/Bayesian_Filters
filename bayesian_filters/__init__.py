@@ -1,4 +1,4 @@
-"""Bayesian_Filters: Bayesian filtering for a turtle, from Kalman to particles.
+"""Bayesian_Filters: Bayesian filtering for a mower, from Kalman to particles.
 
     >>> from bayesian_filters import World, simulate, EKF, run_filter
     >>> world = World.default()

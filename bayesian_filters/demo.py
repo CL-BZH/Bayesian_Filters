@@ -1,4 +1,4 @@
-"""Live turtle-graphics demo.
+"""Live demo of a robot lawnmower being localised, drawn with Python's ``turtle`` module.
 
     python -m bayesian_filters.demo --filter pf
     python -m bayesian_filters.demo --filter ekf --kidnap 240
@@ -48,10 +48,10 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--landmarks", type=int, default=0, help="0 = the 4 fixed landmarks, n = n random ones")
     ap.add_argument("--particles", type=int, default=1000)
-    ap.add_argument("--global-init", action="store_true", help="PF: start with no idea where the turtle is")
+    ap.add_argument("--global-init", action="store_true", help="PF: start with no idea where the mower is")
     ap.add_argument("--association", choices=["known", "unknown"], default="known")
     ap.add_argument("--recovery", action="store_true", help="PF: augmented MCL random-particle injection")
-    ap.add_argument("--kidnap", type=int, default=None, help="teleport the turtle at this step")
+    ap.add_argument("--kidnap", type=int, default=None, help="teleport the mower at this step")
     ap.add_argument("--delay", type=float, default=0.0, help="seconds to sleep per step")
     args = ap.parse_args(argv)
 
@@ -65,8 +65,11 @@ def main(argv=None):
 
     screen = turtle.Screen()
     screen.setup(520, 560)
-    screen.title(f"Turtle meets {name}")
+    screen.title(f"Where is the mower? ({name})")
     screen.tracer(0)
+    screen.bgcolor("#eef6e6")  # the lawn
+    # a top-down mower: deck with a bevelled front (shape coordinates point along +y)
+    screen.register_shape("mower", ((-7, -9), (7, -9), (7, 6), (4, 10), (-4, 10), (-7, 6)))
 
     def pen(color="black", width=1):
         t = turtle.Turtle(visible=False)
@@ -95,12 +98,12 @@ def main(argv=None):
     info = pen("#52514e")
     info.goto(-world.half_width, world.half_height + 12)
 
-    robot = turtle.Turtle(shape="turtle")
+    robot = turtle.Turtle(shape="mower")
     robot.color("#0b0b0b", "lime")
     robot.speed(0)
     robot.radians()
     robot.shapesize(0.8, 0.8)
-    estimate = turtle.Turtle(shape="turtle")
+    estimate = turtle.Turtle(shape="mower")
     estimate.color(HEX[name], "")
     estimate.radians()
     estimate.penup()

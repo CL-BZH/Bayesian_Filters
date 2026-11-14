@@ -3,7 +3,7 @@
 | Symbol | Meaning | In code |
 |---|---|---|
 | $x_t = (p^x_t, p^y_t, \theta_t)^\top$ | pose at step $t$; $\theta \in [-\pi, \pi)$ | `x`, `run.truth[t]` |
-| $u_t = (s_t, \delta_t)^\top$ | control: turn by $\delta$, then walk $s$ | `u`, `run.controls[t]` |
+| $u_t = (s_t, \delta_t)^\top$ | control: turn by $\delta$, then drive $s$ | `u`, `run.controls[t]` |
 | $\varepsilon_t \sim \mathcal N(0, M)$ | control noise, $M = \operatorname{diag}(\sigma_s^2, \sigma_\delta^2)$ | `world.motion_cov` |
 | $f(x, u)$ | noise-free motion model | `motion_model` |
 | $F = \partial f/\partial x$, $V = \partial f/\partial u$ | motion Jacobians | `motion_jacobians` |
@@ -26,7 +26,7 @@
 
 ## Indexing convention
 
-`simulate` returns arrays where control `controls[t]` moves the turtle from `truth[t]` to
+`simulate` returns arrays where control `controls[t]` moves the mower from `truth[t]` to
 `truth[t+1]`, and measurement index `t` (`z_rb[t]`, …) is taken at `truth[t+1]`. A
 `FilterResult` follows the truth: `means[0]` is the initial belief and `means[t+1]` the belief
 after predicting with `controls[t]` and updating with measurement `t`.
@@ -41,4 +41,4 @@ after predicting with `controls[t]` and updating with measurement `t`.
 | bearing noise $\sigma_\phi$ | 0.05 rad |
 | GPS noise $\sigma_{\text{gps}}$ | 8 |
 | compass noise $\sigma_c$ | 0.02 rad |
-| arena | $[-160, 160]^2$ |
+| lawn | $[-160, 160]^2$ |

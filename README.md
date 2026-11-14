@@ -1,23 +1,23 @@
-# Bayesian_Filters — where is the turtle?
+# Bayesian_Filters — where is the mower?
 
-A turtle wanders in a square arena. We tell it where to go, but it never does exactly that, and
+A robot lawnmower drives around a square lawn. We tell it where to go, but it never does exactly that, and
 its sensors are noisy. This repository answers *where is it?* with every classical recursive
 Bayesian filter: grid, Kalman, extended Kalman, unscented Kalman and particle filters. All of
 them run on **the same simulated world and the same data**, so they can be compared honestly.
 
 | Global localisation with particles | Kidnapped, landmarks not identified: EKF vs PF |
 |---|---|
-| ![particle filter, global localisation](docs/media/pf_global_localisation.gif) | ![kidnapped turtle, EKF vs PF](docs/media/kidnapped_ekf_vs_pf.gif) |
+| ![particle filter, global localisation](docs/media/pf_global_localisation.gif) | ![kidnapped mower, EKF vs PF](docs/media/kidnapped_ekf_vs_pf.gif) |
 
 ## The notebooks
 
-Read them in order. Each one derives its filter, implements it, and tests it on the turtle.
+Read them in order. Each one derives its filter, implements it, and tests it on the mower.
 
 | # | Notebook | What you will see |
 |---|---|---|
-| 00 | [The turtle's world](notebooks/00_the_turtle_world.ipynb) | State, unicycle motion model with noisy controls, range–bearing / GPS / compass sensors, "banana" uncertainty, dead-reckoning drift |
+| 00 | [The mower's world](notebooks/00_the_mower_world.ipynb) | State, unicycle motion model with noisy controls, range–bearing / GPS / compass sensors, "banana" uncertainty, dead-reckoning drift |
 | 01 | [The Bayes filter](notebooks/01_bayes_filter.ipynb) | Derivation of predict/update; an exact grid filter; a **bimodal** belief (range-only, two landmarks) that settles on the wrong bump before recovering; why grids do not scale |
-| 02 | [Kalman filter](notebooks/02_kalman_filter.ipynb) | Derivation by Gaussian conditioning; a linear turtle (compass + GPS); Riccati convergence of the gain; **NEES** consistency tests with a mis-tuned R |
+| 02 | [Kalman filter](notebooks/02_kalman_filter.ipynb) | Derivation by Gaussian conditioning; a linear mower (compass + GPS); Riccati convergence of the gain; **NEES** consistency tests with a mis-tuned R |
 | 03 | [Extended Kalman filter](notebooks/03_extended_kalman_filter.ipynb) | Jacobians (checked by finite differences), angle wrapping, ±2σ checks; where linearisation fails: NEES ≈ 300 after an uncertain start |
 | 04 | [Unscented Kalman filter](notebooks/04_unscented_kalman_filter.ipynb) | Sigma points and scaled weights; the same arc, EKF vs UT; the UKF stays consistent where the EKF does not |
 | 05 | [Particle filter](notebooks/05_particle_filter.ipynb) | Importance sampling, weight degeneracy and ESS, systematic vs multinomial resampling, global localisation, sample impoverishment, **multimodal beliefs with unknown data association**, mode collapse, kidnapping and augmented MCL |
@@ -43,7 +43,7 @@ jupyter lab notebooks/          # the notebooks add the repo root to sys.path th
 python -m pytest                # 18 tests: Jacobians, unscented transform, filter accuracy and consistency
 ```
 
-Live turtle-graphics demo (needs Tk, e.g.
+Live demo, drawn with Python's `turtle` graphics module (needs Tk, e.g.
 `sudo apt install python3-tk`):
 
 ```bash
@@ -59,17 +59,17 @@ Keys: `space` pauses, `q` quits.
 
 ```
 bayesian_filters/
-├── world.py     World (arena, landmarks, true noise levels), motion & sensor models, simulate()
+├── world.py     World (lawn, landmarks, true noise levels), motion & sensor models, simulate()
 ├── base.py      Filter interface (predict / update / mean / cov) and run_filter()
 ├── grid.py      GridFilter        histogram Bayes filter on position
-├── kf.py        KalmanFilter      generic linear KF;  CompassGpsKF for the turtle
+├── kf.py        KalmanFilter      generic linear KF;  CompassGpsKF for the mower
 ├── ekf.py       EKF               known or nearest-neighbour data association
 ├── ukf.py       UKF               scaled sigma points, augmented control noise, circular means
 ├── pf.py        ParticleFilter    log-weights, ESS-triggered systematic resampling,
 │                                  known/unknown association, augmented MCL, roughening
 ├── metrics.py   position RMSE, NEES and chi-square bounds
 ├── viz.py       matplotlib helpers (one fixed colour per filter)
-└── demo.py      live turtle-graphics demo
+└── demo.py      live demo (Python turtle graphics)
 ```
 
 Every filter has the same interface, so comparing them takes three lines:

@@ -56,7 +56,7 @@ def color(name):
 
 
 def plot_world(ax, world, label_landmarks=True):
-    """Arena outline and numbered landmarks."""
+    """Lawn outline and numbered landmarks."""
     ax.add_patch(
         Rectangle(
             (-world.half_width, -world.half_height), 2 * world.half_width, 2 * world.half_height,

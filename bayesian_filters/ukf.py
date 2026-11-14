@@ -1,7 +1,7 @@
-"""Unscented Kalman filter for the turtle.
+"""Unscented Kalman filter for the mower.
 
 The building blocks (:func:`merwe_weights`, :func:`sigma_points`,
-:func:`unscented_transform`) are generic; :class:`UKF` plugs the turtle's
+:func:`unscented_transform`) are generic; :class:`UKF` plugs the mower's
 motion and range-bearing models into them.
 
 Design (see notebook 04):
@@ -63,7 +63,7 @@ def unscented_transform(sigmas, Wm, Wc, mean_fn=None, residual_fn=None, noise_co
 
 
 # --------------------------------------------------------------------------
-# Angle-aware means/residuals for the turtle
+# Angle-aware means/residuals for the mower
 # --------------------------------------------------------------------------
 def pose_mean(sigmas, W):
     m = W @ sigmas
@@ -97,7 +97,7 @@ class UKF(Filter):
     """UKF on the pose ``(px, py, theta)``.
 
     The control noise enters non-additively (it is turned before it is
-    walked), so the prediction uses an **augmented** state
+    driven), so the prediction uses an **augmented** state
     ``(px, py, theta, n_step, n_turn)`` with covariance ``diag(P, M)``.  The
     measurement noise is additive.
     """

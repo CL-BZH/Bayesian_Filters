@@ -1,4 +1,4 @@
-"""Extended Kalman filter for the turtle: unicycle motion + range-bearing landmarks."""
+"""Extended Kalman filter for the mower: unicycle motion + range-bearing landmarks."""
 
 from __future__ import annotations
 

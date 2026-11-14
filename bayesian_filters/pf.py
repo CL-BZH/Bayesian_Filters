@@ -1,4 +1,4 @@
-"""Particle filter (Monte Carlo localisation) for the turtle.
+"""Particle filter (Monte Carlo localisation) for the mower.
 
 Design (see notebook 05):
 
@@ -6,7 +6,7 @@ Design (see notebook 05):
 * weights are kept as **log**-weights and normalised;
 * resampling happens only when the effective sample size drops below a
   threshold;
-* recovery from a lost / kidnapped turtle uses *augmented MCL*
+* recovery from a lost / kidnapped mower uses *augmented MCL*
   (Thrun, Burgard & Fox, Probabilistic Robotics, Table 8.3);
 * the likelihood uses the same sensor model as the Kalman filters, and data
   association can be *known* (as for the KFs) or *unknown* (a mixture over
@@ -47,11 +47,11 @@ class ParticleFilter(Filter):
     Parameters
     ----------
     world : World
-        Supplies the landmarks, the arena (for global initialisation and for
+        Supplies the landmarks, the lawn (for global initialisation and for
         random particle injection) and the nominal noise levels.
     n_particles : int
     init : ``"global"`` or ``(mean, cov)``
-        Uniform over the arena (the turtle could be anywhere), or Gaussian.
+        Uniform over the lawn (the mower could be anywhere), or Gaussian.
     motion_inflation : float
         Multiplies the motion-noise standard deviations used to *propagate*
         particles.  Some inflation (> 1) counters sample impoverishment.
@@ -138,7 +138,7 @@ class ParticleFilter(Filter):
             visible = np.ones(len(z), dtype=bool)
         if np.any(visible):
             ll = self.log_likelihood(self.particles, z, visible)
-            # a particle outside the arena is impossible
+            # a particle outside the lawn is impossible
             ll = np.where(self.world.inside(self.particles[:, :2], margin=5.0), ll, -np.inf)
             # average likelihood (augmented MCL), using the *prior* weights
             log_avg = logsumexp(self.logw + ll)

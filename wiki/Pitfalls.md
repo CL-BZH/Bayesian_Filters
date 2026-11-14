@@ -50,7 +50,7 @@ The bugs that every filter implementation meets.
 
 ## Simulation
 
-* The filter's model and the simulator must agree, or you are testing the mismatch. A turtle
+* The filter's model and the simulator must agree, or you are testing the mismatch. A mower
   that jumps 180° at a wall cannot be tracked by any smooth motion model.
 * Give the sensor the noise that the filter assumes.
 * For NEES tests, draw the initial estimate from $\mathcal N(x_0, P_0)$; do not start at the truth.

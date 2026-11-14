@@ -24,7 +24,7 @@ viz.style()
 
 
 def global_localisation_gif(path, n_frames=90):
-    """Particles starting uniform over the arena, converging on the turtle."""
+    """Particles starting uniform over the lawn, converging on the mower."""
     world = World.default()
     run = simulate(world, n_steps=n_frames, seed=1)
     pf = ParticleFilter(world, 3000, init="global", roughening=0.5, seed=0)
@@ -34,16 +34,16 @@ def global_localisation_gif(path, n_frames=90):
     ax.set_xlabel(""); ax.set_ylabel("")
     scat = ax.scatter([], [], s=3, color=viz.color("PF"), alpha=0.4, lw=0)
     (path_line,) = ax.plot([], [], color=viz.INK, ls="--", lw=1.2)
-    turtle_marker = ax.scatter([], [], marker="o", s=50, fc="lime", ec=viz.INK, zorder=8)
+    mower_marker = ax.scatter([], [], marker="o", s=50, fc="lime", ec=viz.INK, zorder=8)
     title = ax.set_title("")
 
     def draw(t):
         parts, _ = res.snapshots[t]
         scat.set_offsets(parts[:, :2])
         path_line.set_data(run.truth[: t + 1, 0], run.truth[: t + 1, 1])
-        turtle_marker.set_offsets(run.truth[t, :2])
+        mower_marker.set_offsets(run.truth[t, :2])
         title.set_text(f"Particle filter, global localisation — step {t}")
-        return scat, path_line, turtle_marker, title
+        return scat, path_line, mower_marker, title
 
     anim = FuncAnimation(fig, draw, frames=range(0, n_frames + 1), blit=False)
     anim.save(path, writer=PillowWriter(fps=12))
@@ -51,7 +51,7 @@ def global_localisation_gif(path, n_frames=90):
 
 
 def kidnap_gif(path, start=190, stop=260):
-    """EKF vs PF (unknown data association, augmented MCL) when the turtle is kidnapped."""
+    """EKF vs PF (unknown data association, augmented MCL) when the mower is kidnapped."""
     world = World.default()
     run = simulate(world, n_steps=stop, seed=1, kidnap=(200, (100.0, -100.0, np.pi)))
     P0 = np.diag([10.0, 10.0, 0.05])
@@ -62,7 +62,7 @@ def kidnap_gif(path, start=190, stop=260):
     viz.plot_world(ax, world)
     ax.set_xlabel(""); ax.set_ylabel("")
     scat = ax.scatter([], [], s=7, color=viz.color("PF"), alpha=0.5, lw=0)
-    truth_m = ax.scatter([], [], marker="o", s=50, fc="lime", ec=viz.INK, zorder=8, label="turtle")
+    truth_m = ax.scatter([], [], marker="o", s=50, fc="lime", ec=viz.INK, zorder=8, label="mower")
     ekf_m = ax.scatter([], [], marker="P", s=70, c=viz.color("EKF"), zorder=9, label="EKF estimate")
     pf_m = ax.scatter([], [], marker="X", s=70, c=viz.color("PF"), ec="white", lw=0.6, zorder=9, label="PF estimate")
     fig.legend(loc="lower center", ncol=3, fontsize=7.5)

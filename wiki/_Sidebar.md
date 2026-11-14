@@ -7,7 +7,7 @@
 
 **Notebooks**
 
-* [00 World](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_turtle_world.ipynb)
+* [00 World](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_mower_world.ipynb)
 * [01 Bayes / grid](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/01_bayes_filter.ipynb)
 * [02 KF](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/02_kalman_filter.ipynb)
 * [03 EKF](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/03_extended_kalman_filter.ipynb)

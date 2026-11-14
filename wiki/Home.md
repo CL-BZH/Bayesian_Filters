@@ -1,6 +1,6 @@
 # Bayesian_Filters wiki
 
-*Where is the turtle?* The [repository](https://github.com/CL-BZH/Bayesian_Filters) answers the
+*Where is the mower?* The [repository](https://github.com/CL-BZH/Bayesian_Filters) answers the
 question with every classical recursive Bayesian filter, all run on the same simulated world.
 The explanations and derivations live in the **notebooks**. This wiki is a map of them, plus
 reference pages.
@@ -9,7 +9,7 @@ reference pages.
 
 | # | Notebook | Key idea |
 |---|---|---|
-| 00 | [The turtle's world](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_turtle_world.ipynb) | The state-space model: noisy controls in, noisy measurements out |
+| 00 | [The mower's world](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_mower_world.ipynb) | The state-space model: noisy controls in, noisy measurements out |
 | 01 | [Bayes filter](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/01_bayes_filter.ipynb) | Predict = Chapman–Kolmogorov, update = Bayes; a grid does it exactly, but scales as `n^d` |
 | 02 | [Kalman filter](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/02_kalman_filter.ipynb) | Linear + Gaussian: the Bayes filter in closed form; NEES tells you if the covariance is honest |
 | 03 | [EKF](https://github.com/CL-BZH/Bayesian_Filters/blob/main/notebooks/03_extended_kalman_filter.ipynb) | Linearise around the estimate; over-confident when the uncertainty is large |

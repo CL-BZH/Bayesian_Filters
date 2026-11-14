@@ -113,7 +113,7 @@ P0 = np.diag([10.0, 10.0, 0.05])
         (lambda w, x0: ParticleFilter(w, 1000, init=(x0, P0), seed=0), 2.5),
     ],
 )
-def test_filters_track_the_turtle(world, run, make, limit):
+def test_filters_track_the_mower(world, run, make, limit):
     res = run_filter(make(world, run.truth[0]), run)
     assert not res.diverged
     assert position_rmse(res.means, run.truth, skip=10) < limit

@@ -5,9 +5,9 @@
     x_{t+1} = F x_t + B u_t + w_t,      w_t ~ N(0, Q)
     z_t     = H x_t + v_t,              v_t ~ N(0, R)
 
-:class:`CompassGpsKF` applies it to the turtle.  The pose model of the turtle
+:class:`CompassGpsKF` applies it to the mower.  The pose model of the mower
 is *not* linear (the heading enters through cos/sin), so we make the problem
-linear honestly: the turtle carries a **compass**.  With the heading read off
+linear honestly: the mower carries a **compass**.  With the heading read off
 the compass, the displacement ``step * (cos theta, sin theta)`` is a known
 input and the position obeys a linear model; a GPS-like sensor gives a noisy
 position fix.  The filter estimates ``(px, py)`` only.
@@ -21,7 +21,7 @@ from .base import Filter
 
 
 class KalmanFilter:
-    """Generic linear Kalman filter (no turtle-specific code)."""
+    """Generic linear Kalman filter (no mower-specific code)."""
 
     def __init__(self, x0, P0):
         self.x = np.asarray(x0, dtype=float).copy()
@@ -49,7 +49,7 @@ class KalmanFilter:
 
 
 class CompassGpsKF(Filter):
-    """Linear KF on the turtle's position, using compass + odometry + GPS.
+    """Linear KF on the mower's position, using compass + odometry + GPS.
 
     Prediction: ``p_{t+1} = p_t + step_t * (cos h_t, sin h_t) + w_t`` where
     ``h_t`` is the compass reading taken after the turn.  The noise ``w_t``

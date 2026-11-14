@@ -1,4 +1,4 @@
-"""The turtle's world: arena, landmarks, motion model, sensors, and a simulator.
+"""The mower's world: lawn, landmarks, motion model, sensors, and a simulator.
 
 Every filter in this package is evaluated on data produced here, so they all
 see *exactly* the same ground truth and the same noisy measurements.
@@ -7,10 +7,10 @@ Conventions
 -----------
 * A pose is ``x = (px, py, theta)`` with ``theta`` in radians, wrapped to
   ``[-pi, pi)``.  Arrays of poses have shape ``(..., 3)``.
-* A control is ``u = (step, dtheta)``: the turtle first *turns* by ``dtheta``
+* A control is ``u = (step, dtheta)``: the mower first *turns* by ``dtheta``
   and then moves ``step`` forward along its new heading.
 * A range-bearing measurement of landmark ``j`` is ``(r_j, phi_j)`` where
-  ``phi_j`` is the bearing *relative to the turtle's heading*.
+  ``phi_j`` is the bearing *relative to the mower's heading*.
 """
 
 from __future__ import annotations
@@ -125,7 +125,7 @@ LANDMARK_COLORS = ["#ffd700", "#ffa500", "#8a2be2", "#ff7f50", "#2e8b57", "#1e90
 
 @dataclass
 class World:
-    """Arena, landmarks and the *true* noise levels of the turtle and its sensors.
+    """Lawn, landmarks and the *true* noise levels of the mower and its sensors.
 
     The noise levels here are what nature does.  A filter is free to *assume*
     different values (and the notebooks show what happens when it does).
@@ -150,7 +150,7 @@ class World:
     # -- construction -------------------------------------------------------
     @classmethod
     def random(cls, n_landmarks=5, min_spacing=100.0, seed=None, **kwargs):
-        """Landmarks drawn uniformly in 85% of the arena with a minimum spacing."""
+        """Landmarks drawn uniformly in 85% of the lawn with a minimum spacing."""
         rng = np.random.default_rng(seed)
         hw = kwargs.get("half_width", cls.half_width)
         hh = kwargs.get("half_height", cls.half_height)
@@ -183,7 +183,7 @@ class World:
         )
 
     def sample_uniform_poses(self, n, rng):
-        """``n`` poses uniform over the arena and over headings."""
+        """``n`` poses uniform over the lawn and over headings."""
         return np.column_stack(
             [
                 rng.uniform(-self.half_width, self.half_width, n),
@@ -204,7 +204,7 @@ class World:
 
     # -- nature -------------------------------------------------------------
     def move(self, x, u, rng, noise=True):
-        """Move the *true* turtle (control corrupted by noise)."""
+        """Move the *true* mower (control corrupted by noise)."""
         u = np.asarray(u, dtype=float)
         if noise:
             u = u + rng.normal(0.0, [self.sigma_step, self.sigma_turn])
@@ -241,8 +241,8 @@ def figure_eight_control(t, step=4.0, turn=np.pi / 50):
 
 
 def fence_correction(world, x, start=0.8, gain=0.6, max_turn=0.25):
-    """Extra turn that steers the turtle back towards the centre when it
-    leaves the inner ``start`` fraction of the arena.
+    """Extra turn that steers the mower back towards the centre when it
+    leaves the inner ``start`` fraction of the lawn.
 
     A smooth steering command (rather than, say, a sudden half-turn at the
     wall) keeps the motion followable by every filter.  The pilot knows the true pose; the
@@ -286,12 +286,12 @@ def simulate(
     motion_noise=True,
     sensor_noise=True,
 ):
-    """Simulate the turtle and all its sensors.
+    """Simulate the mower and all its sensors.
 
     Parameters
     ----------
     kidnap : ``None`` or ``(step, pose)``
-        Teleport the true turtle to ``pose`` just before control ``step`` is
+        Teleport the true mower to ``pose`` just before control ``step`` is
         applied (the "kidnapped robot" problem).  The filters are not told.
     """
     rng = np.random.default_rng(seed)
