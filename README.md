@@ -32,6 +32,10 @@ Read them in order. Each one derives its filter, implements it, and tests it on 
 | Kidnapped, landmarks identified | recovers in ~64 steps (median) | same as EKF | recovers in ~15 steps (augmented MCL) |
 | Kidnapped, landmarks **not** identified | lost in 6 of 8 runs | — | lost in 0 of 8 runs |
 
+*Kidnapped* is the standard robotics name for a robot that is picked up and moved somewhere
+else without being told (the *kidnapped robot problem*). The filter is then confidently wrong,
+and must first notice it before it can find the mower again.
+
 Use the EKF when the belief is roughly Gaussian, the UKF when the uncertainty is large compared
 with the non-linearity, and the particle filter when the belief can be multimodal.
 
