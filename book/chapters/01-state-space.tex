@@ -330,6 +330,22 @@ $[-\pi,\pi)$ by
   \wrap(a)=a+2\pi k\quad\text{with the unique }k\in\mathbb{Z}\text{ such
   that }a+2\pi k\in[-\pi,\pi).
 \]
+This is reduction modulo $2\pi$, with one important detail: the
+representative is taken in the interval \emph{centred on zero}. In code,
+$\wrap(a)=\bigl((a+\pi)\bmod2\pi\bigr)-\pi$, which is what
+\code{wrap\_angle} computes. Mathematically, angles live in the quotient
+$\R/2\pi\mathbb{Z}$ (the circle), and $\wrap$ picks the representative of
+each class that lies in $[-\pi,\pi)$.
+
+The choice of interval matters for \emph{differences} of angles, and the
+usual \code{mod} functions get them wrong. Python's \code{\%} returns
+values in $[0,2\pi)$: a small heading error of $-0.1$\,rad becomes $6.18$,
+and a filter would treat a tiny correction as an almost complete turn. C's
+\code{fmod} keeps the sign of its argument and returns values in
+$(-2\pi,2\pi)$: it leaves $-0.1$ alone, but it also leaves the difference
+$3.10-(-3.12)=6.22$ unchanged, where the true rotation is $-0.063$. With
+the centred interval, small differences stay small and keep their sign:
+$\wrap(-0.1)=-0.1$ and $\wrap(6.22)=-0.063$.
 
 \begin{lemma}{Angle differences}{wrap}
 For angles $a,b$, $\wrap(a-b)$ is the signed rotation of smallest
