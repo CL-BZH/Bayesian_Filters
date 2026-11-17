@@ -253,10 +253,24 @@ gives $\cos x<\sin x/x$: this is \eqref{eq:sinx}. No derivative or series
 is needed; the only analytic input is that the area of a sector is
 proportional to its angle, which is how the radian is defined.
 
+The figure also shows the arc from $\p'$ to $\bm q$ squeezed between two
+paths. Below it is the chord, of length $2s\sin(x/2)$ (the same bisector
+argument as for the displacement). Above it is the path along the two
+tangents, at $\p'$ and at $\bm q$, to the point $\bm r$ where they meet: the
+triangle $\p\,\p'\bm r$ is right-angled at $\p'$ with angle $x/2$ at $\p$,
+so each tangent segment has length $s\tan(x/2)$. Applying
+$\sin y<y<\tan y$ with $y=x/2$ and multiplying by $2s$,
+\[
+  2s\sin\tfrac x2\;<\;sx\;<\;2s\tan\tfrac x2,
+\]
+and the two outer lengths divided by $sx$ both tend to $1$: as the angle
+shrinks, the chord and the two-tangent path both become as long as the
+arc.
+
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[scale=1.25,>=Stealth]
-  \def\s{2.6}\def\x{50}
+  \def\s{3.4}\def\x{50}
   \coordinate (P) at (0,0);
   \coordinate (A) at (0:\s);            % p'
   \coordinate (Q) at (\x:\s);           % q
@@ -272,6 +286,19 @@ proportional to its angle, which is how the radian is defined.
   \draw[densely dotted,black!60] ($(A)+(0,-0.5)$) -- ($(T)+(0,0.4)$)
     node[above,font=\small,black!60] {tangent at $\p'$};
   \draw[black!60] (A) ++(-0.2,0) -- ++(0,0.2) -- ++(0.2,0);
+  % tangent at q, meeting the tangent at p' in r
+  \coordinate (R) at ({\x/2}:{\s/cos(\x/2)});
+  \draw[densely dotted,black!60] ($(Q)!-0.45!(R)$) -- ($(R)!-0.35!(Q)$);
+  \draw[black!60] (Q) ++(\x+180:0.2) -- ++(\x-90:0.2) -- ++(\x:0.2);
+  \draw[dashed,black!40] (P) -- (R);
+  % the arc and the two-tangent path around it
+  \draw[very thick,blue!70!black] (A) arc[start angle=0,end angle=\x,
+    radius=\s];
+  \draw[very thick,violet] (A) -- (R) -- (Q);
+  \fill[violet] (R) circle (1.5pt) node[left=1pt,font=\small,violet]
+    {$\bm r$};
+  \node[font=\small,violet,right=8pt] at ($(A)!0.5!(R)$)
+    {$s\tan\tfrac x2$};
   \draw[->,black!70] (0.9,0) arc[start angle=0,end angle=\x,radius=0.9];
   \node[font=\small] at (\x/2:1.15) {$x$};
   \fill (P) circle (1.5pt) node[below left] {$\p$};
@@ -280,17 +307,20 @@ proportional to its angle, which is how the radian is defined.
   \fill (T) circle (1.5pt) node[right] {$\bm t$};
   \draw[decorate,decoration={brace,amplitude=4pt,raise=2pt}]
     (A) -- (T) node[midway,right=7pt,font=\small] {$s\tan x$};
-  \node[font=\small,anchor=west] at (4.1,2.0)
+  \node[font=\small,anchor=west] at (5.3,2.6)
     {\tikz\fill[green!40] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm q$:
     $\tfrac12 s^2\sin x$};
-  \node[font=\small,anchor=west] at (4.1,1.5)
+  \node[font=\small,anchor=west] at (5.3,2.1)
     {\tikz\fill[blue!25] (0,0) rectangle (0.3,0.2); sector: $\tfrac12 s^2 x$};
-  \node[font=\small,anchor=west] at (4.1,1.0)
+  \node[font=\small,anchor=west] at (5.3,1.6)
     {\tikz\fill[orange!30] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm t$:
     $\tfrac12 s^2\tan x$};
 \end{tikzpicture}
 \caption{The three nested regions behind $\sin x<x<\tan x$. Each contains
-the previous one, so their areas increase.}
+the previous one, so their areas increase. The arc from $\p'$ to $\bm q$
+(blue, length $sx$) lies between the chord (green, $2s\sin\tfrac x2$) and the
+path along the two tangents through their meeting point $\bm r$ (violet,
+$2s\tan\tfrac x2$).}
 \label{fig:sinx}
 \end{figure}
 
