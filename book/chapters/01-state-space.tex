@@ -155,11 +155,11 @@ $\theta'$), gives the two columns
   =\Bigl(\ \frac{\partial f}{\partial s}\ \Big|\ 
   \frac{\partial f}{\partial\delta}\ \Bigr).
 \]
-The first column is the effect of driving one unit further: the position
-moves along the heading and the heading does not change. The second is
-the effect of turning one radian more: the heading changes by $1$ and the
-position moves sideways by $s$, perpendicular to the heading. So, to first
-order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
+The first column is the effect of driving further: per unit of extra
+distance, the position moves along the heading and the heading does not
+change. The second is the effect of a small extra turn: per radian, the
+heading changes by $1$ and the position moves sideways by $s$,
+perpendicular to the heading (see below). So, to first order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
 =\varepsilon_s\,\frac{\partial f}{\partial s}+\varepsilon_\delta\,
 \frac{\partial f}{\partial\delta}$, a linear map of the Gaussian
 $\bepsilon_t$, whose covariance is
@@ -198,7 +198,75 @@ clouds bend.}
 \label{fig:transition}
 \end{figure}
 
-The sheet is easy to describe. Call $d=s+\varepsilon_s$ the distance
+\paragraph{Why a turn error moves the mower sideways.} The mower starts at
+$\p$ and drives a distance $s$ along the heading $\theta'$; its new
+position is
+\[
+  \p'=\p+s\begin{pmatrix}\cos\theta'\\\sin\theta'\end{pmatrix}.
+\]
+Change only the heading and keep $s$ fixed. Whatever $\theta'$ is, the end
+point stays at distance $s$ from $\p$, so as $\theta'$ varies it travels
+along the circle of radius $s$ centred at the start
+(\cref{fig:tangent}). The heading vector $(\cos\theta',\sin\theta')$ points
+along that circle's radius, and a point moving along a circle moves along
+the tangent, perpendicular to the radius. The derivative says the same:
+\[
+  \frac{\partial\p'}{\partial\theta'}=s\begin{pmatrix}-\sin\theta'\\
+  \cos\theta'\end{pmatrix},
+\]
+which is the heading $(\cos\theta',\sin\theta')$ rotated by $+90^\circ$
+and scaled by $s$: the dot product of the two unit vectors is
+$-\sin\theta'\cos\theta'+\cos\theta'\sin\theta'=0$. The factor $s$ is the arc length: an extra turn of
+$\Delta\theta$ moves the end point by $s\,\Delta\theta$ along the circle.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.4,>=Stealth]
+  \coordinate (P) at (0,0);
+  \def\s{3.4}\def\th{20}\def\dth{14}
+  \draw[black!30] (P) ++(-12:\s) arc[start angle=-12,end angle=58,
+    radius=\s];
+  \node[black!50,font=\small] at (60:\s+0.25) {circle of radius $s$};
+  \draw[->,thick,black!80] (P) -- (\th:\s) node[pos=0.55,below right=-1pt]
+    {$s$};
+  \draw[->,thick,blue!70!black] (P) -- (\th+\dth:\s);
+  \draw[->,black!70] (P) ++(\th:1.1) arc[start angle=\th,
+    end angle=\th+\dth,radius=1.1];
+  \node[font=\small] at ($(P)+({\th+\dth/2}:1.45)$) {$\Delta\theta$};
+  \fill (P) circle (1.5pt) node[below left] {$\p$};
+  \fill (\th:\s) circle (1.5pt);
+  \fill[blue!70!black] (\th+\dth:\s) circle (1.5pt);
+  \node[right=2pt,font=\small] at (\th:\s) {$\p'$};
+  % tangent at p', perpendicular to the radius
+  \draw[->,very thick,orange!85!black] (\th:\s) -- ++(\th+90:{\s*\dth*pi/180})
+    node[pos=1,above right=0pt and 3pt,font=\small,align=left]
+    {tangent, length $\approx s\,\Delta\theta$};
+  \draw[black!60] (\th:\s) ++(\th+180:0.22) -- ++(\th+90:0.22)
+    -- ++(\th:0.22);
+  \draw[dashed,black!40] (\th:\s) -- ++(\th:1.3) node[right,
+    font=\small,black!60] {heading};
+\end{tikzpicture}
+\caption{Turning by an extra $\Delta\theta$ and driving the same distance
+$s$ moves the end of the step along the circle of radius $s$ around the
+start. For a small $\Delta\theta$ the displacement is along the tangent,
+perpendicular to the heading (right angle), and has length about
+$s\,\Delta\theta$.}
+\label{fig:tangent}
+\end{figure}
+
+So a turn error does not move the mower further: that is the job of $s$,
+whose derivative $(\cos\theta',\sin\theta')$ points along the heading. It
+swings the end point sideways, and the farther the mower drives, the
+bigger the swing: a heading error of $\Delta\theta$ produces a sideways
+error of about $s\,\Delta\theta$. This is why, in a filter, heading
+uncertainty becomes an error band perpendicular to the direction of
+travel, which widens with the distance travelled: the banana of
+\cref{fig:transition}. For a large turn the tangent is no longer a good
+approximation: the end point also falls back along the heading, by
+$s(1-\cos\Delta\theta)\approx s\,\Delta\theta^2/2$, the second-order
+shortening of \cref{prop:deadreckoning}.
+
+The two-dimensional sheet of reachable poses is easy to describe. Call $d=s+\varepsilon_s$ the distance
 actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
 actually reached. The reachable poses are
 \[
