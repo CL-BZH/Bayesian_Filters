@@ -1,0 +1,70 @@
+\chapter{Notation and default values}
+\label{app:notation}
+
+\section*{Symbols}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{3.5cm}p{6.3cm}p{4.6cm}@{}}
+\toprule
+Symbol & Meaning & In the code\\
+\midrule
+$\x_t=(p^x_t,p^y_t,\theta_t)$ & pose at step $t$, $\theta\in[-\pi,\pi)$ &
+  \code{run.truth[t]}\\
+$\uu_t=(s_t,\delta_t)$ & control: turn by $\delta$, then drive $s$ &
+  \code{run.controls[t]}\\
+$\bepsilon_t\sim\Normal(\vect0,M)$ & control noise,
+  $M=\diag(\sigma_s^2,\sigma_\delta^2)$ & \code{world.motion\_cov}\\
+$f$, $F$, $V$ & motion model and its Jacobians & \code{motion\_model},
+  \code{motion\_jacobians}\\
+$\bell_j$ & position of landmark $j$ & \code{world.landmarks[j]}\\
+$h_j$, $H$ & range--bearing model and its Jacobian &
+  \code{range\_bearing}, \code{range\_bearing\_jacobian}\\
+$R_1=\diag(\sigma_r^2,\sigma_\phi^2)$ & noise of one range--bearing pair &
+  \code{world.range\_bearing\_cov}\\
+$\z_t$ & measurement taken at $\x_t$ & \code{run.z\_rb[t-1]}\\
+$\bel$, $\belbar$ & belief and predicted belief & \\
+$\hx$, $P$ / $\bx$, $\bar P$ & posterior / predicted mean and covariance &
+  \code{flt.mean}, \code{flt.cov}\\
+$\y$, $S$, $K$ & innovation, its covariance, gain & \\
+$\chi_j$, $W^{(m)}_j$, $W^{(c)}_j$ & sigma points and weights &
+  \code{sigma\_points}, \code{merwe\_weights}\\
+$\x^{(i)}$, $w^{(i)}$ & particle $i$ and its normalised weight &
+  \code{pf.particles}, \code{pf.weights}\\
+$\ESS$ & effective sample size & \code{effective\_sample\_size}\\
+$\NEES_t$ & $(\x_t-\hx_t)\T P_t^{-1}(\x_t-\hx_t)$ & \code{nees}\\
+$\wrap$ & reduction of an angle to $[-\pi,\pi)$ & \code{wrap\_angle}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Indexing}
+
+In the code, control \code{controls[t]} moves the mower from
+\code{truth[t]} to \code{truth[t+1]}, and the measurement arrays at index
+\code{t} (\code{z\_rb[t]}, \code{z\_gps[t]}, \code{z\_compass[t]}) are
+taken at \code{truth[t+1]}. A \code{FilterResult} follows the truth:
+\code{means[0]} is the initial belief and \code{means[t+1]} the belief
+after predicting with \code{controls[t]} and updating with measurement
+\code{t}.
+
+\section*{Default values of the simulated world}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Quantity & Value & \code{World} attribute\\
+\midrule
+lawn & $[-160,160]^2$ & \code{half\_width}, \code{half\_height}\\
+step length (commanded) & $4$ & (\code{figure\_eight\_control})\\
+turn per step (commanded) & $\pm\pi/50$ & \\
+step noise $\sigma_s$ & $0.4$ & \code{sigma\_step}\\
+turn noise $\sigma_\delta$ & $0.03$\,rad & \code{sigma\_turn}\\
+range noise $\sigma_r$ & $5$ & \code{sigma\_range}\\
+bearing noise $\sigma_\phi$ & $0.05$\,rad & \code{sigma\_bearing}\\
+GPS noise $\sigma_{\mathrm{gps}}$ & $8$ & \code{sigma\_gps}\\
+compass noise $\sigma_c$ & $0.02$\,rad & \code{sigma\_compass}\\
+sensor range & unlimited (110 in some scenarios) & \code{max\_range}\\
+\bottomrule
+\end{tabular}
+\end{center}

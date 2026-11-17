@@ -9,6 +9,18 @@ them run on **the same simulated world and the same data**, so they can be compa
 |---|---|
 | ![particle filter, global localisation](docs/media/pf_global_localisation.gif) | ![kidnapped mower, EKF vs PF](docs/media/kidnapped_ekf_vs_pf.gif) |
 
+## The book
+
+[`book/main.pdf`](book/main.pdf) is the theory behind the notebooks: one chapter per notebook,
+with complete derivations and proofs, an *In words* box after each important result, and exercises
+with full solutions. It covers the state-space model, the Bayes and grid filters, Gaussian
+conditioning and the Kalman filter (information and Joseph forms, Riccati steady state, NEES), the
+EKF (linearisation bias, the update as a Gauss–Newton step, data association), the UKF (accuracy of
+the unscented transform, the update as statistical linear regression), and the particle filter
+(importance sampling, ESS, resampling variance, augmented MCL, mode collapse as genetic drift).
+The LaTeX sources are in `book/`; `make book` compiles it and `make figures` regenerates its
+figures from the `bayesian_filters` package, with the notebooks' random seeds.
+
 ## The notebooks
 
 Read them in order. Each one derives its filter, implements it, and tests it on the mower.
@@ -45,6 +57,7 @@ with the non-linearity, and the particle filter when the belief can be multimoda
 pip install -r requirements.txt
 jupyter lab notebooks/          # the notebooks add the repo root to sys.path themselves
 python -m pytest                # 18 tests: Jacobians, unscented transform, filter accuracy and consistency
+make book                       # compiles book/main.pdf (needs a TeX Live install with latexmk)
 ```
 
 Live demo, drawn with Python's `turtle` graphics module (needs Tk, e.g.

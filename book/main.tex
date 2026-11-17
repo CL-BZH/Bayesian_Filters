@@ -1,0 +1,33 @@
+\documentclass[11pt,oneside]{book}
+\input{preamble}
+
+\title{\textbf{Bayesian Filtering for Robot Localisation}\\[0.5em]
+  \large From the Bayes filter to Kalman and particle filters\\
+  \large Theory, derivations and Python practicals}
+\author{}
+\date{Draft --- November 2026}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+\include{chapters/00-preface}
+\part{Foundations}
+\include{chapters/01-state-space}
+\include{chapters/02-bayes-filter}
+\part{Gaussian filters}
+\include{chapters/03-kalman}
+\include{chapters/04-ekf}
+\include{chapters/05-ukf}
+\part{Sampling and synthesis}
+\include{chapters/06-particle}
+\include{chapters/07-choosing}
+
+\appendix
+\include{chapters/A-notation}
+
+\backmatter
+\include{chapters/references}
+\end{document}

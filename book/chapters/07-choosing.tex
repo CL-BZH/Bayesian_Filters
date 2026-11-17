@@ -1,0 +1,250 @@
+\chapter{Choosing a filter}
+\label{ch:choosing}
+
+All the filters of this book have now run on the same mower and the same
+data. This chapter collects the results of the showdown notebook, draws
+the practical conclusions, and closes with the bridge from filtering to
+the smoothing view used by modern localisation and mapping systems.
+
+\section{The showdown}
+
+Each scenario is repeated over several random seeds. A filter is
+\emph{lost} when its median position error over the last 50 steps exceeds
+10 units. The EKF, UKF and particle filter use the range--bearing sensor;
+the KF uses the compass and the GPS (Chapter~\ref{ch:kalman}), so its
+numbers measure a different sensor suite.
+
+\paragraph{Tracking.} A good initial estimate, drawn from
+$\Normal(\x_0,P_0)$, four landmarks always visible and identified, 10
+runs:
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& RMSE & mean NEES & ms/step & lost\\
+\midrule
+KF (compass + GPS) & 2.03 & 1.85 ($n=2$) & 0.03 & 0/10\\
+EKF & 1.20 & 3.11 & 0.09 & 0/10\\
+UKF & 1.20 & 3.11 & 0.14 & 0/10\\
+PF ($N=1000$) & 1.28 & 3.00 & 0.70 & 0/10\\
+\bottomrule
+\end{tabular}
+\end{center}
+The three landmark filters are equally accurate and all consistent. The
+EKF is the cheapest. This is the common case, and the EKF is the right
+tool for it.
+
+\paragraph{Uncertain start.} $\sigma_{xy}=30$, $\sigma_\theta=0.8$, sensor
+range 110, 10 runs; the particle filter starts from the uniform prior
+over the lawn and needs no guess at all:
+\begin{center}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+& RMSE & mean NEES (after step 20) & lost\\
+\midrule
+EKF & 1.98 & 3.2 & 0/10\\
+UKF & 1.97 & 3.1 & 0/10\\
+PF ($N=5000$, uniform prior) & 2.29 & 11.5 & 0/10\\
+\bottomrule
+\end{tabular}
+\end{center}
+Everybody converges. The EKF's over-confident transient
+(\cref{fig:ekftransient}) is over by step 20. The particle filter, starting
+from nothing, takes longer to settle, and its NEES of $11.5$ (against $3$)
+is the price of sample impoverishment: after the first update collapsed
+the cloud (\cref{fig:global}), the particles are too few and too alike,
+and the cloud claims more precision than it has.
+
+\paragraph{Kidnapped, landmarks identified.} At step 200 the mower is
+moved to $(100,-100)$ and turned to face west; 8 runs. Steps until the
+error stays below 10:
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+& median & all runs\\
+\midrule
+EKF & 64 & 107, 119, 29, 61, 82, 58, 21, 67\\
+UKF & 64 & identical to the EKF\\
+PF (augmented MCL) & 15 & 13, 76, 15, 14, 15, 8, 25, 24\\
+\bottomrule
+\end{tabular}
+\end{center}
+A surprise: the Kalman filters \emph{do} recover, every time, but slowly.
+With every landmark identified, each measurement is close to a full
+position fix, and the likelihood has a single peak. Even a wildly wrong
+Gaussian is pulled towards it, step after step. The pull is slow because
+the covariance is small (the filter was confident before the kidnapping),
+so the filter keeps trusting its prediction and moves only a little at
+each update. The particle filter re-samples the lawn and jumps to the new
+pose in a few steps. The real lesson is that \emph{identified landmarks
+make the problem unimodal}, the situation in which a Gaussian filter is
+at home.
+
+\paragraph{Unknown data association.} The EKF uses nearest-neighbour
+association (\cref{sec:ekf-association}); the particle filter, the
+mixture likelihood with augmented MCL (\cref{sec:pf-association,sec:amcl});
+8 runs per case:
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+& EKF (nearest neighbour) & PF (mixture + recovery)\\
+\midrule
+uncertain start ($\sigma_{xy}=80$, any heading) & lost 4/8 & lost 0/8\\
+kidnapped & lost 6/8 & lost 0/8\\
+\bottomrule
+\end{tabular}
+\end{center}
+Without identities the EKF is fragile. Once its estimate is off by more
+than about half the spacing of the landmarks, it associates measurements
+with the wrong landmarks, each wrong update pulls it further away and
+shrinks its covariance, and it rarely comes back. The particle filter
+never commits to an association and, with random injection, finds the
+mower again after a kidnapping.
+
+\section{Scorecard}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{3.3cm}p{2.2cm}p{2.6cm}p{2.6cm}p{2.9cm}@{}}
+\toprule
+& KF & EKF & UKF & PF\\
+\midrule
+needs & linear models & Jacobians & model evaluations &
+  a likelihood to evaluate\\
+tracking & good & good, cheapest & good & good, $\sim8\times$ the cost\\
+uncertain start & --- & converges, over-confident at first &
+  converges, consistent & no guess needed; slower, over-confident cloud\\
+kidnapped, identified landmarks & --- & recovers slowly & recovers
+  slowly & recovers fast (injection)\\
+unknown association & --- & often lost & (same problem) & recovers\\
+multimodal belief & no & no & no & yes, but modes can die\\
+cost per step & $O(n^3)$ & $O(n^3)$ & $O(n^3)$, $2n+1$ points &
+  $O(N)$, $N$ grows fast with $n$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{inwords}
+Use the EKF when the belief is roughly Gaussian and the models are smooth;
+check its Jacobians by finite differences. Use the UKF when the
+uncertainty is large compared with the curvature of the models, or when
+the Jacobians are painful. Use the particle filter when the belief can be
+multimodal (global localisation, ambiguous or unidentified landmarks,
+kidnapping) and the state is low-dimensional. Whatever the filter,
+test its consistency (NEES in simulation, NIS on real data), not only its
+accuracy.
+\end{inwords}
+
+\section{From filtering to smoothing}
+
+All the filters of this book estimate the \emph{current} state and then
+forget the past. For a linear-Gaussian model that loses nothing.
+
+\begin{proposition}{The Kalman filter solves a least-squares problem}{batch}
+For the linear-Gaussian model of \cref{def:lgmodel}, the trajectory
+$\x^\star_{0:T}$ that minimises
+\[
+  J(\x_{0:T})=\tfrac12\norm{\x_0-\hx_0}_{P_0}^2+\tfrac12\sum_{t=0}^{T-1}
+  \norm{\x_{t+1}-F_t\x_t-B_t\uu_t}_{Q_t}^2+\tfrac12\sum_{t=1}^T
+  \norm{\z_t-H_t\x_t}_{R_t}^2
+\]
+has $\x^\star_T=\hx_T$, the Kalman filter's estimate at time $T$.
+\end{proposition}
+
+\begin{proof}
+By \cref{prop:joint}, $-\log p(\x_{0:T}\mid\z_{1:T},\uu)=J(\x_{0:T})
++\text{const}$, and $J$ is a positive definite quadratic, so the posterior
+over the whole trajectory is Gaussian and its mode $\x^\star_{0:T}$ is its
+mean. The mean of a marginal is the marginal of the mean, so
+$\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
+$\bel(\x_T)$: $\hx_T$ by \cref{thm:kf}.
+\end{proof}
+
+In the non-linear case the equivalence breaks. The EKF linearises each
+measurement once, at the estimate available \emph{at that time}, and
+never revisits that decision, even after later measurements have shown the
+estimate to be wrong. The minimiser of the same cost $J$ with $f$ and $h$
+non-linear can instead be found by Gauss--Newton over the whole
+trajectory, re-linearising \emph{every} past state at each iteration;
+\cref{prop:gaussnewton} is the one-state, one-iteration special case. This
+is \emph{smoothing}, and it is the basis of modern localisation and
+mapping (SLAM): the cost is a sum of small terms, each involving a few
+variables (\cref{prop:joint}), so its Hessian is sparse, and the problem
+can be drawn as a \emph{factor graph} and solved efficiently even with
+thousands of poses. Filtering remains the right tool when only the current
+state matters and the models are nearly linear over the uncertainty, or
+when the belief is multimodal and a particle filter is needed; smoothing
+when the past can still be corrected and the cost of keeping it is
+affordable.
+
+\begin{practice}[\nb{06\_showdown.ipynb}]
+The notebook runs the four scenarios above with every filter, prints the
+tables of this chapter and plots the error curves of the kidnapping and
+unknown-association runs. \code{run\_filter} drives any filter of the
+package over a \code{Run} and records its means, covariances and timing,
+so a new filter only needs \code{predict}, \code{update}, \code{mean} and
+\code{cov} to join the comparison.
+\end{practice}
+
+\begin{mower}
+A practical mower uses several of these filters at once. An EKF (or UKF)
+fuses wheel odometry, an IMU and RTK-GNSS for smooth, cheap tracking;
+its NIS is monitored, and when it fails, or when a lift sensor reports a
+kidnapping, a particle filter re-localises the mower against a map before
+handing a Gaussian back to the EKF. Mapping the garden in the first
+place, or localising with a camera, is a smoothing problem.
+\end{mower}
+
+\FloatBarrier
+\section*{Exercises}
+\addcontentsline{toc}{section}{Exercises}
+
+\begin{enumerate}[label=\textbf{7.\arabic*},ref=7.\arabic*]
+\item\label{ex:smoothvar} For the scalar random walk of
+  \cref{prop:steady}, compare the variance of the filtered estimate
+  $\hat x_t$ in steady state with that of the smoothed estimate of
+  $x_t$ given measurements on both sides, far from the ends. Use the
+  information form: what does the measurement at $t+1$ add?
+\item\label{ex:addfilter} Describe the smallest change to the package
+  that adds an iterated EKF (\cref{prop:gaussnewton}) to the showdown.
+  Which scenario would you expect it to improve, and which not?
+\item\label{ex:hybrid} Design a hybrid filter: a particle filter that
+  hands over to an EKF once its cloud is unimodal, and back when the NIS
+  of the EKF leaves its band. What statistic of the cloud would you use to
+  decide that it is ``unimodal enough''?
+\end{enumerate}
+
+\subsection*{Solutions}
+
+\textbf{7.1.} The filtered variance in steady state is
+$P_\infty=\bar P_\infty-q$ (\cref{prop:steady}). The smoothed estimate
+combines two independent sources of information about $x_t$: the past
+(the filter, variance $P_\infty$, including $z_t$) and the future (a
+backward filter that has not seen $z_t$; by time-reversal symmetry of the
+random walk, its prediction of $x_t$ has variance $\bar P_\infty$).
+Information adds (\cref{prop:information}):
+$1/P^{\mathrm{s}}=1/P_\infty+1/\bar P_\infty$. With $q=0.16$ and $r=64$:
+$P_\infty=3.12$, $\bar P_\infty=3.28$, and $P^{\mathrm s}=1.60$: the
+smoother halves the variance, because it uses about as many measurements
+from the future as the filter uses from the past.
+
+\textbf{7.2.} Add a class \code{IEKF} that subclasses \code{EKF} and
+overrides \code{update} to iterate \eqref{eq:iekf} from $\x_0=\bx$ until
+the step is small, using the covariance $(I-K_iH_i)\bar P$ of the last
+iterate; then add it to the list of filters in the notebook. It should
+improve the uncertain start (it re-linearises at a better point, reducing
+the over-confidence of \cref{fig:ekftransient}) and possibly the
+identified kidnapping. It will not fix unknown data association: the
+association is decided before the iterations and stays wrong, and the
+belief is still a single Gaussian.
+
+\textbf{7.3.} One possible design: compute the weighted mean and
+covariance of the cloud, and the fraction of the weight within a
+Mahalanobis distance $\chi^2_3(0.99)$ of the mean. If that fraction is
+above, say, $0.99$ for several consecutive steps and the cloud's NEES-like
+spread is stable, initialise the EKF with the cloud's mean and covariance
+and stop the particle filter. When the EKF's NIS exceeds its band for
+several steps (or a lift sensor fires), re-initialise the particle filter,
+globally or from a wide Gaussian around the EKF's estimate. A
+covariance-based test can miss two close modes; clustering the particles
+(e.g.\ with a few iterations of $k$-means with $k=2$) is a more reliable,
+if costlier, check.

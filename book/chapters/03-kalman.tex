@@ -1,0 +1,390 @@
+\chapter{The Kalman filter}
+\label{ch:kalman}
+
+If the motion and sensor models are linear and every noise is Gaussian,
+the Bayes filter has an exact, closed-form solution: a Gaussian belief
+stays Gaussian, and only its mean and covariance need to be carried
+forward. That solution is the Kalman filter. This chapter derives it from
+two facts about Gaussians, applies it to a mower made linear by a compass,
+and introduces the tool used throughout the rest of the book to decide
+whether a filter is \emph{honest}: the NEES test.
+
+\section{Two facts about Gaussians}
+
+\begin{definition}{Multivariate Gaussian}{gaussian}
+A random vector $X\in\R^n$ is Gaussian, $X\sim\Normal(\bmu,\Sigma)$ with
+$\Sigma$ symmetric positive semi-definite, if every linear combination
+$\vect{a}\T X$ is a (possibly degenerate) Gaussian with mean
+$\vect{a}\T\bmu$ and variance $\vect{a}\T\Sigma\vect{a}$. When $\Sigma$ is
+positive definite it has the density
+\[
+  \Normal(\x;\bmu,\Sigma)=\det(2\pi\Sigma)^{-1/2}
+  \exp\bigl(-\tfrac12(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)\bigr).
+\]
+\end{definition}
+
+\begin{lemma}{Affine maps and sums}{affine}
+If $X\sim\Normal(\bmu,\Sigma)$, then $AX+\vect{b}\sim\Normal(A\bmu+\vect{b},
+A\Sigma A\T)$. If moreover $W\sim\Normal(\vect0,Q)$ is independent of
+$X$, then $AX+\vect{b}+W\sim\Normal(A\bmu+\vect{b},A\Sigma A\T+Q)$.
+\end{lemma}
+
+\begin{proof}
+For any $\vect{a}$, $\vect{a}\T(AX+\vect{b})=(A\T\vect{a})\T X+\vect{a}\T
+\vect{b}$ is Gaussian with mean $\vect{a}\T(A\bmu+\vect{b})$ and variance
+$\vect{a}\T A\Sigma A\T\vect{a}$. For the sum, $(X,W)$ is jointly Gaussian
+(independent Gaussians), and $AX+\vect{b}+W=[A\ \,I](X,W)\T+\vect{b}$ is an
+affine map of it; its covariance is $A\Sigma A\T+Q$ because the cross
+covariance of $X$ and $W$ is zero.
+\end{proof}
+
+\begin{theorem}{Conditioning a Gaussian}{conditioning}
+Let $(X,Y)$ be jointly Gaussian,
+\[
+  \begin{pmatrix}X\\Y\end{pmatrix}\sim\Normal\left(
+  \begin{pmatrix}\bmu_x\\\bmu_y\end{pmatrix},
+  \begin{pmatrix}\Sigma_{xx}&\Sigma_{xy}\\\Sigma_{yx}&\Sigma_{yy}
+  \end{pmatrix}\right),\qquad\Sigma_{yy}\succ0.
+\]
+Then, given $Y=\y$,
+\[
+  X\mid Y=\y\;\sim\;\Normal\bigl(\bmu_x+\Sigma_{xy}\Sigma_{yy}^{-1}
+  (\y-\bmu_y),\;\Sigma_{xx}-\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}\bigr).
+\]
+\end{theorem}
+
+\begin{proof}
+Let $K=\Sigma_{xy}\Sigma_{yy}^{-1}$ and $E=X-\bmu_x-K(Y-\bmu_y)$. The pair
+$(E,Y)$ is an affine map of $(X,Y)$, hence jointly Gaussian, and
+\[
+  \Cov(E,Y)=\Sigma_{xy}-K\Sigma_{yy}=0 .
+\]
+Uncorrelated jointly Gaussian vectors are independent (their joint
+characteristic function factorises), so $E$ is independent of $Y$ and
+$E\sim\Normal(\vect0,\Sigma_{xx}-K\Sigma_{yx})$ by \cref{lem:affine}
+(expand $\Cov(E)=\Sigma_{xx}-K\Sigma_{yx}-\Sigma_{xy}K\T+K\Sigma_{yy}K\T$
+and use $K\Sigma_{yy}=\Sigma_{xy}$). Writing
+$X=\bmu_x+K(Y-\bmu_y)+E$, conditioning on $Y=\y$ fixes the second term
+and leaves the distribution of $E$ unchanged.
+\end{proof}
+
+\begin{inwords}
+Knowing $Y$ shifts our guess of $X$ by ``gain $\times$ surprise'': the
+surprise is how far $\y$ is from what we expected, and the gain
+$\Sigma_{xy}\Sigma_{yy}^{-1}$ is the regression coefficient of $X$ on $Y$.
+The uncertainty shrinks by the part of $X$ that $Y$ explains, and does not
+depend on the value $\y$ at all.
+\end{inwords}
+
+\section{The filter}
+
+\begin{definition}{Linear-Gaussian model}{lgmodel}
+\begin{align*}
+  \x_{t+1}&=F_t\x_t+B_t\uu_t+\w_t, & \w_t&\sim\Normal(\vect0,Q_t),\\
+  \z_{t}&=H_t\x_t+\vv_t, & \vv_t&\sim\Normal(\vect0,R_t),
+\end{align*}
+with $\x_0\sim\Normal(\hx_0,P_0)$ and all noises independent of each
+other and of $\x_0$.
+\end{definition}
+
+\begin{theorem}{Kalman filter}{kf}
+Under \cref{def:lgmodel}, every belief is Gaussian,
+$\bel(\x_t)=\Normal(\hx_t,P_t)$, and $\belbar(\x_{t+1})=
+\Normal(\bx_{t+1},\bar P_{t+1})$, with
+\begin{align}
+  &\textbf{predict:} & \bx_{t+1}&=F_t\hx_t+B_t\uu_t, &
+  \bar P_{t+1}&=F_tP_tF_t\T+Q_t, \label{eq:kfpredict}\\
+  &\textbf{update:} & \y&=\z_{t+1}-H\bx_{t+1}, & S&=H\bar P_{t+1}H\T+R,
+  \notag\\
+  && K&=\bar P_{t+1}H\T S^{-1}, & \hx_{t+1}&=\bx_{t+1}+K\y,\quad
+  P_{t+1}=(I-KH)\bar P_{t+1}, \label{eq:kfupdate}
+\end{align}
+where $H$ and $R$ are taken at time $t+1$.
+\end{theorem}
+
+\begin{proof}
+By induction on $t$; $\bel(\x_0)$ is Gaussian by assumption. If
+$\bel(\x_t)=\Normal(\hx_t,P_t)$, then conditionally on the past data
+$\x_{t+1}=F_t\x_t+B_t\uu_t+\w_t$ with $\w_t$ independent of $\x_t$ and
+of the past, so \cref{lem:affine} gives \eqref{eq:kfpredict}. Next, still
+conditionally on the past, $\z_{t+1}=H\x_{t+1}+\vv_{t+1}$ with
+$\vv_{t+1}$ independent of $\x_{t+1}$, so $(\x_{t+1},\z_{t+1})$ is
+jointly Gaussian (an affine image of the independent Gaussians
+$\x_{t+1}$ and $\vv_{t+1}$) with
+\[
+  \bmu_y=H\bx,\quad\Sigma_{xy}=\Cov(\x,H\x+\vv)=\bar PH\T,\quad
+  \Sigma_{yy}=H\bar PH\T+R=S .
+\]
+\Cref{thm:conditioning} gives the mean $\bx+\bar PH\T S^{-1}(\z-H\bx)$ and
+the covariance $\bar P-\bar PH\T S^{-1}H\bar P=(I-KH)\bar P$.
+\end{proof}
+
+The quantity $\y$ is the \emph{innovation}: what the measurement says that
+the prediction did not. Its covariance is $S$ (Exercise~\ref{ex:innov}).
+In one dimension with $H=1$, the gain is $K=\bar P/(\bar P+R)$: the
+update is a weighted average of prediction and measurement, with weights
+inversely proportional to their variances, and the posterior precision is
+the sum of the two precisions, $1/P=1/\bar P+1/R$. That last fact holds in
+any dimension.
+
+\begin{proposition}{Information form}{information}
+If $\bar P$ and $R$ are invertible, then
+\[
+  P^{-1}=\bar P^{-1}+H\T R^{-1}H\qquad\text{and}\qquad K=PH\T R^{-1}.
+\]
+\end{proposition}
+
+\begin{proof}
+Multiply $P=\bar P-\bar PH\T S^{-1}H\bar P$ by
+$\bar P^{-1}+H\T R^{-1}H$:
+\begin{align*}
+  P(\bar P^{-1}+H\T R^{-1}H)
+  &=I+\bar PH\T R^{-1}H-\bar PH\T S^{-1}H-\bar PH\T S^{-1}H\bar PH\T
+    R^{-1}H\\
+  &=I+\bar PH\T\bigl[R^{-1}-S^{-1}-S^{-1}(S-R)R^{-1}\bigr]H=I,
+\end{align*}
+using $H\bar PH\T=S-R$. For the gain,
+$PH\T R^{-1}=\bar PH\T R^{-1}-\bar PH\T S^{-1}(S-R)R^{-1}=\bar PH\T
+S^{-1}=K$.
+\end{proof}
+
+\begin{inwords}
+Information (inverse covariance) adds: what we knew, plus what the
+measurement tells, and the measurement's contribution $H\T R^{-1}H$ does
+not depend on what we knew. It also shows that an update can only reduce
+the uncertainty, in every direction, and that a direction the sensor does
+not see (in the null space of $H$) keeps its prior uncertainty.
+\end{inwords}
+
+\begin{proposition}{Joseph form}{joseph}
+For \emph{any} gain $K$, the error of the estimate
+$\hx=\bx+K(\z-H\bx)$ has covariance
+\begin{equation}\label{eq:joseph}
+  P_K=(I-KH)\bar P(I-KH)\T+KRK\T,
+\end{equation}
+which is positive semi-definite. For the Kalman gain it equals
+$(I-KH)\bar P$.
+\end{proposition}
+
+\begin{proof}
+$\x-\hx=(I-KH)(\x-\bx)-K\vv$, a combination of two independent
+zero-mean terms with covariances $\bar P$ and $R$; \cref{lem:affine} gives
+\eqref{eq:joseph}, a sum of two positive semi-definite matrices. Expanding,
+$P_K=\bar P-KH\bar P-\bar PH\T K\T+KSK\T$. With $K=\bar PH\T S^{-1}$ the
+last term is $\bar PH\T K\T$ and cancels the third.
+\end{proof}
+
+The short form $(I-KH)\bar P$ is the difference of two positive
+semi-definite matrices; rounding errors can make it slightly asymmetric
+or indefinite, and the next update may then fail. The Joseph form is a sum
+of positive semi-definite terms and does not have that problem, which is
+why the code uses it. It also gives the true error covariance when the
+gain is wrong, for instance because the filter was given the wrong $R$
+(Exercise~\ref{ex:wrongR}).
+
+\section{A linear mower}
+
+The pose model of Chapter~\ref{ch:statespace} is not linear: the heading
+enters through $\cos$ and $\sin$. We make it linear honestly, with the
+compass. Let $h_t$ be the compass reading taken after the turn. With the
+heading read off the compass, the displacement is a \emph{known input},
+and the position obeys
+\begin{equation}\label{eq:linmower}
+  \p_{t+1}=\p_t+s_t\begin{pmatrix}\cos h_t\\\sin h_t\end{pmatrix}+\w_t,
+  \qquad\z_{t+1}=\p_{t+1}+\vv_{t+1},
+\end{equation}
+so $F=B=H=I$ and $R=\sigma_{\mathrm{gps}}^2I$. The true displacement is
+$(s_t+\varepsilon_s)(\cos\theta_t,\sin\theta_t)$ with
+$\theta_t=h_t-\nu_t$, and to first order in the noises
+\[
+  \w_t\approx G_t\begin{pmatrix}\varepsilon_s\\-\nu_t\end{pmatrix},\quad
+  G_t=\begin{pmatrix}\cos h_t&-s_t\sin h_t\\\sin h_t&s_t\cos h_t
+  \end{pmatrix},\qquad
+  Q_t=G_t\diag(\sigma_s^2,\sigma_c^2)\,G_t\T .
+\]
+$Q_t$ is long along the heading (step noise) and thin across it (compass
+noise), and it turns with the mower. A time-varying $Q_t$ is no problem:
+nothing in \cref{thm:kf} needs it to be constant.
+
+On the standard run, the filter's RMS error is $2.14$, against $11.3$ for
+the raw GPS fixes: filtering divides the error by about five.
+
+\section{The gain settles}
+
+$P_t$ and $K_t$ do not depend on the measurements: only on $F,H,Q,R$ and
+$P_0$. For a time-invariant model the predicted covariance obeys the
+\emph{Riccati recursion} $\bar P\mapsto F\bigl(\bar P-\bar PH\T(H\bar PH\T
++R)^{-1}H\bar P\bigr)F\T+Q$, which converges, under mild conditions
+(detectability and stabilisability), to a unique fixed point.
+
+\begin{proposition}{Steady state of a random walk observed in noise}{steady}
+For the scalar model $x_{t+1}=x_t+w_t$, $z_t=x_t+v_t$ with variances $q>0$
+and $r>0$, the steady-state predicted and updated variances are
+\[
+  \bar P_\infty=\frac{q+\sqrt{q^2+4qr}}2,\qquad
+  P_\infty=\frac{\bar P_\infty r}{\bar P_\infty+r}=\bar P_\infty-q .
+\]
+\end{proposition}
+
+\begin{proof}
+At a fixed point, $\bar P=P+q$ and $P=\bar Pr/(\bar P+r)$. Hence
+$\bar P(\bar P+r)=\bar Pr+q(\bar P+r)$, i.e.\
+$\bar P^2-q\bar P-qr=0$, whose positive root is the formula. Convergence
+from any $\bar P_0>0$ follows because the map $\bar P\mapsto
+\bar Pr/(\bar P+r)+q$ is increasing and concave, with derivative
+$r^2/(\bar P+r)^2<1$ at the fixed point.
+\end{proof}
+
+Along the heading, $q=\sigma_s^2=0.16$ and $r=64$ give $P_\infty=3.12$;
+across it, $q=s^2\sigma_c^2=0.0064$ gives $P_\infty=0.64$. If the heading
+were constant, the RMS error would therefore settle at
+$\sqrt{3.12+0.64}=1.94$. Because the heading turns, the long axis of $Q_t$
+rotates and the two directions mix; the filter's own covariance settles
+around $\operatorname{tr}P\approx4.4$, i.e.\ an RMS of $2.1$, and the
+measured RMS error over 20 runs is $2.10$. The filter's covariance is
+telling the truth, which is the subject of the next section.
+
+\section{Is the filter honest? NEES}
+
+A small error is not enough: the filter must also \emph{know} how large
+its error is, because its covariance is what the next update, and every
+decision downstream, relies on.
+
+\begin{definition}{NEES}{nees}
+The \emph{normalised estimation error squared} at time $t$ is
+\[
+  \NEES_t=(\x_t-\hx_t)\T P_t^{-1}(\x_t-\hx_t).
+\]
+\end{definition}
+
+\begin{proposition}{NEES of a consistent filter}{neeschi2}
+If $\x_t-\hx_t\sim\Normal(\vect0,P_t)$ with $P_t\succ0$ in $\R^n$, then
+$\NEES_t\sim\chi^2_n$, so $\E[\NEES_t]=n$. If $\NEES^{(1)},\dots,
+\NEES^{(N)}$ are the values from $N$ independent runs, then
+$N\cdot\frac1N\sum_k\NEES^{(k)}\sim\chi^2_{nN}$.
+\end{proposition}
+
+\begin{proof}
+Let $L$ with $LL\T=P_t$ (Cholesky). Then $\vect{g}=L^{-1}(\x_t-\hx_t)\sim
+\Normal(\vect0,L^{-1}P_tL^{-\mathsf T})=\Normal(\vect0,I)$ by
+\cref{lem:affine}, and $\NEES_t=\vect{g}\T\vect{g}$ is a sum of $n$
+squared independent standard normals: $\chi^2_n$, of mean $n$. Sums of
+independent $\chi^2$ variables are $\chi^2$ with the degrees of freedom
+added.
+\end{proof}
+
+A two-sided $95\%$ acceptance band for the average NEES over $N$ runs is
+therefore
+\[
+  \bigl[\chi^2_{nN}(0.025),\;\chi^2_{nN}(0.975)\bigr]\big/N,
+\]
+where $\chi^2_k(p)$ is the $p$-quantile of $\chi^2_k$. Above it, the
+filter is \emph{over-confident}: it claims more precision than it has.
+Below it, it is \emph{pessimistic}. For the test to be fair, the initial
+estimate must itself be drawn from the initial belief,
+$\hx_0\sim\Normal(\x_0,P_0)$; starting exactly at the truth with a large
+$P_0$ would make the first steps look pessimistic.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch03_kf_nees.pdf}
+\caption{Average NEES over 50 runs (log scale) for the compass--GPS
+Kalman filter; grey: the $95\%$ band for $n=2$. Left: the correct $R$,
+inside the band. Middle: the filter believes the GPS is 4 times more
+precise than it is: over-confident by an order of magnitude. Right: it
+believes the GPS is 4 times worse: pessimistic.}
+\label{fig:kfnees}
+\end{figure}
+
+\begin{inwords}
+NEES asks: ``are the errors as big as the filter says they are?'' A
+filter that believes its sensor too much is jumpy \emph{and} certain; one
+that believes it too little is sluggish and doubtful. NEES needs the
+truth, so it is a simulation tool. On real data the same idea is applied
+to the innovations: for a correct filter $\y\T S^{-1}\y\sim\chi^2_{\dim\z}$
+(the \emph{NIS} test), and that one only needs the data.
+\end{inwords}
+
+\begin{practice}[\nb{02\_kalman\_filter.ipynb}, \code{kf.py}, \code{metrics.py}]
+\code{KalmanFilter} is the generic filter of \cref{thm:kf}, with the
+Joseph update; \code{CompassGpsKF} builds $Q_t$ from the compass reading
+at each step. \code{nees} and \code{nees\_bounds} implement
+\cref{def:nees} and the $\chi^2$ band. The notebook checks the scalar
+example $\Normal(0,4)$ updated by a measurement $2$ of variance $1$
+(posterior $\Normal(8/5,4/5)$, gain $0.8$), shows the gain settling, and
+reproduces \cref{fig:kfnees}.
+\end{practice}
+
+\begin{mower}
+Wheel odometry plus RTK-GNSS is exactly this filter, and a common design
+for robot mowers. RTK fixes are accurate to about 2\,cm with an open sky,
+but degrade near trees and walls, sometimes without warning. A filter
+with a fixed, optimistic $R$ is then the middle panel of
+\cref{fig:kfnees}: it follows a bad fix with full confidence. Monitoring
+the NIS and inflating $R$ (or rejecting the fix) when it leaves its band
+is a cheap and effective guard.
+\end{mower}
+
+\FloatBarrier
+\section*{Exercises}
+\addcontentsline{toc}{section}{Exercises}
+
+\begin{enumerate}[label=\textbf{3.\arabic*},ref=3.\arabic*]
+\item\label{ex:innov} Show that, for the Kalman filter, the innovation
+  $\y=\z-H\bx$ has mean zero and covariance $S$, and that it is
+  uncorrelated with the predicted error $\x-\bx$ \emph{after} the update,
+  i.e.\ $\Cov(\x-\hx,\y)=0$.
+\item\label{ex:fusion} Two independent sensors measure the same scalar,
+  with variances $r_1$ and $r_2$, and there is no prior ($\bar P=\infty$).
+  Using \cref{prop:information}, show that the optimal estimate is the
+  inverse-variance weighted average and give its variance. What happens
+  when $r_2\to\infty$?
+\item\label{ex:steadynum} Use \cref{prop:steady} to compute the
+  steady-state gain $K_\infty=\bar P_\infty/(\bar P_\infty+r)$ along the
+  heading for the mower ($q=0.16$, $r=64$). How many past GPS fixes does
+  the filter effectively average?
+\item\label{ex:wrongR} A Kalman filter is run with a wrong measurement
+  covariance $R'$ while the true one is $R$. Show that the covariance it
+  reports and the covariance of its actual error both follow the Riccati
+  recursion, but with different matrices, and write the recursion for the
+  actual error covariance. Explain the middle panel of
+  \cref{fig:kfnees}.
+\end{enumerate}
+
+\subsection*{Solutions}
+
+\textbf{3.1.} $\y=H(\x-\bx)+\vv$; both terms have mean zero given the
+past, and they are independent, so $\Cov(\y)=H\bar PH\T+R=S$. After the
+update, $\x-\hx=(\x-\bx)-K\y$, so
+$\Cov(\x-\hx,\y)=\Cov(\x-\bx,\y)-K\Cov(\y)=\bar PH\T-KS=0$ for the Kalman
+gain. The updated error is uncorrelated with (hence, being Gaussian,
+independent of) the innovation: the filter has extracted everything the
+measurement had to say.
+
+\textbf{3.2.} Stack the two measurements: $H=(1,1)\T$,
+$R=\diag(r_1,r_2)$, $\bar P^{-1}=0$. Then
+$P^{-1}=H\T R^{-1}H=1/r_1+1/r_2$ and
+$\hat x=PH\T R^{-1}\z=P(z_1/r_1+z_2/r_2)$: the inverse-variance weighted
+average, with variance $r_1r_2/(r_1+r_2)$, smaller than both. When
+$r_2\to\infty$ the second sensor gets weight zero and $\hat x\to z_1$,
+$P\to r_1$: a useless sensor is ignored, never harmful.
+
+\textbf{3.3.} $\bar P_\infty=(0.16+\sqrt{0.0256+40.96})/2=3.28$, so
+$K_\infty=3.28/67.28=0.049$. In steady state
+$\hat x_t=(1-K)\hat x_{t-1}+Kz_t$ (plus the known displacement): an
+exponential moving average with weights $K(1-K)^k$. Its effective memory
+is $1/K\approx20$ fixes, and the variance of an average of $m$
+independent fixes, $64/m$, equals $P_\infty=3.12$ for $m\approx20$.
+
+\textbf{3.4.} The filter computes its gains from its own recursion,
+$\bar P'\mapsto F(\bar P'-\bar P'H\T(H\bar P'H\T+R')^{-1}H\bar P')F\T+Q$,
+which uses $R'$ and is what it reports. Its actual error obeys
+$\x-\hx=(I-K'H)(\x-\bx)-K'\vv$ with the true $\vv\sim\Normal(\vect0,R)$, so
+by \cref{prop:joseph} the actual covariance is
+$P^{\mathrm{true}}=(I-K'H)\bar P^{\mathrm{true}}(I-K'H)^{\mathsf T}+K'R{K'}^{\mathsf T}$, then
+$\bar P^{\mathrm{true}}\leftarrow FP^{\mathrm{true}}F\T+Q$. With
+$R'=R/16$ the gain $K'$ is close to $I$: the estimate follows each fix,
+so the actual error is close to the GPS error, while the reported
+covariance is about $R'$, sixteen times too small. NEES measures the
+actual error in units of the reported covariance, hence values an order of
+magnitude above the band.

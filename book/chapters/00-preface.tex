@@ -1,0 +1,80 @@
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+\markboth{Preface}{Preface}
+
+\section*{What this book is about}
+
+A robot lawnmower drives around a square lawn. We tell it how far to drive
+and how much to turn, but it never does exactly that: wheels slip on wet
+grass, the ground is uneven, the motors are imprecise. Its sensors are
+noisy too. So where is it? This book answers that question in several ways,
+each one a \emph{recursive Bayesian filter}: the grid filter, the Kalman
+filter, the extended and the unscented Kalman filters, and the particle
+filter. All of them are derived from one recursion, the Bayes filter, and
+differ only in how they approximate it.
+
+Every filter is also implemented and tested on the same simulated mower,
+with the same data. This makes the comparisons honest. When a filter is
+faster, more accurate or more honest about its own uncertainty than
+another, the difference comes from the algorithm and not from the
+experiment.
+
+\section*{How to read it}
+
+The book and the notebooks of the repository go together. The book gives
+the theory: definitions, statements and complete proofs, with an
+\emph{In words} box after each important result to say what it means. Each
+chapter ends with a \emph{Practice} box that points to its notebook, where
+the same ideas are implemented, run and plotted, and with exercises whose
+solutions are given in full.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Chapter & Notebook (in \code{notebooks/}) & Code\\
+\midrule
+1 The state-space model & \code{00\_the\_mower\_world} & \code{world.py}\\
+2 The Bayes filter & \code{01\_bayes\_filter} & \code{grid.py}\\
+3 The Kalman filter & \code{02\_kalman\_filter} & \code{kf.py},
+  \code{metrics.py}\\
+4 The extended Kalman filter & \code{03\_extended\_kalman\_filter} &
+  \code{ekf.py}\\
+5 The unscented Kalman filter & \code{04\_unscented\_kalman\_filter} &
+  \code{ukf.py}\\
+6 The particle filter & \code{05\_particle\_filter} & \code{pf.py}\\
+7 Choosing a filter & \code{06\_showdown} & all of them\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The boxes follow a fixed colour code: \textcolor{defblue}{blue} for
+definitions, \textcolor{thmred}{red} for theorems,
+\textcolor{propamber}{amber} for propositions and lemmas,
+\textcolor{wordsgreen}{green} for the \emph{In words} intuition, grey for
+practice, and a lighter green for the \emph{On the lawn} boxes, which say
+what a result means for a real mower.
+
+\section*{Prerequisites}
+
+Linear algebra (symmetric positive definite matrices, the Schur
+complement), multivariable calculus (Jacobians, Taylor expansions), and
+probability at the level of a first course: densities, conditioning,
+Bayes' rule, expectations and covariances, the multivariate Gaussian.
+Chapter~\ref{ch:kalman} re-derives the Gaussian identities it needs. The
+code is NumPy; no GPU is needed.
+
+\section*{Building the book and the figures}
+
+From the repository root, \code{make book} compiles \code{book/main.pdf}
+and \code{make figures} regenerates every figure from the
+\code{bayesian\_filters} package. The figures use the same random seeds as
+the notebooks, so the numbers quoted in the text are the numbers printed
+by the notebooks.
+
+\section*{Where to go next}
+
+Filtering estimates the \emph{current} state. Modern localisation and
+mapping (SLAM) systems instead estimate a whole trajectory at once, by
+nonlinear least squares over a factor graph. Chapter~\ref{ch:choosing}
+ends with a short bridge to that point of view.

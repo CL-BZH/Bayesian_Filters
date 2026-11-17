@@ -3,3 +3,11 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 *.egg-info/
+book/*.aux
+book/*.log
+book/*.out
+book/*.toc
+book/*.fls
+book/*.fdb_latexmk
+book/*.synctex.gz
+book/chapters/*.aux

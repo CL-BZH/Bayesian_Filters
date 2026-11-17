@@ -1,0 +1,302 @@
+\chapter{The unscented Kalman filter}
+\label{ch:ukf}
+
+The EKF approximates the \emph{function} by a tangent plane and propagates
+the Gaussian exactly through that approximation. The unscented Kalman
+filter (UKF) does the opposite: it keeps the function exact and
+approximates the \emph{distribution} by a handful of deterministically
+chosen points, the \emph{sigma points}, then fits a Gaussian to where they
+land. No Jacobian is needed, the mean is correct to one order higher, and,
+as this chapter proves, the update automatically accounts for the
+linearisation error that made the EKF over-confident.
+
+\section{The unscented transform}
+
+\begin{definition}{Scaled sigma points}{sigma}
+Let $\bmu\in\R^n$, $\Sigma\succ0$ with Cholesky factor $LL\T=\Sigma$
+(columns $L_i$), and parameters $\alpha>0$, $\beta\ge0$, $\kappa$ with
+$\lambda=\alpha^2(n+\kappa)-n>-n$. The $2n+1$ sigma points are
+\[
+  \chi_0=\bmu,\qquad\chi_{\pm i}=\bmu\pm\sqrt{n+\lambda}\,L_i,\quad
+  i=1,\dots,n,
+\]
+with mean weights $W^{(m)}$ and covariance weights $W^{(c)}$:
+\[
+  W^{(m)}_0=\frac\lambda{n+\lambda},\quad
+  W^{(c)}_0=W^{(m)}_0+1-\alpha^2+\beta,\quad
+  W^{(m)}_{\pm i}=W^{(c)}_{\pm i}=\frac1{2(n+\lambda)}.
+\]
+The \emph{unscented transform} of $\Normal(\bmu,\Sigma)$ through $g$ is
+\[
+  \hat\y=\sum_jW^{(m)}_jg(\chi_j),\qquad
+  P_y=\sum_jW^{(c)}_j\bigl(g(\chi_j)-\hat\y\bigr)
+  \bigl(g(\chi_j)-\hat\y\bigr)\T .
+\]
+\end{definition}
+
+\begin{proposition}{Sigma points match the first two moments}{moments}
+$\sum_jW^{(m)}_j=1$, $\sum_jW^{(m)}_j\chi_j=\bmu$ and
+$\sum_jW^{(c)}_j(\chi_j-\bmu)(\chi_j-\bmu)\T=\Sigma$. All odd central
+moments of the weighted points vanish.
+\end{proposition}
+
+\begin{proof}
+$\frac{\lambda}{n+\lambda}+2n\cdot\frac1{2(n+\lambda)}=1$. The $\pm$
+points are symmetric about $\bmu$, so every odd moment of $\chi_j-\bmu$
+cancels in pairs, and $\chi_0-\bmu=\vect0$ contributes nothing to any
+central moment (whatever its weight). For the second moment,
+$\sum_{i}2\cdot\frac{1}{2(n+\lambda)}(n+\lambda)L_iL_i\T=LL\T=\Sigma$.
+\end{proof}
+
+\begin{theorem}{The unscented mean is exact up to third order}{utorder}
+Let $X\sim\Normal(\bmu,\Sigma)$. If every component of $g$ is a
+polynomial of degree at most $3$, then $\hat\y=\E[g(X)]$. For a smooth
+$g$ with bounded fourth derivatives, $\hat\y-\E[g(X)]=O(\norm\Sigma^2)$,
+whereas the linearised mean $g(\bmu)$ has an error of order
+$\norm\Sigma$ (\cref{prop:secondorder}).
+\end{theorem}
+
+\begin{proof}
+Expand $g$ around $\bmu$ to third order, as in the proof of
+\cref{prop:secondorder}, and apply the same expansion to the weighted
+sum. The constant terms agree. The first- and third-order terms vanish on
+both sides: for $X$ because the odd moments of a centred Gaussian are
+zero, for the sigma points by \cref{prop:moments}. The second-order terms
+are $\tfrac12\tr(\nabla^2g_i\Sigma)$ on both sides, again by
+\cref{prop:moments}. For a polynomial of degree at most $3$ the expansion
+is exact, so the two means coincide; otherwise the fourth-order remainders
+differ by $O(\norm\Sigma^2)$.
+\end{proof}
+
+\begin{inwords}
+Seven points (in three dimensions) are enough to capture the curvature
+term that the EKF misses. The UKF does not differentiate anything: it
+simply evaluates the model at well-placed points and lets the model's own
+curvature show up in the results.
+\end{inwords}
+
+The covariance $P_y$ is correct to first order, like the EKF's, and
+captures part of the higher-order terms; $\beta$ adds information about
+the fourth moment. For $y=x^2$ with $x\sim\Normal(\mu,\sigma^2)$, the
+choice $\alpha=1$, $\beta=2$, $\kappa=0$ gives both the mean
+$\mu^2+\sigma^2$ and the variance $4\mu^2\sigma^2+2\sigma^4$
+\emph{exactly}, where linearisation gives $\mu^2$ and $4\mu^2\sigma^2$
+(Exercise~\ref{ex:square}).
+
+\paragraph{Choosing the parameters.} The original choice $\lambda=3-n$
+($\alpha=1$, $\kappa=3-n$, $\beta=0$) matches the Gaussian kurtosis along
+each axis (Exercise~\ref{ex:kurtosis}), but makes the centre weight
+$W_0=(3-n)/3$ \emph{negative} as soon as $n>3$. A negative weight in a
+covariance can produce an indefinite $P_y$ (Exercise~\ref{ex:negative}),
+after which the next Cholesky factorisation fails. This book uses
+$\alpha=1$, $\beta=2$, $\kappa=0$, so that $\lambda=0$, $W^{(m)}_0=0$ and
+$W^{(c)}_0=2$: every covariance weight is non-negative.
+
+\Cref{fig:utarc} replays the arc of \cref{fig:arc} with the unscented
+transform. The UKF's mean is $0.36$ units from the true mean (the EKF's:
+$11.05$), and its ellipse covers the arc, somewhat too wide across the
+direction of travel. Neither can represent the arc itself: both summarise
+it by a Gaussian.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/ch05_arc.pdf}
+\caption{The arc of \cref{fig:arc}: EKF (blue) against the unscented
+transform (orange) with its seven transformed sigma points.}
+\label{fig:utarc}
+\end{figure}
+
+\section{The filter}
+
+\paragraph{Non-additive noise.} The control noise is turned before it is
+driven: it enters $f$ non-linearly and cannot simply be added as a $Q$.
+The standard remedy is to \emph{augment} the state with the noise,
+\[
+  \x^a=\begin{pmatrix}\x\\\bepsilon\end{pmatrix}\sim
+  \Normal\left(\begin{pmatrix}\hx\\\vect0\end{pmatrix},
+  \begin{pmatrix}P&0\\0&M\end{pmatrix}\right),\qquad n_a=3+2=5,
+\]
+draw $2n_a+1=11$ sigma points and push each through
+$f(\x,\uu+\bepsilon)$. The measurement noise is additive and does not need
+augmentation.
+
+\begin{definition}{Unscented Kalman filter}{ukf}
+\emph{Predict}: sigma points $\chi^a_j$ of the augmented Gaussian;
+$\chi'_j=f(\chi^x_j,\uu+\chi^\varepsilon_j)$; $(\bx,\bar P)$ is the
+unscented transform of these points.
+
+\emph{Update}: fresh sigma points $\chi_j$ of $\Normal(\bx,\bar P)$;
+$Z_j=h(\chi_j)$;
+\begin{gather*}
+  \hat\z=\sum_jW^{(m)}_jZ_j,\qquad
+  S=\sum_jW^{(c)}_j(Z_j-\hat\z)(Z_j-\hat\z)\T+R,\\
+  P_{xz}=\sum_jW^{(c)}_j(\chi_j-\bx)(Z_j-\hat\z)\T,\qquad
+  K=P_{xz}S^{-1},\\
+  \hx=\bx+K(\z-\hat\z),\qquad P=\bar P-KSK\T .
+\end{gather*}
+Heading and bearing components are averaged on the circle and every
+residual is wrapped (\cref{sec:circular}).
+\end{definition}
+
+This is the Kalman update of \cref{thm:kf} with $\bar PH\T$ and
+$H\bar PH\T+R$ replaced by their sigma-point estimates $P_{xz}$ and $S$.
+The next result says precisely what that replacement does.
+
+\begin{theorem}{The UKF update is a Kalman update with an inflated $R$}{slr}
+Assume all $W^{(c)}_j\ge0$. Define the \emph{statistically linearised}
+measurement matrix $\tilde H=P_{xz}\T\bar P^{-1}$ and the residuals
+$\vect\zeta_j=Z_j-\hat\z-\tilde H(\chi_j-\bx)$. Then
+\[
+  P_{xz}=\bar P\tilde H\T,\qquad
+  S=\tilde H\bar P\tilde H\T+R+\Omega,\qquad
+  \Omega=\sum_jW^{(c)}_j\vect\zeta_j\vect\zeta_j\T\succeq0,
+\]
+so the UKF update is the Kalman update for the affine model
+$\z=\hat\z+\tilde H(\x-\bx)+\vv'$ with noise covariance
+$R+\Omega\succeq R$.
+\end{theorem}
+
+\begin{proof}
+The first identity is the definition of $\tilde H$ (with $\bar P$
+symmetric). Write $\vect\delta_j=\chi_j-\bx$, so
+$Z_j-\hat\z=\tilde H\vect\delta_j+\vect\zeta_j$. Then
+\[
+  \sum_jW^{(c)}_j\vect\zeta_j\vect\delta_j\T=P_{xz}\T-\tilde H
+  \sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T=P_{xz}\T-\tilde H\bar P=0
+\]
+by \cref{prop:moments}. Expanding $S-R=\sum_jW^{(c)}_j(\tilde H
+\vect\delta_j+\vect\zeta_j)(\tilde H\vect\delta_j+\vect\zeta_j)\T$, the
+cross terms vanish and what remains is $\tilde H\bar P\tilde H\T+\Omega$.
+$\Omega$ is a non-negative combination of positive semi-definite matrices.
+\end{proof}
+
+\begin{inwords}
+The UKF fits the best straight line to $h$ over the sigma points (a
+weighted least-squares regression, not a tangent at one point), and
+whatever that line cannot explain is added to the measurement noise. When
+$h$ is nearly linear over the uncertainty, $\Omega\approx0$ and the UKF is
+the EKF. When it is not, the UKF trusts the measurement less, exactly
+where the EKF trusted it too much. This is why it stays consistent after
+an uncertain start.
+\end{inwords}
+
+\section{Angles on the circle}
+\label{sec:circular}
+
+The weighted average of the headings $3.1$ and $-3.1$ is $0$: pointing the
+wrong way. Headings and bearings are therefore averaged with the
+\emph{circular mean}
+\[
+  \bar\theta=\operatorname{atan2}\Bigl(\sum_jw_j\sin\theta_j,\;
+  \sum_jw_j\cos\theta_j\Bigr),
+\]
+and every difference of angles (in $P_y$, $P_{xz}$, the innovation) is
+wrapped. For non-negative weights, $\bar\theta$ minimises
+$\sum_jw_j(1-\cos(\theta_j-m))$ over $m$ (Exercise~\ref{ex:circmean}), a
+natural ``squared distance'' on the circle.
+
+\section{Where the UKF earns its keep}
+
+With four landmarks in view and a good start, the UKF and the EKF are
+indistinguishable on the standard run (RMSE $1.126$ against $1.130$): the
+models are nearly linear over the small uncertainty. The UKF costs about
+50\% more per step here ($0.15$ against $0.10$\,ms, vectorised), for
+$11+7$ model evaluations and two Cholesky factorisations instead of two
+Jacobians.
+
+After the uncertain start of \cref{fig:ekftransient}, however, the two
+filters differ sharply (\cref{fig:ukftransient}). With the same runs and
+the same initial estimates, the UKF's average NEES is $12$ after the first
+update, $3.0$ after five and $2.9$ after twenty (EKF: $297$, $63$, $6.5$),
+and its error drops slightly faster.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch05_transient.pdf}
+\caption{The uncertain start of \cref{fig:ekftransient}, with both
+filters on the same runs. The UKF is within the band after a few
+updates; the EKF is over-confident by up to two orders of magnitude.}
+\label{fig:ukftransient}
+\end{figure}
+
+\begin{practice}[\nb{04\_unscented\_kalman\_filter.ipynb}, \code{ukf.py}]
+\code{merwe\_weights}, \code{sigma\_points} and \code{unscented\_transform}
+implement \cref{def:sigma}; \code{pose\_mean}, \code{meas\_mean} and the
+residual functions handle the angles. \code{UKF} augments the state with
+the control noise for the prediction and regenerates seven sigma points
+for each update. A unit test checks that the transform is exact for
+linear maps for several $(\alpha,\kappa)$, the cheapest possible guard
+against the classic sigma-point bugs (a missing point, a spread of
+$n+\lambda$ instead of $\sqrt{n+\lambda}$). The notebook reproduces
+\cref{fig:utarc,fig:ukftransient}.
+\end{practice}
+
+\begin{mower}
+The UKF is attractive whenever the Jacobians are tedious or error-prone:
+with a camera model, an IMU on a chassis that pitches and rolls, or GNSS
+antenna lever arms. Its cost grows with the number of sigma points,
+linearly in the state dimension, and each point needs one evaluation of
+the models; for the few-dimensional state of a mower this is negligible.
+\end{mower}
+
+\FloatBarrier
+\section*{Exercises}
+\addcontentsline{toc}{section}{Exercises}
+
+\begin{enumerate}[label=\textbf{5.\arabic*},ref=5.\arabic*]
+\item\label{ex:square} Let $x\sim\Normal(\mu,\sigma^2)$ and $y=x^2$.
+  Compute the unscented mean and variance of $y$ for $n=1$ and general
+  $\lambda$, $W^{(c)}_0$. Show that they are exact if and only if
+  $W^{(c)}_0+(n+\lambda-1)^2/(n+\lambda)=2$, and check the choice of this
+  book.
+\item\label{ex:kurtosis} For $n=1$, show that the sigma points with
+  $n+\kappa=3$ (and $\alpha=1$) reproduce the fourth moment $3\sigma^4$ of
+  a Gaussian.
+\item\label{ex:negative} Take $\lambda=3-n$ with $n=5$ and $\beta=0$, so
+  $W^{(c)}_0=W^{(m)}_0=w<0$. Let $g$ take one value $a$ at $\chi_0$ and
+  another value $b$ at every other sigma point. Show that the unscented
+  variance is $(a-b)^2w(1-w)<0$.
+\item\label{ex:circmean} Show that for weights $w_j\ge0$ with
+  $C=\sum_jw_j\cos\theta_j$, $S=\sum_jw_j\sin\theta_j$ not both zero, the
+  circular mean minimises $\sum_jw_j(1-\cos(\theta_j-m))$. What goes wrong
+  if $C=S=0$?
+\end{enumerate}
+
+\subsection*{Solutions}
+
+\textbf{5.1.} Write $c^2=n+\lambda=1+\lambda$. The points are $\mu$ and
+$\mu\pm c\sigma$, with values $\mu^2$ and $\mu^2\pm2\mu c\sigma+c^2\sigma^2$.
+The mean is $\mu^2+2\cdot\frac1{2c^2}c^2\sigma^2=\mu^2+\sigma^2$: exact
+for any parameters (\cref{thm:utorder}). The deviations are $-\sigma^2$
+at the centre and $\pm2\mu c\sigma+(c^2-1)\sigma^2$ at the others, so
+\[
+  P_y=W^{(c)}_0\sigma^4+\frac1{c^2}\bigl(4\mu^2c^2\sigma^2+(c^2-1)^2
+  \sigma^4\bigr)=4\mu^2\sigma^2+\Bigl(W^{(c)}_0+\frac{(c^2-1)^2}{c^2}
+  \Bigr)\sigma^4,
+\]
+while the truth is $\Var(x^2)=4\mu^2\sigma^2+2\sigma^4$. With $\alpha=1$,
+$\beta=2$, $\kappa=0$: $c^2=1$ and $W^{(c)}_0=2$, exact. (With $\kappa=2$,
+$\beta=2$ one gets $4\sigma^4$ instead: twice too much in the quartic
+term.)
+
+\textbf{5.2.} The points $\mu\pm\sqrt3\sigma$ have weight
+$\frac1{2(n+\kappa)}=\frac16$ each (the centre adds nothing), so
+$\sum_jW_j(\chi_j-\mu)^4=2\cdot\frac16\cdot9\sigma^4=3\sigma^4$, the
+fourth moment of $\Normal(\mu,\sigma^2)$. For larger $n$ the same holds
+along each axis of the Cholesky factor, but the cross moments do not
+match.
+
+\textbf{5.3.} The weights of the non-centre points sum to $1-w$, so the
+mean is $wa+(1-w)b$ and the deviations are $(1-w)(a-b)$ at the centre and
+$-w(a-b)$ elsewhere. Hence
+$P_y=(a-b)^2\bigl[w(1-w)^2+(1-w)w^2\bigr]=(a-b)^2w(1-w)$, negative for
+$w<0$. For $n=5$, $w=-2/3$ and $P_y=-\tfrac{10}9(a-b)^2$: a ``variance''
+that is negative.
+
+\textbf{5.4.} $\sum_jw_j(1-\cos(\theta_j-m))=\sum_jw_j-C\cos m-S\sin m=
+\sum_jw_j-\rho\cos(m-\bar\theta)$ with $\rho=\sqrt{C^2+S^2}>0$ and
+$\bar\theta=\operatorname{atan2}(S,C)$, minimal at $m=\bar\theta$. If
+$C=S=0$ (e.g.\ two equal weights at opposite angles), every $m$ gives the
+same value: the mean direction is undefined, and $\operatorname{atan2}(0,
+0)$ returns an arbitrary angle. A belief that wide is not Gaussian in any
+useful sense.

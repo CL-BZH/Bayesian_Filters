@@ -1,0 +1,302 @@
+\chapter{The Bayes filter}
+\label{ch:bayes}
+
+Every filter in this book is an approximation of one recursion. This
+chapter derives it, from the two assumptions of
+Chapter~\ref{ch:statespace} and nothing else, and then implements it with
+no approximation other than discretisation: on a grid. The grid shows what
+the exact belief looks like (sometimes it has two separate bumps) and why
+we cannot afford a grid in general.
+
+\section{Belief}
+
+\begin{definition}{Belief and predicted belief}{belief}
+The \emph{belief} at step $t$ is the posterior distribution of the
+current state given everything observed so far,
+\[
+  \bel(\x_t)=p(\x_t\mid\z_{1:t},\uu_{0:t-1}),
+\]
+and the \emph{predicted belief} is the distribution of the next state
+after the next control but before the next measurement,
+\[
+  \belbar(\x_{t+1})=p(\x_{t+1}\mid\z_{1:t},\uu_{0:t}).
+\]
+\end{definition}
+
+The belief is the complete answer to ``where is the mower?''. A filter
+may summarise it (by its mean and covariance, say), but every summary
+loses information, and some summaries can be badly misleading
+(\cref{sec:twobumps}).
+
+\section{The recursion}
+
+\begin{theorem}{Bayes filter}{bayes}
+Under \ref{A1}--\ref{A2},
+\begin{align}
+  \belbar(\x_{t+1})&=\int p(\x_{t+1}\mid\x_t,\uu_t)\,\bel(\x_t)\,
+  \mathrm d\x_t, \label{eq:predict}\\
+  \bel(\x_{t+1})&=\eta_{t+1}\,p(\z_{t+1}\mid\x_{t+1})\,
+  \belbar(\x_{t+1}),\qquad
+  \eta_{t+1}^{-1}=\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x.
+  \label{eq:update}
+\end{align}
+\end{theorem}
+
+\begin{proof}
+\emph{Predict.} By the law of total probability, conditioning on
+$\x_t$,
+\[
+  p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})=\int p(\x_{t+1}\mid\x_t,\z_{1:t},
+  \uu_{0:t})\,p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t .
+\]
+In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$.
+In the second, the control $\uu_t$ is applied after $\x_t$ and carries no
+information about it, so it can be dropped, which leaves $\bel(\x_t)$.
+
+\emph{Update.} Bayes' rule with everything conditioned on
+$(\z_{1:t},\uu_{0:t})$ gives
+\[
+  p(\x_{t+1}\mid\z_{1:t+1},\uu_{0:t})=
+  \frac{p(\z_{t+1}\mid\x_{t+1},\z_{1:t},\uu_{0:t})\,
+  p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})}
+  {p(\z_{t+1}\mid\z_{1:t},\uu_{0:t})}.
+\]
+\ref{A2} reduces the first factor of the numerator to
+$p(\z_{t+1}\mid\x_{t+1})$, and the second is $\belbar(\x_{t+1})$. The
+denominator does not depend on $\x_{t+1}$; integrating the numerator
+over $\x_{t+1}$ shows it equals the integral in \eqref{eq:update}.
+\end{proof}
+
+\begin{inwords}
+\emph{Predict}: push the belief through the motion model. Every possible
+current pose spreads into the poses it could move to, weighted by how
+likely it was. The belief blurs. \emph{Update}: reweight every pose by how
+well it explains what was just seen, then renormalise. The belief
+sharpens. Repeat.
+\end{inwords}
+
+The normaliser has a meaning of its own, which the particle filter will
+use in \cref{sec:amcl}.
+
+\begin{proposition}{The normaliser is the predictive likelihood}{evidence}
+$\eta_{t+1}^{-1}=p(\z_{t+1}\mid\z_{1:t},\uu_{0:t})$, the probability
+density the filter assigned to the measurement before seeing it, and
+\[
+  \log p(\z_{1:T}\mid\uu_{0:T-1})=-\sum_{t=1}^T\log\eta_t .
+\]
+\end{proposition}
+
+\begin{proof}
+The first claim is the identification of the denominator in the proof of
+\cref{thm:bayes}. The second is the chain rule
+$p(\z_{1:T}\mid\uu)=\prod_t p(\z_t\mid\z_{1:t-1},\uu)$, in which the
+factor $t$ only depends on the controls up to $\uu_{t-1}$.
+\end{proof}
+
+\begin{inwords}
+A filter can tell how surprised it is: a small $\eta^{-1}$ means that
+the measurement was unlikely under the current belief. A sudden run of
+surprising measurements is the signature of a model failure, for example a
+mower that has been picked up and moved.
+\end{inwords}
+
+\section{The grid filter}
+
+Neither integral of \cref{thm:bayes} has a closed form in general. The
+most direct approximation replaces the state space by a finite grid. To
+keep the grid two-dimensional, the mower is given a compass: the heading
+is (almost) known, and only the position is uncertain.
+
+\begin{definition}{Grid belief}{grid}
+Partition the lawn into square cells $C_1,\dots,C_n$ of side $c$ and
+centres $\vect{c}_i$. The \emph{grid belief} is the vector
+$b_i\approx\Pr(\p_t\in C_i\mid\z_{1:t},\uu_{0:t-1})$, with $\sum_ib_i=1$.
+\end{definition}
+
+\begin{proposition}{Prediction with a known heading is a convolution}{conv}
+Suppose the heading $h_t$ is known and the position moves by
+$\p_{t+1}=\p_t+\vect{d}_t+\w_t$ with $\vect{d}_t=s_t(\cos h_t,\sin h_t)$
+and $\w_t\sim\Normal(\vect0,\Sigma_t)$ independent of $\p_t$. Then
+\[
+  \belbar(\p)=\bigl(\bel(\,\cdot-\vect{d}_t)\ast\Normal(\vect0,\Sigma_t)
+  \bigr)(\p),
+\]
+the belief shifted by $\vect{d}_t$ and blurred by the noise density.
+\end{proposition}
+
+\begin{proof}
+Here $p(\p_{t+1}\mid\p_t)=\Normal(\p_{t+1};\p_t+\vect{d}_t,\Sigma_t)
+=g(\p_{t+1}-\p_t-\vect{d}_t)$ with $g$ the centred Gaussian density.
+Then \eqref{eq:predict} reads
+$\belbar(\p)=\int g(\p-\vect{d}_t-\vect{q})\,\bel(\vect{q})\,
+\mathrm d\vect{q}$, which is the convolution of $g$ with
+$\vect{q}\mapsto\bel(\vect{q}-\vect{d}_t)$, after the change of variable
+$\vect{q}\mapsto\vect{q}-\vect{d}_t$.
+\end{proof}
+
+On the grid, the shift is done by linear interpolation
+(\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
+The step noise acts along the heading and the compass noise across it
+(\cref{prop:degenerate}); the code uses an isotropic kernel of standard
+deviation $\sqrt{\sigma_s^2+s^2\sigma_c^2}$, a slight over-approximation.
+Probability that leaves the lawn is lost, and the table is renormalised.
+The update is the cell-wise product
+$b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
+
+\section{Two bumps}
+\label{sec:twobumps}
+
+We make the problem hard on purpose: the mower measures only
+\emph{ranges}, and only to two landmarks.
+
+\begin{proposition}{Mirror ambiguity}{mirror}
+Let $\sigma$ be the reflection across the line through $\bell_1$ and
+$\bell_2$. Then $\norm{\bell_j-\sigma(\p)}=\norm{\bell_j-\p}$ for $j=1,2$
+and every $\p$. Consequently, starting from a belief that is invariant
+under $\sigma$, the first range-only update gives a belief that is also
+invariant under $\sigma$.
+\end{proposition}
+
+\begin{proof}
+A reflection is an isometry, and it fixes every point of its axis, in
+particular $\bell_1$ and $\bell_2$. So
+$\norm{\bell_j-\sigma(\p)}=\norm{\sigma(\bell_j)-\sigma(\p)}=
+\norm{\bell_j-\p}$. The likelihood of two ranges is therefore the same at
+$\p$ and $\sigma(\p)$, and the update multiplies a $\sigma$-invariant
+prior by a $\sigma$-invariant likelihood.
+\end{proof}
+
+Two circles meet in two points, mirror images of each other, and the
+ranges cannot tell them apart. What can is the \emph{motion}: with the
+heading known, the displacement $\vect{d}$ is the same vector for both
+hypotheses, whereas a mirror-image trajectory would need the displacement
+$\sigma(\vect{d})$. So only one of the two tracks remains consistent with
+the ranges as the mower drives, unless it drives parallel to the axis.
+\Cref{fig:gridbimodal} shows how this plays out on the standard run.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_grid_bimodal.pdf}
+\caption{Grid belief (darker is more probable; a power-law colour scale
+makes small masses visible) with range-only sensing to two landmarks
+(stars); the red circle surrounds the true position. The first measurement gives a
+belief symmetric about the line through the landmarks: two bumps, which
+overlap here because the mower starts close to that line. After five
+measurements, the filter puts almost all its mass on the \emph{wrong}
+bump. Because it kept a little mass on the right
+one, the mower's turn breaks the symmetry and by measurement 10 the belief
+is on the right bump for good.}
+\label{fig:gridbimodal}
+\end{figure}
+
+\begin{inwords}
+The true posterior can have several separate bumps, and the right bump
+need not be the biggest one for a while. A filter that represents only
+one bump, or that commits to the most probable one, would have locked on
+to the mirror image at measurement 5 and never come back. A Gaussian
+belief is worse still: its mean would sit \emph{between} the two bumps,
+where the mower certainly is not.
+\end{inwords}
+
+\section{The cost of a grid}
+
+The grid is exact up to discretisation and can represent any belief. Its
+cost is the number of cells, $n^d$ for $n$ bins per dimension in
+dimension $d$, and every step touches every cell. With 80 bins per
+dimension: $6\,400$ cells for the position, about half a million for the
+pose $(x,y,\theta)$ (the classic \emph{Markov localisation} of the 1990s,
+feasible), $2.6\times10^{11}$ for a pose with velocities. And at any
+time, almost all of those cells have negligible probability. There are two
+ways out, and the rest of the book follows both:
+\begin{enumerate}[nosep]
+\item \emph{assume a shape} for the belief, a Gaussian described by a mean
+  and a covariance ($d+d(d+1)/2$ numbers): the Kalman family,
+  Part~II;
+\item \emph{sample} the belief, putting the computation only where the
+  probability is: the particle filter, Chapter~\ref{ch:particle}.
+\end{enumerate}
+
+\begin{practice}[\nb{01\_bayes\_filter.ipynb}, \code{grid.py}]
+\code{GridFilter} implements the predict and update steps above on $4\times4$
+cells, with \code{sensor="range"} or \code{"range\_bearing"}. The notebook
+reproduces \cref{fig:gridbimodal} and compares the grid filter with dead
+reckoning: with two noisy ranges per step, its median error after step 20
+is $2.5$, half the range noise $\sigma_r=5$, although the cells are
+4~units wide. Things to try:
+switch to range--bearing (a bearing tells the side of the axis and the
+ambiguity disappears), use all four landmarks, or enlarge the cells.
+\end{practice}
+
+\begin{mower}
+A mower that wakes up in the morning does not know where it was left. The
+first measurements are rarely enough to pin it down, especially with
+symmetric landmark layouts (four beacons at the corners of a rectangular
+lawn are symmetric under a half-turn) or with only ranges, as with radio
+beacons. The ambiguity is real, and a localisation system must be able to
+carry several hypotheses until the motion resolves them.
+\end{mower}
+
+\FloatBarrier
+\section*{Exercises}
+\addcontentsline{toc}{section}{Exercises}
+
+\begin{enumerate}[label=\textbf{2.\arabic*},ref=2.\arabic*]
+\item\label{ex:twostate} \emph{A two-state filter.} The mower is either on
+  the grass ($G$) or on the gravel path ($P$). Each step it stays where it
+  is with probability $0.9$. A vibration sensor says ``rough'' with
+  probability $0.8$ on gravel and $0.3$ on grass. Starting from
+  $\bel=(0.5,0.5)$, compute the belief after the readings ``rough'',
+  ``rough''.
+\item\label{ex:blur} Show that blurring with $\Normal(\vect0,\Sigma_1)$ and
+  then with $\Normal(\vect0,\Sigma_2)$ is the same as blurring once with
+  $\Normal(\vect0,\Sigma_1+\Sigma_2)$. What does it say about the width of
+  a grid belief after $t$ predictions without updates?
+\item\label{ex:nomotion} Suppose the mower is parked (so the prediction is
+  the identity) and keeps receiving range-only readings from the same two
+  landmarks. Show that the belief stays bimodal forever, and that each bump
+  keeps probability $1/2$ if the prior was symmetric.
+\item\label{ex:gridcost} A mower localises on a $30\times30$\,m lawn with a
+  pose grid of $5$\,cm and $1^\circ$. How many cells is that, and how many
+  bytes in single precision? How many floating-point operations does one
+  prediction cost if it is done as a full sum over pairs of cells?
+\end{enumerate}
+
+\subsection*{Solutions}
+
+\textbf{2.1.} Order the states $(G,P)$. Predict: the transition matrix is
+symmetric with $0.9$ on the diagonal, so $(0.5,0.5)$ stays
+$(0.5,0.5)$. Update with ``rough'': multiply by $(0.3,0.8)$ to get
+$(0.15,0.40)$, normalise: $(0.273,0.727)$. Predict:
+$(0.9\cdot0.273+0.1\cdot0.727,\ 0.1\cdot0.273+0.9\cdot0.727)=
+(0.318,0.682)$. Update with ``rough'': $(0.0955,0.5455)$, normalise:
+$(0.149,0.851)$. The second reading counts less than the first would have
+alone, because the prediction pulled the belief back towards $1/2$: the
+mower might have left the path in between.
+
+\textbf{2.2.} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
+$X_2\sim\Normal(\vect0,\Sigma_2)$ are independent, the density of
+$X_1+X_2$ is the convolution of their densities, and $X_1+X_2\sim
+\Normal(\vect0,\Sigma_1+\Sigma_2)$ (its characteristic function is the
+product $e^{-\vect{k}\T(\Sigma_1+\Sigma_2)\vect{k}/2}$). Blurring twice
+is therefore one blur with the summed covariance. After $t$ predictions
+with per-step noise $\Sigma$ and no update, the belief has been convolved
+with $\Normal(\vect0,t\Sigma)$: its width grows like $\sqrt t$, plus the
+heading-induced growth of \cref{prop:deadreckoning} when the heading is
+not known.
+
+\textbf{2.3.} The prediction is the identity, so after $k$ updates the belief is the prior times the product of
+$k$ likelihoods, all $\sigma$-invariant by \cref{prop:mirror}. A
+$\sigma$-invariant prior times $\sigma$-invariant factors stays
+$\sigma$-invariant, so the two bumps always have equal mass: $1/2$ each,
+exactly, not only in the limit. (In the limit each bump also shrinks to a
+point, because the ranges are averaged.) Only motion, or a third landmark
+off the axis, can break the tie.
+
+\textbf{2.4.} $600\times600\times360\approx1.3\times10^8$ cells, about
+$520$\,MB in single precision. A prediction written as
+$\belbar_i=\sum_jP_{ij}b_j$ costs $n^2\approx1.7\times10^{16}$
+operations, hopeless at any rate. Using the structure (a shift plus a
+local blur, \cref{prop:conv}) brings it down to $O(n)$ per step times the
+kernel size, which is why the grid filters that work in practice are
+built on convolutions or sparse transitions. Even then, $10^8$ cells per
+step at several hertz is a lot for an embedded computer.

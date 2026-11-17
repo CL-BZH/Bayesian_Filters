@@ -1,0 +1,453 @@
+\chapter{The particle filter}
+\label{ch:particle}
+
+The grid of Chapter~\ref{ch:bayes} stored the belief everywhere; the
+Kalman filters assumed it was Gaussian. A \emph{particle filter} stores it
+as a cloud of weighted samples,
+\[
+  \bel(\x_t)\approx\sum_{i=1}^Nw_t^{(i)}\,\delta_{\x_t^{(i)}},\qquad
+  \sum_iw_t^{(i)}=1,
+\]
+and puts its effort where the probability is. The cloud can take any shape
+(arcs, several separate bumps) and the models are used as they are,
+without linearisation; the motion model only needs to be \emph{sampled},
+which suits its degenerate transition (\cref{prop:degenerate}). Applied to
+robot localisation this is \emph{Monte Carlo localisation}. This chapter
+derives it from importance sampling, then studies its three failure
+modes---weight degeneracy, sample impoverishment and mode collapse---and
+the standard remedies.
+
+\section{Importance sampling}
+
+\begin{definition}{Importance sampling}{is}
+Let $\pi$ be a target distribution and $q$ a \emph{proposal} with
+$\pi\ll q$ (every set of $q$-probability zero has $\pi$-probability
+zero), and let $\tilde w=\mathrm d\pi/\mathrm dq$ be known up to a
+constant: $\tilde w\propto w$. With $X^{(1)},\dots,X^{(N)}$ i.i.d.\ from
+$q$, the \emph{self-normalised} importance-sampling estimate of
+$\E_\pi[\varphi]$ is
+\[
+  \hat\varphi_N=\sum_{i=1}^Nw^{(i)}\varphi(X^{(i)}),\qquad
+  w^{(i)}=\frac{w(X^{(i)})}{\sum_kw(X^{(k)})}.
+\]
+\end{definition}
+
+\begin{proposition}{Consistency}{isconsistent}
+If $\E_\pi|\varphi|<\infty$, then $\hat\varphi_N\to\E_\pi[\varphi]$
+almost surely as $N\to\infty$. If the normalising constant is known, the
+unnormalised estimate $\frac1N\sum_i\tilde w(X^{(i)})\varphi(X^{(i)})$ is
+moreover unbiased.
+\end{proposition}
+
+\begin{proof}
+Write $w=c\,\tilde w$ for an unknown $c>0$. Then
+$\E_q[\tilde w\varphi]=\int\varphi\,\frac{\mathrm d\pi}{\mathrm dq}\,
+\mathrm dq=\E_\pi[\varphi]$, which is the unbiasedness claim, and
+$\E_q[\tilde w]=1$. By the strong law of large numbers applied to the
+numerator and the denominator,
+\[
+  \hat\varphi_N=\frac{\frac1N\sum_i\tilde w(X^{(i)})\varphi(X^{(i)})}
+  {\frac1N\sum_i\tilde w(X^{(i)})}\longrightarrow
+  \frac{\E_\pi[\varphi]}{1}\quad\text{a.s.,}
+\]
+the constant $c$ cancelling in the ratio.
+\end{proof}
+
+The self-normalised estimate is biased for finite $N$
+(Exercise~\ref{ex:isbias}), but the bias is $O(1/N)$ and vanishes as $N$
+grows.
+
+\section{From the Bayes filter to particles}
+
+Take the target to be the posterior over the whole path, which by
+\cref{prop:joint} is
+$\pi_{t+1}(\x_{0:t+1})\propto\pi_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)\,
+p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous weighted
+cloud, extended by the motion model'':
+$q_{t+1}(\x_{0:t+1})=q_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)$.
+
+\begin{proposition}{Sequential importance sampling with the motion proposal}{sis}
+With this proposal, the weights obey
+\[
+  \tilde w_{t+1}(\x_{0:t+1})=\tilde w_t(\x_{0:t})\;
+  p(\z_{t+1}\mid\x_{t+1}).
+\]
+\end{proposition}
+
+\begin{proof}
+$\tilde w_{t+1}=\pi_{t+1}/q_{t+1}$, and the factor
+$p(\x_{t+1}\mid\x_t,\uu_t)$ appears in both and cancels:
+$\tilde w_{t+1}\propto\frac{\pi_t}{q_t}\,p(\z_{t+1}\mid\x_{t+1})$. The
+motion density never has to be evaluated, only sampled.
+\end{proof}
+
+\begin{definition}{Particle filter (sequential importance resampling)}{pf}
+Given particles and normalised weights $(\x_t^{(i)},w_t^{(i)})$:
+\begin{enumerate}[nosep]
+\item \emph{Predict}: draw $\bepsilon^{(i)}\sim\Normal(\vect0,M)$ and set
+  $\x_{t+1}^{(i)}=f(\x_t^{(i)},\uu_t+\bepsilon^{(i)})$.
+\item \emph{Weight}: $w_{t+1}^{(i)}\propto w_t^{(i)}\,
+  p(\z_{t+1}\mid\x_{t+1}^{(i)})$, normalised to sum to one.
+\item \emph{Resample} if the effective sample size (\cref{def:ess}) drops
+  below a threshold: draw $N$ particles from the cloud with probabilities
+  $w^{(i)}$, and reset every weight to $1/N$.
+\end{enumerate}
+The estimate is the weighted mean (with a circular mean for the heading)
+and the weighted covariance of the cloud.
+\end{definition}
+
+\begin{inwords}
+\emph{Simulate} the motion for every particle, \emph{score} each one
+against the measurement, \emph{clone} the good ones and \emph{drop} the
+bad ones. That is the whole algorithm. The sensor model is the same as for
+the Kalman filters: a product of Gaussians in range and wrapped bearing
+over the visible landmarks.
+\end{inwords}
+
+\paragraph{Log-weights.} With four precise landmarks, a particle 50 units
+from the truth has a likelihood around $e^{-200}$ relative to a good one,
+and the products underflow quickly. The implementation adds
+log-likelihoods and normalises with $\log\sum_ie^{a_i}=a_{\max}+
+\log\sum_ie^{a_i-a_{\max}}$. Fixed rescaling factors, or thresholds on raw
+weights, break as soon as the number of visible landmarks or the noise
+level changes.
+
+\section{Weight degeneracy}
+
+\begin{definition}{Effective sample size}{ess}
+For normalised weights, $\ESS=1/\sum_i(w^{(i)})^2\in[1,N]$.
+\end{definition}
+
+$\ESS=N$ when all the weights are equal and $\ESS=1$ when one particle
+carries all the weight (Exercise~\ref{ex:ess}). It approximates the number
+of i.i.d.\ samples from the target that would give the same variance:
+a delta-method expansion gives $\Var(\hat\varphi_N)\approx\Var_\pi(
+\varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
+variation of the unnormalised weights, and $N/(1+\mathrm{cv}^2)$ is
+estimated by the ESS.
+
+Run without resampling, sequential importance sampling degenerates
+quickly (\cref{fig:ess}). Starting from a Gaussian around the truth with
+$N=1000$, the ESS falls below $2$ at step 5: one particle carries all the
+weight, the other 999 are wasted computation, and the estimate drifts away
+with that single survivor. The variance of the weights can only grow over
+time (Kong, Liu and Wong, 1994). Resampling is what makes the method
+work.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch06_ess.pdf}
+\caption{Left: ESS before resampling (log scale), $N=1000$. Without
+resampling it collapses to 1 within five steps; resampling whenever
+$\ESS<N/2$ keeps it in the hundreds. Right: the corresponding position
+errors.}
+\label{fig:ess}
+\end{figure}
+
+\section{Resampling}
+
+Let $N_i$ be the number of copies of particle $i$ after resampling.
+
+\begin{proposition}{Multinomial and systematic resampling}{resampling}
+\emph{Multinomial} resampling draws $N$ indices i.i.d.\ from the weights.
+\emph{Systematic} resampling draws one $U\sim\mathcal U[0,1)$ and selects
+the particles whose cumulative-weight intervals contain the $N$ points
+$(U+k)/N$, $k=0,\dots,N-1$. Both are unbiased, $\E[N_i]=Nw^{(i)}$, and
+\begin{align*}
+  \text{multinomial:}&\quad N_i\sim\operatorname{Bin}(N,w^{(i)}),
+  &\Var(N_i)&=Nw^{(i)}(1-w^{(i)}),\\
+  \text{systematic:}&\quad N_i\in\{\lfloor Nw^{(i)}\rfloor,
+  \lceil Nw^{(i)}\rceil\},&\Var(N_i)&=f_i(1-f_i)\le\tfrac14,
+\end{align*}
+where $f_i=Nw^{(i)}-\lfloor Nw^{(i)}\rfloor$.
+\end{proposition}
+
+\begin{proof}
+Multinomial: each draw selects $i$ with probability $w^{(i)}$,
+independently. Systematic: particle $i$ owns an interval of length
+$w^{(i)}$ in $[0,1)$, and the points $(U+k)/N$ form a lattice of spacing
+$1/N$ with a uniformly random offset. An interval of length $\ell$
+contains $\lfloor N\ell\rfloor$ or $\lceil N\ell\rceil$ lattice points.
+Since the offset is uniform, the expected number of points in the
+interval is its length divided by the spacing, $Nw^{(i)}$. A variable
+taking the values $m$ and $m+1$ with mean $m+f_i$ takes $m+1$ with
+probability $f_i$, hence the variance $f_i(1-f_i)$.
+\end{proof}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/ch06_resampling.pdf}
+\caption{Standard deviation of the number of copies, for 50 particles
+and 2\,000 repetitions; dashed lines: the formulas of
+\cref{prop:resampling}. Systematic resampling adds almost no noise.}
+\label{fig:resampling}
+\end{figure}
+
+Each resampling destroys diversity: duplicated particles are identical
+until the motion noise separates them. Resampling at every step is
+therefore unnecessary and harmful. The filter here resamples only when
+$\ESS<N/2$. With four precise landmarks that is still 85\% of the steps,
+because each measurement is very informative compared with one step of
+motion noise.
+
+On the standard run, with a good initial estimate and identified
+landmarks, the particle filter with $N=1000$ has an RMSE of $1.18$,
+against $1.13$ for the EKF, at about eight times the cost per step. When
+the belief is close to a Gaussian, the particle filter has nothing to add.
+
+\section{Global localisation and sample impoverishment}
+
+A Kalman filter needs an initial guess. A particle filter can start from a
+\emph{uniform} belief over the whole lawn and every heading.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch06_global.pdf}
+\caption{Global localisation with $N=5000$ (green dot: the mower). One
+measurement leaves essentially one compatible particle. After
+resampling, all 5\,000 particles are its copies, and the motion noise
+slowly spreads them onto the mower.}
+\label{fig:global}
+\end{figure}
+
+After the first measurement the ESS is $1.0$ out of $5\,000$
+(\cref{fig:global}). The reason is a matter of volumes. The prior covers
+$320\times320\times2\pi\approx6\times10^5$ units of pose space; the
+posterior after four ranges and four bearings is roughly a box of
+$1.6\times1.6\times0.04$, about $0.1$. The expected number of uniform
+particles inside the posterior's $1\sigma$ region is therefore about
+$N\times10^{-7}$: far below one for any affordable $N$. The best particle
+is a few units from the truth, and the filter must then crawl to it
+through the motion noise. This is \emph{sample impoverishment}: the
+posterior is much narrower than the spacing between the particles.
+
+\begin{inwords}
+Particles are only useful where the probability is, and when the
+likelihood is sharp, ``where the probability is'' is a tiny region that a
+uniform cloud almost never hits. More particles help only slowly; in
+higher dimensions the volume ratio explodes, which is the particle
+filter's real weakness.
+\end{inwords}
+
+The remedies all widen the effective likelihood or move particles
+towards it: \emph{roughening} (a small jitter after resampling), a
+\emph{tempered} likelihood $p(\z\mid\x)^\beta$ with $\beta<1$ for the
+first updates, or \emph{sensor resetting}, which draws some particles
+directly from the poses compatible with the measurement.
+
+\section{Unknown data association and multimodal beliefs}
+\label{sec:pf-association}
+
+When the sensor does not say which landmark it saw, the likelihood of one
+measurement is a mixture over the landmarks that could have produced it:
+\[
+  p(\z_k\mid\x)=\frac1M\sum_{j=1}^M\Normal\bigl(\z_k;\,h_j(\x),\,R_1\bigr),
+\]
+assuming each landmark equally likely a priori. A particle filter simply
+evaluates it: every particle is scored against every possible
+association, and no decision is ever taken. Attributing each measurement
+to the nearest landmark, as an EKF must, amounts to replacing the sum by
+its largest term.
+
+With the four landmarks on a square, the lawn is symmetric under rotations
+by $90^\circ$ and, without identities, four poses explain the
+measurements equally well forever. The true posterior has four bumps of
+mass $1/4$ each. \Cref{fig:modes} shows what the particle filter does with
+it (the noise is raised so that $20\,000$ particles resolve all four modes
+from a uniform start).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch06_modes.pdf}
+\caption{Symmetric landmarks, unknown identities, $N=20\,000$. Above each
+panel: the mass of the four modes (rotations of the true pose). The
+correct posterior has four masses of $0.25$ forever; the particle
+estimates drift.}
+\label{fig:modes}
+\end{figure}
+
+The cloud correctly splits into four clusters. But the masses
+($0.20$, $0.35$, $0.21$, $0.16$ after one step) drift: after 30 steps one
+mode holds $0.70$ and another $0.005$, fewer than a hundred particles. A
+mode that loses its last particle never comes back. With fewer particles
+it happens much sooner: with $N=2000$ only one mode is left by step 30 in
+each of three runs.
+
+\begin{proposition}{Mode masses are martingales with absorbing ends}{wrightfisher}
+Idealise the situation: two modes $A$ and $B$ whose particles have equal
+likelihood in distribution, and multinomial resampling at every step. Let
+$m_t$ be the fraction of particles in $A$. Then $(m_t)$ is a martingale,
+$\E[m_{t+1}\mid m_t]=m_t$ and $\Var(m_{t+1}\mid m_t)=m_t(1-m_t)/N$. It
+reaches $0$ or $1$ in finite time with probability one, and reaches $1$
+with probability $m_0$.
+\end{proposition}
+
+\begin{proof}
+After resampling, the number of particles in $A$ is
+$\operatorname{Bin}(N,m_t)$ (each draw lands in $A$ with probability
+$m_t$), which gives the mean and variance. The states $0$ and $1$ are
+absorbing (an empty mode receives no draws) and every other state reaches
+one of them with positive probability in a single step, so absorption
+happens almost surely; the martingale is bounded, so by optional stopping
+$\E[m_\tau]=m_0$, and $m_\tau\in\{0,1\}$ gives
+$\Pr(m_\tau=1)=m_0$.
+\end{proof}
+
+\begin{inwords}
+This is the neutral Wright--Fisher model of population genetics: genetic
+drift. Without any evidence favouring one mode, the particle population
+still ``chooses'' one at random, and the filter ends up claiming a
+certainty that the data do not support. Systematic resampling reduces the
+resampling noise, but the weighting step adds its own Monte Carlo noise to
+the mode masses, so the drift remains. More particles slow it down
+(the variance per step is $\propto1/N$); nothing stops it. The weighted
+mean is meaningless here; a multimodal belief should be reported by its
+modes.
+\end{inwords}
+
+\section{The kidnapped mower}
+\label{sec:amcl}
+
+\emph{Kidnapped} is the standard name in robotics (the \emph{kidnapped
+robot problem}) for a robot that is picked up and moved somewhere else
+without being told: someone lifts the mower and puts it down on another
+part of the lawn. The filter keeps receiving ordinary commands and
+measurements, and nothing tells it that the mower has moved. This is
+harder than global localisation: there the filter \emph{knows} that it does
+not know where the mower is; here it is \emph{confidently wrong}, and must
+first discover that its belief is wrong. A converged particle filter has
+no particles near the new pose, so it can only crawl there through the
+motion noise, if at all.
+
+The way to discover it is \cref{prop:evidence}: the normaliser of the
+Bayes filter is the predictive likelihood of the measurement, and a
+kidnapping makes it collapse.
+
+\begin{proposition}{Estimating the predictive likelihood}{avglik}
+Let $(\x^{(i)},w^{(i)})$ be the predicted cloud, approximating
+$\belbar(\x_{t+1})$. Then
+\[
+  \hat\ell_{t+1}=\sum_iw^{(i)}\,p(\z_{t+1}\mid\x^{(i)})
+  \longrightarrow\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x=
+  \eta_{t+1}^{-1}
+\]
+as $N\to\infty$.
+\end{proposition}
+
+\begin{proof}
+This is \cref{prop:isconsistent} with $\varphi(\x)=p(\z_{t+1}\mid\x)$,
+which is bounded, and the target $\belbar$; the identification of the
+limit is \cref{prop:evidence}.
+\end{proof}
+
+\begin{definition}{Augmented MCL}{amcl}
+Maintain two exponential averages of $\hat\ell_t$, a slow one and a fast
+one ($0<\alpha_{\mathrm{slow}}\ll\alpha_{\mathrm{fast}}<1$):
+\[
+  w_{\mathrm{slow}}\leftarrow w_{\mathrm{slow}}+\alpha_{\mathrm{slow}}
+  (\hat\ell_t-w_{\mathrm{slow}}),\qquad
+  w_{\mathrm{fast}}\leftarrow w_{\mathrm{fast}}+\alpha_{\mathrm{fast}}
+  (\hat\ell_t-w_{\mathrm{fast}}),
+\]
+and at each resampling replace each particle, with probability
+$\max(0,1-w_{\mathrm{fast}}/w_{\mathrm{slow}})$, by a pose drawn uniformly
+over the lawn.
+\end{definition}
+
+When the measurements suddenly become hard to explain, the fast average
+drops below the slow one, and a fraction of the particles is scattered
+over the lawn; some land near the new pose and are quickly amplified by
+the next updates. While tracking normally, the two averages are close and
+almost nothing is injected. The implementation averages the
+\emph{per-landmark} likelihood (the geometric mean over the visible
+landmarks, $\hat\ell_t^{1/m}$), so that the scale of $\hat\ell$ does not
+jump when the number of visible landmarks changes.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/ch06_kidnap.pdf}
+\caption{Kidnapped at step 200 (dotted line), unknown landmark identities,
+$N=3000$, seed 7. Without injection, the filter happens to find the
+mower again quickly, but loses it later for good; with augmented MCL it
+recovers within a few dozen steps and stays locked.}
+\label{fig:kidnap}
+\end{figure}
+
+Over eight kidnappings (unknown identities, $N=3000$), the number of steps
+until the error stays below 10 is $8$ to $39$ with augmented MCL, and
+$15$ to $152$ without it, with one run that never recovered within 200
+steps (\cref{fig:kidnap}).
+
+\begin{practice}[\nb{05\_particle\_filter.ipynb}, \code{pf.py}]
+\code{ParticleFilter} stores the particles as an $(N,3)$ array and the
+log-weights as an $N$-vector. Options: \code{init="global"} or a Gaussian;
+\code{association="known"} or \code{"unknown"} (the mixture likelihood);
+\code{resample\_threshold} (on $\ESS/N$); \code{systematic\_resample} or
+\code{multinomial\_resample}; \code{roughening}; and
+\code{recovery=(alpha\_slow, alpha\_fast)} for augmented MCL. The filter
+records its ESS, resampling and injection history. The notebook reproduces
+every figure of this chapter and counts the surviving modes for several
+$N$.
+\end{practice}
+
+\begin{mower}
+Robot mowers are kidnapped all the time: carried to another part of the
+garden, lifted by a curious child, or simply switched off in the shed and
+on again on the lawn. Most have a lift sensor, which tells the filter that
+a kidnapping happened and lets it re-initialise globally. Augmented MCL
+covers the cases a lift sensor misses, such as wheels sliding on a wet
+slope.
+\end{mower}
+
+\FloatBarrier
+\section*{Exercises}
+\addcontentsline{toc}{section}{Exercises}
+
+\begin{enumerate}[label=\textbf{6.\arabic*},ref=6.\arabic*]
+\item\label{ex:ess} Show that $1\le\ESS\le N$, with equality on the right
+  if and only if all weights are equal and on the left if and only if one
+  weight is $1$. Show that $\ESS=N/(1+N^2s^2)$, where $s^2$ is the
+  empirical variance of the normalised weights.
+\item\label{ex:isbias} Let the target be $\pi=\Normal(1,1)$, the proposal
+  $q=\Normal(0,1)$ and $\varphi(x)=x$. For $N=1$, what does the
+  self-normalised estimate return, and what is its mean? Conclude that it
+  is biased.
+\item\label{ex:stratified} \emph{Stratified} resampling draws one
+  independent uniform in each $[k/N,(k+1)/N)$ instead of one shared
+  offset. Show that it is unbiased and that $\Var(N_i)\le Nw^{(i)}
+  (1-w^{(i)})$ for every $i$.
+\item\label{ex:fixation} In \cref{prop:wrightfisher}, show that
+  $\E[m_{t}(1-m_{t})]=m_0(1-m_0)(1-1/N)^t$. After how many resamplings
+  has the ``heterozygosity'' of a $50/50$ split dropped by half, for
+  $N=2000$?
+\end{enumerate}
+
+\subsection*{Solutions}
+
+\textbf{6.1.} With $\sum_iw_i=1$ and $w_i\ge0$, $\sum_iw_i^2\le
+\sum_iw_i\max_kw_k\le1$, with equality iff one weight is $1$. By
+Cauchy--Schwarz, $1=(\sum_iw_i)^2\le N\sum_iw_i^2$, with equality iff all
+the weights are equal. The empirical mean of the weights is $1/N$, so
+$s^2=\frac1N\sum_iw_i^2-\frac1{N^2}$, i.e.\ $\sum_iw_i^2=Ns^2+1/N$ and
+$\ESS=1/(Ns^2+1/N)=N/(1+N^2s^2)$.
+
+\textbf{6.2.} With one sample the normalised weight is $1$, so
+$\hat\varphi_1=X^{(1)}$, whose mean under $q$ is $0$, not $\E_\pi[X]=1$.
+The ratio of two unbiased estimates is not unbiased; the bias of the
+self-normalised estimate shrinks like $1/N$.
+
+\textbf{6.3.} The pointer $U_k\sim\mathcal U[k/N,(k+1)/N)$ falls in
+particle $i$'s interval $I_i$ with probability $N|I_i\cap[k/N,
+(k+1)/N)|=:p_{ik}$, so $\E[N_i]=\sum_kp_{ik}=N|I_i|=Nw^{(i)}$. The
+pointers are independent, so $N_i$ is a sum of independent Bernoulli
+variables with parameters $p_{ik}$ and
+$\Var(N_i)=\sum_kp_{ik}(1-p_{ik})$. For a fixed sum $\sum_kp_{ik}=
+Nw^{(i)}$, $\sum_kp_{ik}^2\ge(\sum_kp_{ik})^2/N=Nw^{(i)2}$ by
+Cauchy--Schwarz, so $\Var(N_i)\le Nw^{(i)}-Nw^{(i)2}$.
+
+\textbf{6.4.} Let $h_t=m_t(1-m_t)$. Given $m_t$,
+$\E[m_{t+1}^2]=m_t^2+m_t(1-m_t)/N$, so $\E[h_{t+1}\mid m_t]=m_t-m_t^2-
+m_t(1-m_t)/N=h_t(1-1/N)$; take expectations and iterate. For $N=2000$,
+$(1-1/N)^t=1/2$ gives $t=\log2/(-\log(1-1/2000))\approx1386$
+resamplings: slow, but certain, and faster with fewer particles or
+noisier weights.
