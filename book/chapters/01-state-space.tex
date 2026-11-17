@@ -119,9 +119,12 @@ Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
 \begin{proof}
 (ii) The map $\bepsilon\mapsto f(\x_t,\uu_t+\bepsilon)$ goes from $\R^2$
 to $\R^3$ and is smooth, so its image is (at most) a two-dimensional
-surface; $\x_{t+1}$ lies on it with probability one. A set of
-three-dimensional Lebesgue measure zero carrying probability one rules out
-a density. (i) A Gaussian on $\R^3$ is either non-degenerate (and has a
+surface $\mathcal S$, and $\x_{t+1}$ lies on it with probability one.
+If $\x_{t+1}$ had a density $g$ on $\R^3$, every set $A$ would satisfy
+$\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, so every set of zero
+volume (three-dimensional Lebesgue measure $\lambda^3$) would have
+probability zero. A surface has zero volume, yet
+$\Pr(\x_{t+1}\in\mathcal S)=1$: no density can exist. (i) A Gaussian on $\R^3$ is either non-degenerate (and has a
 density) or supported on an affine subspace. The surface of (ii) is not
 flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
 enters the position through $\cos$ and $\sin$, so for a fixed step the
