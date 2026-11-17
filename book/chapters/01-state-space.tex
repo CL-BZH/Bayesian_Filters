@@ -118,25 +118,39 @@ Change only the heading and keep $s$ fixed. Whatever $\theta'$ is, the end
 point stays at distance $s$ from $\p$, so as $\theta'$ varies it travels
 along the circle of radius $s$ centred at the start
 (\cref{fig:tangent}). The heading vector $(\cos\theta',\sin\theta')$ points
-along that circle's radius. Since the distance $\|\p'-\p\|$ stays equal to
-$s$, differentiating $\|\p'-\p\|^2=s^2$ with respect to $\theta'$ gives
-$2(\p'-\p)\cdot\partial\p'/\partial\theta'=0$: the direction in which the end
-point moves is perpendicular to the radius, that is, tangent to the circle.
-Explicitly,
+along that circle's radius.
+
+Now turn by a small extra $\Delta\theta$. The end point moves from $\p'$ to a
+new point $\p''$ on the same circle. The triangle $\p\,\p'\,\p''$ has two
+sides of length $s$ and the angle $\Delta\theta$ between them: it is
+isosceles, so its two other angles are equal, each
+$(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
+\begin{itemize}
+  \item \emph{Direction.} The displacement $\p''-\p'$ makes the angle
+    $\pi/2-\Delta\theta/2$ with the old heading: it is almost at a right
+    angle to it, and the smaller $\Delta\theta$, the closer to a right angle.
+  \item \emph{Length.} The displacement is the base of the triangle, of
+    length $2s\sin(\Delta\theta/2)\approx s\,\Delta\theta$: the arc length,
+    proportional to both the distance driven and the turn error.
+\end{itemize}
+In the limit $\Delta\theta\to0$ the displacement is exactly perpendicular to
+the heading, that is, tangent to the circle. This is what the derivative
+records:
 \[
-  \frac{\partial\p'}{\partial\theta'}=s\begin{pmatrix}-\sin\theta'\\
-  \cos\theta'\end{pmatrix},
+  \frac{\partial\p'}{\partial\theta'}
+  =\lim_{\Delta\theta\to0}\frac{\p''-\p'}{\Delta\theta}
+  =s\begin{pmatrix}-\sin\theta'\\ \cos\theta'\end{pmatrix},
 \]
-which is the heading $(\cos\theta',\sin\theta')$ rotated by $+90^\circ$
-and scaled by $s$: the dot product of the two unit vectors is
-$-\sin\theta'\cos\theta'+\cos\theta'\sin\theta'=0$. The factor $s$ is the arc length: an extra turn of
-$\Delta\theta$ moves the end point by $s\,\Delta\theta$ along the circle.
+the heading $(\cos\theta',\sin\theta')$ rotated by $+90^\circ$ (the dot
+product of the two unit vectors is
+$-\sin\theta'\cos\theta'+\cos\theta'\sin\theta'=0$) and scaled by $s$, the
+length found above per radian of turn.
 
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[scale=1.4,>=Stealth]
   \coordinate (P) at (0,0);
-  \def\s{3.4}\def\th{20}\def\dth{14}
+  \def\s{3.4}\def\th{15}\def\dth{30}
   \draw[black!30] (P) ++(-12:\s) arc[start angle=-12,end angle=58,
     radius=\s];
   \node[black!50,font=\small] at (60:\s+0.25) {circle of radius $s$};
@@ -150,20 +164,31 @@ $\Delta\theta$ moves the end point by $s\,\Delta\theta$ along the circle.
   \fill (\th:\s) circle (1.5pt);
   \fill[blue!70!black] (\th+\dth:\s) circle (1.5pt);
   \node[right=2pt,font=\small] at (\th:\s) {$\p'$};
+  \node[above left=0pt and 1pt,font=\small,blue!70!black]
+    at (\th+\dth:\s) {$\p''$};
   % tangent at p', perpendicular to the radius
-  \draw[->,very thick,orange!85!black] (\th:\s) -- ++(\th+90:{\s*\dth*pi/180})
-    node[pos=1,above right=0pt and 3pt,font=\small,align=left]
-    {tangent, length $\approx s\,\Delta\theta$};
+  \draw[densely dotted,black!55] (\th:\s) -- ++(\th+90:1.25)
+    node[right,font=\small,black!60] {tangent};
   \draw[black!60] (\th:\s) ++(\th+180:0.22) -- ++(\th+90:0.22)
     -- ++(\th:0.22);
+  % chord p' -> p'': the actual displacement
+  \draw[->,very thick,orange!85!black] (\th:\s) -- (\th+\dth:\s);
+  % base angle of the isosceles triangle at p'
+  \draw[orange!85!black] (\th:\s) ++(\th+180:0.6)
+    arc[start angle=\th+180,end angle={\th+180-(90-\dth/2)},radius=0.6];
+  \node[font=\small,orange!70!black] at
+    ($(\th:\s)+({\th+180-(90-\dth/2)/2}:1.25)$)
+    {$\tfrac{\pi}{2}-\tfrac{\Delta\theta}{2}$};
   \draw[dashed,black!40] (\th:\s) -- ++(\th:1.3) node[right,
     font=\small,black!60] {heading};
 \end{tikzpicture}
 \caption{Turning by an extra $\Delta\theta$ and driving the same distance
 $s$ moves the end of the step along the circle of radius $s$ around the
-start. For a small $\Delta\theta$ the displacement is along the tangent,
-perpendicular to the heading (right angle), and has length about
-$s\,\Delta\theta$.}
+start, from $\p'$ to $\p''$. The triangle $\p\,\p'\,\p''$ is isosceles, so
+the displacement (orange) makes the angle $\pi/2-\Delta\theta/2$ with the
+radius and has length $2s\sin(\Delta\theta/2)\approx s\,\Delta\theta$. As
+$\Delta\theta\to0$ it lines up with the tangent (dotted), at a right angle to
+the heading.}
 \label{fig:tangent}
 \end{figure}
 
