@@ -30,11 +30,16 @@ The noise-free motion model is the map
 The real mower executes a corrupted control:
 \begin{equation}\label{eq:motionnoise}
   \x_{t+1}=f(\x_t,\uu_t+\bepsilon_t),\qquad
-  \bepsilon_t\sim\Normal(\vect0,M),\quad
+  \bepsilon_t=\begin{pmatrix}\varepsilon_{s,t}\\\varepsilon_{\delta,t}
+  \end{pmatrix}\sim\Normal(\vect0,M),\quad
   M=\diag(\sigma_s^2,\sigma_\delta^2),
 \end{equation}
 with $\bepsilon_0,\bepsilon_1,\dots$ independent and independent of
-$\x_0$.
+$\x_0$. The component $\varepsilon_{s,t}$ is the error on the distance
+driven and $\varepsilon_{\delta,t}$ the error on the angle turned; since
+$M$ is diagonal they are independent, with standard deviations $\sigma_s$
+and $\sigma_\delta$. When a single step is discussed, the time index is
+dropped: $\varepsilon_s$, $\varepsilon_\delta$.
 \end{definition}
 
 \Cref{fig:pose} shows the pose and one step of the motion model. The
