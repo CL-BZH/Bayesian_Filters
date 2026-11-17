@@ -111,6 +111,21 @@ O(\norm{\Sigma}^2)$.
 For the heading, $\nabla^2\cos=-\cos$, so $\E[\cos\theta]\approx
 \cos\bar\theta\,(1-\sigma_\theta^2/2)$, the first-order expansion of the
 exact $e^{-\sigma_\theta^2/2}\cos\bar\theta$ (Exercise~\ref{ex:ecos}).
+\Cref{fig:linearisation} shows it in one dimension: with
+$\theta\sim\Normal(0.5,0.8^2)$, the EKF puts the mean of $\cos\theta$ at
+$0.88$, against a true mean of $0.64$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch04_linearisation.pdf}
+\caption{Linearisation in one dimension. Left: $g(\theta)=\cos\theta$, the
+input density (grey) and the tangent at its mean, which is all the EKF
+uses. Right: the true density of $g(\theta)$ (histogram of $200\,000$
+samples) and the EKF's Gaussian. The EKF's mean misses the curvature: it
+is too high by $0.24$.}
+\label{fig:linearisation}
+\end{figure}
+
 \Cref{fig:arc} shows the consequence. A mower known to within $1$ unit but
 with a heading uncertainty of $\sigma_\theta=0.8$\,rad (about $45^\circ$)
 drives 10 steps of 4 units straight ahead. The true distribution is an
@@ -120,7 +135,7 @@ needle, much too thin along the direction of travel.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.85\linewidth]{figures/ch04_arc.pdf}
+\includegraphics{figures/ch04_arc.pdf}
 \caption{Forty units driven with a $45^\circ$ heading uncertainty. Grey:
 5\,000 samples of the true distribution, with its mean and $2\sigma$
 ellipse (dashed). Blue: the EKF's prediction, mean through $f$ and

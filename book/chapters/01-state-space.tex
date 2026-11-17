@@ -37,11 +37,72 @@ with $\bepsilon_0,\bepsilon_1,\dots$ independent and independent of
 $\x_0$.
 \end{definition}
 
+\Cref{fig:pose} shows the pose and one step of the motion model. The
+heading $\theta$ is measured anticlockwise from the $x$-axis.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.5,>=Stealth,
+    mower/.style={draw=black!80,fill=green!35,line width=0.5pt},
+    proj/.style={densely dotted,black!55},
+    ref/.style={dashed,black!45}]
+  % axes
+  \draw[->,black!70] (-0.2,0) -- (6.0,0) node[below left] {$x$};
+  \draw[->,black!70] (0,-0.2) -- (0,4.4) node[below left] {$y$};
+  % poses
+  \coordinate (P) at (1.6,1.2);
+  \def\th{20}\def\de{35}\def\s{2.6}
+  \coordinate (Q) at ($(P)+({\s*cos(\th+\de)},{\s*sin(\th+\de)})$);
+  % projections of x_t onto the axes
+  \draw[proj] (P) -- (P |- 0,0) node[below,black] {$p^x_t$};
+  \draw[proj] (P) -- (0,0 |- P) node[left,black] {$p^y_t$};
+  \draw[proj] (Q) -- (Q |- 0,0) node[below,black] {$p^x_{t+1}$};
+  \draw[proj] (Q) -- (0,0 |- Q) node[left,black] {$p^y_{t+1}$};
+  % reference direction and old heading
+  \draw[ref] (P) -- ++(2.0,0);
+  \draw[ref] (P) -- ++(\th:2.6);
+  \draw[->,black!80] (P) ++(0:1.65) arc[start angle=0,end angle=\th,radius=1.65];
+  \node at ($(P)+({\th/2}:1.95)$) {$\theta_t$};
+  \draw[->,blue!70!black] (P) ++(\th:1.1) arc[start angle=\th,
+    end angle=\th+\de,radius=1.1];
+  \node[blue!70!black] at ($(P)+({\th+\de/2}:1.35)$) {$\delta_t$};
+  % the drive
+  \draw[->,very thick,blue!70!black] (P) -- (Q)
+    node[pos=0.6,above left=-1pt] {$s_t$};
+  % mowers (top view: deck with a bevelled front, pointing along the heading)
+  \foreach \c/\a in {P/\th,Q/{\th+\de}}{
+    \begin{scope}[shift={(\c)},rotate=\a]
+      \draw[mower] (-0.32,-0.2) -- (0.2,-0.2) -- (0.32,-0.08) -- (0.32,0.08)
+        -- (0.2,0.2) -- (-0.32,0.2) -- cycle;
+      \fill[black!80] (0,0) circle (0.035);
+    \end{scope}}
+  % heading of x_{t+1}
+  \draw[ref] (Q) -- ++(1.6,0);
+  \draw[ref] (Q) -- ++(\th+\de:1.1);
+  \draw[->,black!80] (Q) ++(0:1.05) arc[start angle=0,end angle=\th+\de,
+    radius=1.05];
+  \node at ($(Q)+({(\th+\de)/2}:1.38)$) {$\theta_{t+1}$};
+  \node at ($(P)+(-0.2,-0.42)$) {$\x_t$};
+  \node at ($(Q)+(-0.55,0.15)$) {$\x_{t+1}$};
+\end{tikzpicture}
+\caption{The pose $\x_t=(p^x_t,p^y_t,\theta_t)$: the mower's position on the
+lawn and its heading, measured anticlockwise from the $x$-axis. The
+control $\uu_t=(s_t,\delta_t)$ first turns the mower by $\delta_t$, then
+drives it a distance $s_t$ along the new heading, which gives
+$\x_{t+1}=f(\x_t,\uu_t)$ with $\theta_{t+1}=\theta_t+\delta_t$.}
+\label{fig:pose}
+\end{figure}
+
 The noise enters through the \emph{control}, not added to the state. This
-is the physically right model: the wheels slip, so the distance driven
-and the angle turned are wrong, and those errors are then transformed by
-the geometry. It also has two consequences that will follow us through the
-book.
+is the physically right model: the wheels slip, so the mower drives a
+little more or less than commanded ($\varepsilon_s$) and turns a little
+more or less ($\varepsilon_\delta$). These are errors in the commands,
+not yet in the position. The motion model converts them into position
+errors through the $\cos$ and $\sin$ in \eqref{eq:f}: a distance error
+moves the mower forward or backward \emph{along} its heading, whereas a
+turn error changes the heading itself, and so moves the mower
+\emph{sideways}, by an amount proportional to the distance driven. This
+has two consequences that will follow us through the book.
 
 \begin{proposition}{The transition is non-Gaussian and degenerate}{degenerate}
 Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
@@ -132,6 +193,43 @@ $R_1=\diag(\sigma_r^2,\sigma_\phi^2)$, for the landmarks within range,
 with all $\vv_{t,j}$ independent. The bearing is measured \emph{relative to
 the heading}, so it carries information about $\theta$.
 \end{definition}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.4,>=Stealth,
+    mower/.style={draw=black!80,fill=green!35,line width=0.5pt}]
+  \coordinate (P) at (0,0);
+  \coordinate (L) at (3.6,2.1);
+  \def\th{12}
+  \draw[dashed,black!45] (P) -- ++(2.4,0) node[right,black!60]
+    {\small $x$-direction};
+  \draw[dashed,black!45] (P) -- ++(\th:4.3) node[right,black!60]
+    {\small heading};
+  \draw[->,black!80] (P) ++(0:1.75) arc[start angle=0,end angle=\th,
+    radius=1.75];
+  \node at ($(P)+({\th/2}:2.0)$) {$\theta$};
+  \draw[very thick,orange!85!black] (P) -- (L)
+    node[midway,above left] {$r=\norm{\bell_j-\p}$};
+  \draw[->,blue!70!black,thick] (P) ++(\th:1.2) arc[start angle=\th,
+    end angle={atan2(2.1,3.6)},radius=1.2];
+  \node[blue!70!black] at ($(P)+({(\th+atan2(2.1,3.6))/2}:1.42)$) {$\phi$};
+  \begin{scope}[shift={(P)},rotate=\th]
+    \draw[mower] (-0.32,-0.2) -- (0.2,-0.2) -- (0.32,-0.08) -- (0.32,0.08)
+      -- (0.2,0.2) -- (-0.32,0.2) -- cycle;
+    \fill[black!80] (0,0) circle (0.035);
+  \end{scope}
+  \node[below=8pt] at (P) {$\p=(p^x,p^y)$};
+  \node[star,star points=5,fill=black!70,inner sep=1.6pt] at (L) {};
+  \node[above right] at (L) {landmark $\bell_j$};
+\end{tikzpicture}
+\caption{The range--bearing measurement of landmark $j$. The range $r$ is
+the distance from the mower to the landmark; the bearing $\phi$ is the
+angle from the mower's heading to the line of sight, so that the direction
+of the landmark in the lawn's frame is $\theta+\phi$.}
+\label{fig:sensor}
+\end{figure}
+
+\Cref{fig:sensor} shows the two components of $h_j$.
 
 Two simpler sensors are used in Chapters~\ref{ch:bayes}
 and~\ref{ch:kalman}: a \emph{GPS-like position fix}

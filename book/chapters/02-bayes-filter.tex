@@ -75,6 +75,21 @@ well it explains what was just seen, then renormalise. The belief
 sharpens. Repeat.
 \end{inwords}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_bayes_cycle.pdf}
+\caption{One cycle of the Bayes filter, computed exactly on a fine 1-D
+grid. Predict: a two-bump belief is shifted by the commanded displacement
+and blurred by the motion noise. Update: the prediction is multiplied by
+the likelihood of the new measurement (dashed) and renormalised. The bump
+that agrees with the measurement survives; the other one almost
+disappears.}
+\label{fig:bayescycle}
+\end{figure}
+
+\Cref{fig:bayescycle} shows one cycle on a one-dimensional example, where
+everything can be computed exactly.
+
 The normaliser has a meaning of its own, which the particle filter will
 use in \cref{sec:amcl}.
 
@@ -165,6 +180,39 @@ $\norm{\bell_j-\sigma(\p)}=\norm{\sigma(\bell_j)-\sigma(\p)}=
 $\p$ and $\sigma(\p)$, and the update multiplies a $\sigma$-invariant
 prior by a $\sigma$-invariant likelihood.
 \end{proof}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.95,>=Stealth]
+  \coordinate (A) at (0,0);
+  \coordinate (B) at (4,0);
+  \def\ra{2.9}\def\rb{2.3}
+  % intersection: x = (ra^2 - rb^2 + d^2)/(2d), y = sqrt(ra^2 - x^2)
+  \pgfmathsetmacro{\xi}{(\ra*\ra-\rb*\rb+16)/8}
+  \pgfmathsetmacro{\yi}{sqrt(\ra*\ra-\xi*\xi)}
+  \draw[dashed,black!45] (-3.4,0) -- (7.0,0) node[right,black!60]
+    {\small axis of $\sigma$};
+  \draw[orange!85!black,thick] (A) circle (\ra);
+  \draw[orange!85!black,thick] (B) circle (\rb);
+  \node[star,star points=5,fill=black!70,inner sep=1.6pt] at (A) {};
+  \node[star,star points=5,fill=black!70,inner sep=1.6pt] at (B) {};
+  \node[below left] at (A) {$\bell_1$};
+  \node[below right] at (B) {$\bell_2$};
+  \draw[black!60] (A) -- (\xi,\yi) node[pos=0.5,above left] {$r_1$};
+  \draw[black!60] (B) -- (\xi,\yi) node[pos=0.5,above right] {$r_2$};
+  \fill[green!50!black] (\xi,\yi) circle (2.6pt)
+    node[above=3pt,black] {$\p$};
+  \fill[green!50!black] (\xi,-\yi) circle (2.6pt)
+    node[below=3pt,black] {$\sigma(\p)$};
+  \draw[<->,densely dotted,black!60] (\xi,\yi-0.15) -- (\xi,-\yi+0.15);
+\end{tikzpicture}
+\caption{Two ranges $r_1$, $r_2$ to two landmarks define two circles,
+which meet at $\p$ and at its mirror image $\sigma(\p)$ across the line
+through the landmarks. The two points have exactly the same ranges.}
+\label{fig:mirror}
+\end{figure}
+
+\Cref{fig:mirror} shows the geometry.
 
 Two circles meet in two points, mirror images of each other, and the
 ranges cannot tell them apart. What can is the \emph{motion}: with the

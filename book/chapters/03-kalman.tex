@@ -76,6 +76,18 @@ The uncertainty shrinks by the part of $X$ that $Y$ explains, and does not
 depend on the value $\y$ at all.
 \end{inwords}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch03_gaussian.pdf}
+\caption{Left: contours of a joint Gaussian of $(X,Y)$. Fixing $Y=y$
+(dashed) slices it; the slice is the Gaussian density of $X\mid Y=y$, whose
+mean lies on the regression line $\E[X\mid Y=y]$ and whose width does not
+depend on $y$. Right: the Kalman update in one dimension, the example of
+the text. The posterior lies between the prior and the measurement, closer
+to the more precise one, and is narrower than both.}
+\label{fig:gaussian}
+\end{figure}
+
 \section{The filter}
 
 \begin{definition}{Linear-Gaussian model}{lgmodel}
@@ -124,8 +136,8 @@ the prediction did not. Its covariance is $S$ (Exercise~\ref{ex:innov}).
 In one dimension with $H=1$, the gain is $K=\bar P/(\bar P+R)$: the
 update is a weighted average of prediction and measurement, with weights
 inversely proportional to their variances, and the posterior precision is
-the sum of the two precisions, $1/P=1/\bar P+1/R$. That last fact holds in
-any dimension.
+the sum of the two precisions, $1/P=1/\bar P+1/R$
+(\cref{fig:gaussian}, right). That last fact holds in any dimension.
 
 \begin{proposition}{Information form}{information}
 If $\bar P$ and $R$ are invertible, then

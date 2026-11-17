@@ -159,7 +159,49 @@ $\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
 $\bel(\x_T)$: $\hx_T$ by \cref{thm:kf}.
 \end{proof}
 
-In the non-linear case the equivalence breaks. The EKF linearises each
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[>=Stealth,
+    var/.style={circle,draw=black!70,fill=white,minimum size=7.5mm,
+      inner sep=0pt},
+    fac/.style={rectangle,fill=black!75,minimum size=2.2mm,inner sep=0pt},
+    meas/.style={rectangle,fill=orange!85!black,minimum size=2.2mm,
+      inner sep=0pt}]
+  \foreach \i/\lab in {0/0,1/1,2/2,3/3,5/T}{
+    \node[var] (x\i) at (2*\i,0) {$\x_{\lab}$};}
+  \node at (8,0) {$\cdots$};
+  \node[fac,label={[font=\scriptsize]above:prior}] (p0) at (-1.1,0) {};
+  \draw (p0) -- (x0);
+  \foreach \a/\b in {0/1,1/2,2/3}{
+    \node[fac] (m\a) at (2*\a+1,0) {};
+    \draw (x\a) -- (m\a) -- (x\b);}
+  \node[fac] (m3) at (7,0) {}; \draw (x3) -- (m3) -- (7.6,0);
+  \node[fac] (m4) at (9,0) {}; \draw (8.4,0) -- (m4) -- (x5);
+  \foreach \i in {1,2,3,5}{
+    \node[meas] (z\i) at (2*\i,-1.1) {};
+    \draw (x\i) -- (z\i);}
+  \node[font=\scriptsize,right] at (10.25,-1.1) {measurement factors
+    $p(\z_t\mid\x_t)$};
+  \node[font=\scriptsize,above] at (5,0.45) {motion factors
+    $p(\x_{t+1}\mid\x_t,\uu_t)$};
+  \draw[decorate,decoration={brace,amplitude=4pt,mirror},black!60]
+    (-0.4,-1.65) -- (8.4,-1.65) node[midway,below=4pt,font=\scriptsize]
+    {smoothing: estimate all of them};
+  \draw[decorate,decoration={brace,amplitude=4pt,mirror},black!60]
+    (9.6,-1.65) -- (10.4,-1.65) node[midway,below=4pt,font=\scriptsize]
+    {filtering};
+\end{tikzpicture}
+\caption{The factor graph of \cref{prop:joint}: one variable per pose
+(circles) and one factor per term of the cost $J$ (squares): a prior,
+the motion between consecutive poses, and the measurement at each pose.
+A filter estimates only the newest pose and summarises the rest by its
+belief; a smoother estimates the whole chain, and can still correct the
+past.}
+\label{fig:factorgraph}
+\end{figure}
+
+\Cref{fig:factorgraph} draws the structure of $J$. In the non-linear case
+the equivalence breaks. The EKF linearises each
 measurement once, at the estimate available \emph{at that time}, and
 never revisits that decision, even after later measurements have shown the
 estimate to be wrong. The minimiser of the same cost $J$ with $f$ and $h$

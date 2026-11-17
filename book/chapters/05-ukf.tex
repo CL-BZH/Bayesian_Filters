@@ -34,6 +34,18 @@ The \emph{unscented transform} of $\Normal(\bmu,\Sigma)$ through $g$ is
 \]
 \end{definition}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.45\linewidth]{figures/ch05_sigma_points.pdf}
+\caption{The five sigma points of a two-dimensional Gaussian
+($\alpha=1$, $\kappa=0$): the mean, and the mean $\pm\sqrt{n+\lambda}$
+times each column of the Cholesky factor (arrows). Solid: the $1\sigma$
+ellipse; dashed: $2\sigma$.}
+\label{fig:sigmapoints}
+\end{figure}
+
+\Cref{fig:sigmapoints} shows the points for $n=2$.
+
 \begin{proposition}{Sigma points match the first two moments}{moments}
 $\sum_jW^{(m)}_j=1$, $\sum_jW^{(m)}_j\chi_j=\bmu$ and
 $\sum_jW^{(c)}_j(\chi_j-\bmu)(\chi_j-\bmu)\T=\Sigma$. All odd central
@@ -100,7 +112,7 @@ it by a Gaussian.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.85\linewidth]{figures/ch05_arc.pdf}
+\includegraphics{figures/ch05_arc.pdf}
 \caption{The arc of \cref{fig:arc}: EKF (blue) against the unscented
 transform (orange) with its seven transformed sigma points.}
 \label{fig:utarc}
@@ -179,6 +191,22 @@ the EKF. When it is not, the UKF trusts the measurement less, exactly
 where the EKF trusted it too much. This is why it stays consistent after
 an uncertain start.
 \end{inwords}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch05_regression.pdf}
+\caption{The example of \cref{fig:linearisation} with the unscented
+transform. The UKF evaluates $\cos$ at three sigma points and fits a
+regression line through them (slope $\tilde H=-0.43$; the tangent's is
+$-0.48$). The points do not lie on that line; their scatter around it,
+$\Omega=0.14$, is added to the output variance. The UKF's mean ($0.61$) is
+close to the true mean ($0.64$), and its spread covers the true
+distribution.}
+\label{fig:regression}
+\end{figure}
+
+\Cref{fig:regression} shows the regression line, the residuals $\vect\zeta_j$
+and the resulting Gaussian in one dimension.
 
 \section{Angles on the circle}
 \label{sec:circular}

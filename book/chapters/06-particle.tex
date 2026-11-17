@@ -53,7 +53,18 @@ numerator and the denominator,
 the constant $c$ cancelling in the ratio.
 \end{proof}
 
-The self-normalised estimate is biased for finite $N$
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/ch06_importance.pdf}
+\caption{Importance sampling. Forty samples are drawn from a wide proposal
+$q$ (dashed); each is weighted by $\pi/q$, so that the weighted samples
+(green, height proportional to the weight) represent the bimodal target
+$\pi$. Samples where $q$ over-represents $\pi$ get small weights.}
+\label{fig:importance}
+\end{figure}
+
+\Cref{fig:importance} shows the idea. The self-normalised estimate is
+biased for finite $N$
 (Exercise~\ref{ex:isbias}), but the bias is $O(1/N)$ and vanishes as $N$
 grows.
 
@@ -173,6 +184,45 @@ interval is its length divided by the spacing, $Nw^{(i)}$. A variable
 taking the values $m$ and $m+1$ with mean $m+f_i$ takes $m+1$ with
 probability $f_i$, hence the variance $f_i(1-f_i)$.
 \end{proof}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=11cm,y=1cm,>=Stealth]
+  \def\ws{0.08,0.30,0.05,0.12,0.25,0.20}
+  \def\cols{{"blue!25","orange!35","green!30","violet!25","teal!25",
+    "red!20"}}
+  \pgfmathsetmacro{\U}{0.06}
+  \foreach \w [count=\i from 0, remember=\c as \cprev (initially 0)] in \ws {
+    \pgfmathsetmacro{\c}{\cprev+\w}
+    \pgfmathsetmacro{\col}{\cols[\i]}
+    \fill[\col] (\cprev,0) rectangle (\c,0.5);
+    \draw[black!60] (\cprev,0) rectangle (\c,0.5);
+    \pgfmathtruncatemacro{\k}{\i+1}
+    \node[font=\scriptsize] at ({(\cprev+\c)/2},0.25) {$w^{(\k)}$};
+  }
+  \draw[->,black!60] (0,-0.2) -- (1.03,-0.2);
+  \node[below,font=\scriptsize] at (0,-0.2) {$0$};
+  \node[below,font=\scriptsize] at (1,-0.2) {$1$};
+  \foreach \k in {0,...,5} {
+    \pgfmathsetmacro{\pos}{(\U+\k)/6}
+    \draw[->,thick,black!85] (\pos,1.25) -- (\pos,0.55);
+  }
+  \pgfmathsetmacro{\pfirst}{\U/6}
+  \pgfmathsetmacro{\psecond}{(\U+1)/6}
+  \node[above,font=\scriptsize] at (\pfirst,1.25) {$U/N$};
+  \node[above,font=\scriptsize] at (\psecond,1.25) {$(U+1)/N$};
+  \node[above,font=\scriptsize] at (0.75,1.25) {$\dots$ spacing $1/N$};
+\end{tikzpicture}
+\caption{Systematic resampling with $N=6$. The weights are laid end to end
+on $[0,1)$; one uniform offset $U$ fixes $N$ evenly spaced pointers, and
+each particle is copied once per pointer that falls in its interval. Here
+particle 2 gets two copies, particles 1, 4, 5 and 6 one each, and particle
+3 none: always $\lfloor Nw^{(i)}\rfloor$ or $\lceil Nw^{(i)}\rceil$ (the
+expected numbers are $0.48$, $1.8$, $0.3$, $0.72$, $1.5$, $1.2$).}
+\label{fig:systematic}
+\end{figure}
+
+\Cref{fig:systematic} shows the pointers of systematic resampling.
 
 \begin{figure}[ht]
 \centering
@@ -358,7 +408,20 @@ When the measurements suddenly become hard to explain, the fast average
 drops below the slow one, and a fraction of the particles is scattered
 over the lawn; some land near the new pose and are quickly amplified by
 the next updates. While tracking normally, the two averages are close and
-almost nothing is injected. The implementation averages the
+almost nothing is injected. \Cref{fig:amcl} shows the mechanism on one
+kidnapping.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/ch06_amcl.pdf}
+\caption{Augmented MCL around the kidnapping of \cref{fig:kidnap} (step
+200, dotted). Top: the fast average of the measurement likelihood
+collapses within a few steps; the slow one barely moves. Bottom: once
+$w_{\mathrm{fast}}<w_{\mathrm{slow}}$ (step 217), random particles are
+injected (bars), some land near the new pose, and the position error
+(dashed) drops back to a few units.}
+\label{fig:amcl}
+\end{figure} The implementation averages the
 \emph{per-landmark} likelihood (the geometric mean over the visible
 landmarks, $\hat\ell_t^{1/m}$), so that the scale of $\hat\ell$ does not
 jump when the number of visible landmarks changes.
