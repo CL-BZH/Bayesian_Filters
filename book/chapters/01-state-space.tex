@@ -141,7 +141,7 @@ $(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
     \begin{equation}\label{eq:sinx}
       \cos x<\frac{\sin x}{x}<1\qquad(0<x<\pi/2),
     \end{equation}
-    proved below by comparing areas. Both bounds tend to $1$ as
+    proved in \cref{app:chord} by comparing areas. Both bounds tend to $1$ as
     $\Delta\theta\to0$, so the chord is slightly shorter than the arc and
     equal to it to first order. To first order the displacement is thus
     proportional to both the distance driven and the turn error.
@@ -226,73 +226,6 @@ travel, which widens with the distance travelled: the banana of
 approximation: the end point also falls back along the heading, by
 $s(1-\cos\Delta\theta)\approx s\,\Delta\theta^2/2$, the second-order
 shortening of \cref{prop:deadreckoning}.
-
-\paragraph{Comparing chord and arc.} Take one of the two right triangles,
-with angle $x$ at $\p$ (\cref{fig:sinx}). Let $\bm q$ be the point where the
-ray from $\p$ through $\bm m$ meets the circle, and $\bm t$ the point where
-it meets the tangent at $\p'$. Three regions are nested:
-\begin{itemize}
-  \item the triangle $\p\,\p'\,\bm q$, with base $\|\p-\bm q\|=s$ and height
-    $s\sin x$ (the distance from $\p'$ to the line $\p\bm q$), so area
-    $\tfrac12 s^2\sin x$;
-  \item the circular sector $\p\,\p'\,\bm q$, a fraction $x/(2\pi)$ of the
-    disc of area $\pi s^2$, so area $\tfrac12 s^2 x$;
-  \item the triangle $\p\,\p'\,\bm t$, right-angled at $\p'$ with legs $s$
-    and $s\tan x$, so area $\tfrac12 s^2\tan x$.
-\end{itemize}
-The first is inside the second because the sector is convex (its angle is
-less than $\pi$) and contains the three vertices $\p,\p',\bm q$. The second
-is inside the third because the whole disc lies on the same side of the
-tangent as $\p$: any point $\bm y\ne\p'$ of the tangent satisfies
-$\|\bm y-\p\|^2=s^2+\|\bm y-\p'\|^2>s^2$ (Pythagoras, the tangent being
-perpendicular to the radius), so the tangent line never enters the disc.
-Each inclusion leaves out a region of positive area, so
-$\tfrac12 s^2\sin x<\tfrac12 s^2 x<\tfrac12 s^2\tan x$. Dividing by
-$\tfrac12 s^2 x$ gives $\sin x/x<1$, and dividing by $\tfrac12 s^2\tan x$
-gives $\cos x<\sin x/x$: this is \eqref{eq:sinx}. No derivative or series
-is needed; the only analytic input is that the area of a sector is
-proportional to its angle, which is how the radian is defined.
-
-\begin{figure}[ht]
-\centering
-\begin{tikzpicture}[scale=1.25,>=Stealth]
-  \def\s{2.6}\def\x{50}
-  \coordinate (P) at (0,0);
-  \coordinate (A) at (0:\s);            % p'
-  \coordinate (Q) at (\x:\s);           % q
-  \coordinate (T) at ({\s},{\s*tan(\x)}); % t on the tangent at p'
-  \fill[orange!30] (P) -- (A) -- (T) -- cycle;
-  \fill[blue!25] (P) -- (A) arc[start angle=0,end angle=\x,radius=\s]
-    -- cycle;
-  \fill[green!40] (P) -- (A) -- (Q) -- cycle;
-  \draw[black!30] (-8:\s) arc[start angle=-8,end angle=\x+12,radius=\s];
-  \draw[thick] (P) -- (A) node[pos=0.5,below] {$s$};
-  \draw[thick] (P) -- (T);
-  \draw[thick,green!50!black] (A) -- (Q);
-  \draw[densely dotted,black!60] ($(A)+(0,-0.5)$) -- ($(T)+(0,0.4)$)
-    node[above,font=\small,black!60] {tangent at $\p'$};
-  \draw[black!60] (A) ++(-0.2,0) -- ++(0,0.2) -- ++(0.2,0);
-  \draw[->,black!70] (0.9,0) arc[start angle=0,end angle=\x,radius=0.9];
-  \node[font=\small] at (\x/2:1.15) {$x$};
-  \fill (P) circle (1.5pt) node[below left] {$\p$};
-  \fill (A) circle (1.5pt) node[below right] {$\p'$};
-  \fill (Q) circle (1.5pt) node[above left] {$\bm q$};
-  \fill (T) circle (1.5pt) node[right] {$\bm t$};
-  \draw[decorate,decoration={brace,amplitude=4pt,raise=2pt}]
-    (A) -- (T) node[midway,right=7pt,font=\small] {$s\tan x$};
-  \node[font=\small,anchor=west] at (4.1,2.0)
-    {\tikz\fill[green!40] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm q$:
-    $\tfrac12 s^2\sin x$};
-  \node[font=\small,anchor=west] at (4.1,1.5)
-    {\tikz\fill[blue!25] (0,0) rectangle (0.3,0.2); sector: $\tfrac12 s^2 x$};
-  \node[font=\small,anchor=west] at (4.1,1.0)
-    {\tikz\fill[orange!30] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm t$:
-    $\tfrac12 s^2\tan x$};
-\end{tikzpicture}
-\caption{The three nested regions behind $\sin x<x<\tan x$. Each contains
-the previous one, so their areas increase.}
-\label{fig:sinx}
-\end{figure}
 
 This conversion of control errors into pose errors has two consequences
 that will follow us through the book.
