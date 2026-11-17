@@ -129,9 +129,18 @@ $(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
   \item \emph{Direction.} The displacement $\p''-\p'$ makes the angle
     $\pi/2-\Delta\theta/2$ with the old heading: it is almost at a right
     angle to it, and the smaller $\Delta\theta$, the closer to a right angle.
-  \item \emph{Length.} The displacement is the base of the triangle, of
-    length $2s\sin(\Delta\theta/2)\approx s\,\Delta\theta$: the arc length,
-    proportional to both the distance driven and the turn error.
+  \item \emph{Length.} The displacement is the base of the triangle, a chord
+    of the circle. The line from $\p$ to the midpoint $\bm{m}$ of the chord
+    (dashed in \cref{fig:tangent}) bisects the isosceles triangle: it halves
+    the angle $\Delta\theta$ and the chord, and is perpendicular to the
+    chord. Each half is a right triangle with hypotenuse $s$ and angle
+    $\Delta\theta/2$ at $\p$, whose opposite side, half the chord, is
+    $s\sin(\Delta\theta/2)$. The chord therefore has length
+    $2s\sin(\Delta\theta/2)$. Since $\sin x=x-x^3/6+\dotsb$, this is
+    $s\,\Delta\theta-s\,\Delta\theta^3/24+\dotsb$: slightly shorter than the
+    arc length $s\,\Delta\theta$, and equal to it to first order. To first
+    order the displacement is thus proportional to both the distance driven
+    and the turn error.
 \end{itemize}
 In the limit $\Delta\theta\to0$ the displacement is exactly perpendicular to
 the heading, that is, tangent to the circle. This is what the derivative
@@ -159,7 +168,7 @@ length found above per radian of turn.
   \draw[->,thick,blue!70!black] (P) -- (\th+\dth:\s);
   \draw[->,black!70] (P) ++(\th:1.1) arc[start angle=\th,
     end angle=\th+\dth,radius=1.1];
-  \node[font=\small] at ($(P)+({\th+\dth/2}:1.45)$) {$\Delta\theta$};
+  \node[font=\small] at ($(P)+({\th+0.75*\dth}:1.5)$) {$\Delta\theta$};
   \fill (P) circle (1.5pt) node[below left] {$\p$};
   \fill (\th:\s) circle (1.5pt);
   \fill[blue!70!black] (\th+\dth:\s) circle (1.5pt);
@@ -171,13 +180,20 @@ length found above per radian of turn.
     node[right,font=\small,black!60] {tangent};
   \draw[black!60] (\th:\s) ++(\th+180:0.22) -- ++(\th+90:0.22)
     -- ++(\th:0.22);
+  % bisector from p to the midpoint m of the chord, with its right angle
+  \coordinate (M) at ($(\th:\s)!0.5!(\th+\dth:\s)$);
+  \draw[dashed,black!50] (P) -- (M);
+  \draw[black!50] (M) ++(\th+\dth/2+180:0.18) -- ++(\th+\dth/2+90:0.18)
+    -- ++(\th+\dth/2:0.18);
+  \fill[black!60] (M) circle (1.1pt);
+  \node[font=\small] at ($(M)+(\th+\dth/2:0.3)$) {$\bm{m}$};
   % chord p' -> p'': the actual displacement
   \draw[->,very thick,orange!85!black] (\th:\s) -- (\th+\dth:\s);
   % base angle of the isosceles triangle at p'
   \draw[orange!85!black] (\th:\s) ++(\th+180:0.6)
     arc[start angle=\th+180,end angle={\th+180-(90-\dth/2)},radius=0.6];
   \node[font=\small,orange!70!black] at
-    ($(\th:\s)+({\th+180-(90-\dth/2)/2}:1.25)$)
+    ($(\th:\s)+(180:1.05)$)
     {$\tfrac{\pi}{2}-\tfrac{\Delta\theta}{2}$};
   \draw[dashed,black!40] (\th:\s) -- ++(\th:1.3) node[right,
     font=\small,black!60] {heading};
@@ -186,7 +202,9 @@ length found above per radian of turn.
 $s$ moves the end of the step along the circle of radius $s$ around the
 start, from $\p'$ to $\p''$. The triangle $\p\,\p'\,\p''$ is isosceles, so
 the displacement (orange) makes the angle $\pi/2-\Delta\theta/2$ with the
-radius and has length $2s\sin(\Delta\theta/2)\approx s\,\Delta\theta$. As
+radius. The line from $\p$ to the chord's midpoint $\bm m$ (dashed) splits
+the triangle into two right triangles, so the chord has length
+$2s\sin(\Delta\theta/2)$, close to the arc length $s\,\Delta\theta$. As
 $\Delta\theta\to0$ it lines up with the tangent (dotted), at a right angle to
 the heading.}
 \label{fig:tangent}
