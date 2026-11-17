@@ -106,97 +106,7 @@ not yet in the position. The motion model converts them into position
 errors through the $\cos$ and $\sin$ in \eqref{eq:f}: a distance error
 moves the mower forward or backward \emph{along} its heading, whereas a
 turn error changes the heading itself, and so moves the mower
-\emph{sideways}, by an amount proportional to the distance driven. This
-has two consequences that will follow us through the book.
-
-\begin{proposition}{The transition is non-Gaussian and degenerate}{degenerate}
-Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
-\begin{enumerate}[label=(\roman*),nosep]
-\item The distribution of $\x_{t+1}$ is not Gaussian.
-\item It is concentrated on a two-dimensional surface of the
-  three-dimensional state space, so it has no density with respect to
-  the Lebesgue measure on $\R^3$.
-\item To first order in the noise,
-  $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$, where
-  $V=\frac{\partial f}{\partial\uu}(\x_t,\uu_t)$ is the $3\times2$
-  Jacobian matrix of $f$ with respect to the control. The covariance of
-  $\x_{t+1}$ is then approximately $Q_t=VMV\T$, a $3\times3$ matrix of
-  rank $2$.
-\end{enumerate}
-\end{proposition}
-
-\begin{proof}
-(ii) The map $\bepsilon\mapsto f(\x_t,\uu_t+\bepsilon)$ goes from $\R^2$
-to $\R^3$ and is smooth, so its image is (at most) a two-dimensional
-surface $\mathcal S$, and $\x_{t+1}$ lies on it with probability one.
-If $\x_{t+1}$ had a density $g$ on $\R^3$, every set $A$ would satisfy
-$\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, so every set of zero
-volume (three-dimensional Lebesgue measure $\lambda^3$) would have
-probability zero. A surface has zero volume, yet
-$\Pr(\x_{t+1}\in\mathcal S)=1$: no density can exist. (i) A Gaussian on $\R^3$ is either non-degenerate (and has a
-density) or supported on an affine subspace. The surface of (ii) is not
-flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
-enters the position through $\cos$ and $\sin$, so for a fixed step the
-position runs along a circular arc as $\varepsilon_\delta$ varies.
-(iii) The noise is small, so expand $f$ to first order in its second
-argument (Taylor's formula):
-\[
-  f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
-  +O(\norm{\bepsilon_t}^2),\qquad
-  V_{ij}=\frac{\partial f_i}{\partial u_j}(\x_t,\uu_t),
-\]
-where $u_1=s$ and $u_2=\delta$. Differentiating the three components of
-\eqref{eq:f} with respect to $s$ and to $\delta$, with
-$\theta'=\theta+\delta$ (both $\theta$ and $\delta$ enter only through
-$\theta'$), gives the two columns
-\[
-  V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
-  \\0&1\end{pmatrix}
-  =\Bigl(\ \frac{\partial f}{\partial s}\ \Big|\ 
-  \frac{\partial f}{\partial\delta}\ \Bigr).
-\]
-The first column is the effect of driving further: per unit of extra
-distance, the position moves along the heading and the heading does not
-change. The second is the effect of a small extra turn: per radian, the
-heading changes by $1$ and the position moves sideways by $s$,
-perpendicular to the heading (see below). So, to first order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
-=\varepsilon_s\,\frac{\partial f}{\partial s}+\varepsilon_\delta\,
-\frac{\partial f}{\partial\delta}$, a linear map of the Gaussian
-$\bepsilon_t$, whose covariance is
-$\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
-(\cref{lem:affine}). The two columns of $V$ are independent when $s\neq0$
-(the first has a zero third entry, the second does not), so $V$ has rank
-2, and so has $VMV\T$ since $M$ is positive definite. Its null space is
-spanned by the cross product of the columns, computed in
-Exercise~\ref{ex:nullspace}. The same Jacobian is used by the extended
-Kalman filter (\cref{prop:jacobians}).
-\end{proof}
-
-\begin{inwords}
-The pose space is three-dimensional: $(p^x,p^y,\theta)$. After one step
-from a known pose, the new pose is fixed by only \emph{two} random
-numbers, ``drove a bit more or less'' ($\varepsilon_s$) and ``turned a
-bit more or less'' ($\varepsilon_\delta$). Three coordinates that depend on
-two random inputs cannot fill a three-dimensional region: the reachable
-poses form a two-dimensional sheet, and every pose off the sheet is
-impossible. A Gaussian can only approximate it. After several steps the
-noises of all the steps compound, the uncertainty fills all three
-dimensions, but it stays curved: the familiar ``banana'' of
-\cref{fig:transition}.
-\end{inwords}
-
-\begin{figure}[ht]
-\centering
-\includegraphics{figures/ch01_transition.pdf}
-\caption{A thousand mowers start at the origin, heading east, and receive
-the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
-15 and 25 steps. Only the positions are plotted: each cloud is the shadow
-on the lawn of a cloud in the three-dimensional pose space, which after
-several steps fills a curved volume rather than a single helicoid. Heading
-errors become position errors \emph{across} the path, along arcs: the
-clouds bend.}
-\label{fig:transition}
-\end{figure}
+\emph{sideways}, by an amount proportional to the distance driven.
 
 \paragraph{Why a turn error moves the mower sideways.} The mower starts at
 $\p$ and drives a distance $s$ along the heading $\theta'$; its new
@@ -265,6 +175,99 @@ travel, which widens with the distance travelled: the banana of
 approximation: the end point also falls back along the heading, by
 $s(1-\cos\Delta\theta)\approx s\,\Delta\theta^2/2$, the second-order
 shortening of \cref{prop:deadreckoning}.
+
+This conversion of control errors into pose errors has two consequences
+that will follow us through the book.
+
+\begin{proposition}{The transition is non-Gaussian and degenerate}{degenerate}
+Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
+\begin{enumerate}[label=(\roman*),nosep]
+\item The distribution of $\x_{t+1}$ is not Gaussian.
+\item It is concentrated on a two-dimensional surface of the
+  three-dimensional state space, so it has no density with respect to
+  the Lebesgue measure on $\R^3$.
+\item To first order in the noise,
+  $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$, where
+  $V=\frac{\partial f}{\partial\uu}(\x_t,\uu_t)$ is the $3\times2$
+  Jacobian matrix of $f$ with respect to the control. The covariance of
+  $\x_{t+1}$ is then approximately $Q_t=VMV\T$, a $3\times3$ matrix of
+  rank $2$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(ii) The map $\bepsilon\mapsto f(\x_t,\uu_t+\bepsilon)$ goes from $\R^2$
+to $\R^3$ and is smooth, so its image is (at most) a two-dimensional
+surface $\mathcal S$, and $\x_{t+1}$ lies on it with probability one.
+If $\x_{t+1}$ had a density $g$ on $\R^3$, every set $A$ would satisfy
+$\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, so every set of zero
+volume (three-dimensional Lebesgue measure $\lambda^3$) would have
+probability zero. A surface has zero volume, yet
+$\Pr(\x_{t+1}\in\mathcal S)=1$: no density can exist. (i) A Gaussian on $\R^3$ is either non-degenerate (and has a
+density) or supported on an affine subspace. The surface of (ii) is not
+flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
+enters the position through $\cos$ and $\sin$, so for a fixed step the
+position runs along a circular arc as $\varepsilon_\delta$ varies.
+(iii) The noise is small, so expand $f$ to first order in its second
+argument (Taylor's formula):
+\[
+  f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
+  +O(\norm{\bepsilon_t}^2),\qquad
+  V_{ij}=\frac{\partial f_i}{\partial u_j}(\x_t,\uu_t),
+\]
+where $u_1=s$ and $u_2=\delta$. Differentiating the three components of
+\eqref{eq:f} with respect to $s$ and to $\delta$, with
+$\theta'=\theta+\delta$ (both $\theta$ and $\delta$ enter only through
+$\theta'$), gives the two columns
+\[
+  V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
+  \\0&1\end{pmatrix}
+  =\Bigl(\ \frac{\partial f}{\partial s}\ \Big|\ 
+  \frac{\partial f}{\partial\delta}\ \Bigr).
+\]
+The first column is the effect of driving further: per unit of extra
+distance, the position moves along the heading and the heading does not
+change. The second is the effect of a small extra turn: per radian, the
+heading changes by $1$ and the position moves sideways by $s$,
+perpendicular to the heading, as shown above (\cref{fig:tangent}). So, to
+first order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
+=\varepsilon_s\,\frac{\partial f}{\partial s}+\varepsilon_\delta\,
+\frac{\partial f}{\partial\delta}$, a linear map of the Gaussian
+$\bepsilon_t$, whose covariance is
+$\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
+(\cref{lem:affine}). The two columns of $V$ are independent when $s\neq0$
+(the first has a zero third entry, the second does not), so $V$ has rank
+2, and so has $VMV\T$ since $M$ is positive definite. Its null space is
+spanned by the cross product of the columns, computed in
+Exercise~\ref{ex:nullspace}. The same Jacobian is used by the extended
+Kalman filter (\cref{prop:jacobians}).
+\end{proof}
+
+\begin{inwords}
+The pose space is three-dimensional: $(p^x,p^y,\theta)$. After one step
+from a known pose, the new pose is fixed by only \emph{two} random
+numbers, ``drove a bit more or less'' ($\varepsilon_s$) and ``turned a
+bit more or less'' ($\varepsilon_\delta$). Three coordinates that depend on
+two random inputs cannot fill a three-dimensional region: the reachable
+poses form a two-dimensional sheet, and every pose off the sheet is
+impossible. A Gaussian can only approximate it. After several steps the
+noises of all the steps compound, the uncertainty fills all three
+dimensions, but it stays curved: the familiar ``banana'' of
+\cref{fig:transition}.
+\end{inwords}
+
+\begin{figure}[ht]
+\centering
+\includegraphics{figures/ch01_transition.pdf}
+\caption{A thousand mowers start at the origin, heading east, and receive
+the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
+15 and 25 steps. Only the positions are plotted: each cloud is the shadow
+on the lawn of a cloud in the three-dimensional pose space, which after
+several steps fills a curved volume rather than a single helicoid. Heading
+errors become position errors \emph{across} the path, along arcs: the
+clouds bend.}
+\label{fig:transition}
+\end{figure}
 
 The two-dimensional sheet of reachable poses is easy to describe. Call $d=s+\varepsilon_s$ the distance
 actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
