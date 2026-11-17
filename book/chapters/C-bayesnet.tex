@@ -15,8 +15,9 @@ random variables, together with the factorisation
 \[
   p(v_1,\dots,v_n)=\prod_{k=1}^n p\bigl(v_k\mid\mathrm{pa}(v_k)\bigr),
 \]
-where $\mathrm{pa}(v_k)$ is the set of \emph{parents} of $v_k$, the nodes
-with an arrow into it. Known inputs, such as the controls $\uu_t$, can be
+where $\mathrm{pa}(v_k)$ is the set of \emph{parents} of $v_k$: the nodes
+from which an arrow points to $v_k$. In $A\rightarrow B$, $A$ is a parent
+of $B$. Known inputs, such as the controls $\uu_t$, can be
 drawn as nodes that are always given; nothing below changes. The mower
 network of \cref{fig:bayesnet} has the parents $\mathrm{pa}(\x_{t+1})=
 \{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$, and its factorisation is
