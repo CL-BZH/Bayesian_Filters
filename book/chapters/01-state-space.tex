@@ -598,6 +598,27 @@ $\x_{t+1}$, and $\z_{t+1}$ is measured at $\x_{t+1}$. Both assumptions
 hold for the model above by construction, since the noises
 $\bepsilon_t$ and $\vv_t$ are independent of everything else.
 
+\Cref{fig:bayesnet} draws the model as a \emph{Bayesian network}: one node
+per variable, and an arrow into each variable from the variables it is
+computed from. The pose $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ has the
+parents $\x_t$ and $\uu_t$; the measurement $\z_t$ has the single parent
+$\x_t$. The noises are not drawn: each one feeds a single variable, and
+is independent of everything else. \Cref{app:bayesnet} shows how to read
+conditional independences off such a graph, and checks with it every
+independence used in this chapter and the next, including
+\ref{A1}--\ref{A2}.
+
+\begin{figure}[ht]
+\centering
+\input{figures/tikz/bn_main}
+\caption{The mower model as a Bayesian network, for three steps. Circles
+are random variables: the poses $\x_t$ (hidden) and the measurements
+$\z_t$ (observed, shaded). Squares are the controls $\uu_t$, known
+inputs. The joint distribution \eqref{eq:joint} has one factor per
+variable, given its parents.}
+\label{fig:bayesnet}
+\end{figure}
+
 \begin{proposition}{Factorisation of the joint distribution}{joint}
 Under \ref{A1}--\ref{A2}, for known controls $\uu_{0:T-1}$,
 \begin{equation}\label{eq:joint}

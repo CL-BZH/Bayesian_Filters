@@ -5,6 +5,7 @@ book:
 
 figures:
 	python3 book/figures/make_figures.py
+	python3 book/figures/make_bayesnet.py
 
 media:
 	python3 scripts/make_media.py
