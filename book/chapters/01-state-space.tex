@@ -150,6 +150,19 @@ dimensions, but it stays curved: the familiar ``banana'' of
 \cref{fig:transition}.
 \end{inwords}
 
+\begin{figure}[ht]
+\centering
+\includegraphics{figures/ch01_transition.pdf}
+\caption{A thousand mowers start at the origin, heading east, and receive
+the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
+15 and 25 steps. Only the positions are plotted: each cloud is the shadow
+on the lawn of a cloud in the three-dimensional pose space, which after
+several steps fills a curved volume rather than a single helicoid. Heading
+errors become position errors \emph{across} the path, along arcs: the
+clouds bend.}
+\label{fig:transition}
+\end{figure}
+
 The sheet is easy to describe. Call $d=s+\varepsilon_s$ the distance
 actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
 actually reached. The reachable poses are
@@ -183,17 +196,91 @@ $\sigma_\delta=0.03$), one step covers only a small patch of the
 staircase, which looks almost flat. The curvature becomes visible as the
 steps accumulate.
 
+\paragraph{Position and heading are coupled.} Because $M$ is diagonal, the
+two \emph{control} errors $\varepsilon_s$ and $\varepsilon_\delta$ are
+independent. It is tempting to conclude that the new position and the new
+heading are independent too, so that the position at a given heading is
+spread over an ellipse and the heading at a given position is Gaussian.
+Neither is true. To state precisely what holds, measure the errors in the
+frame of the nominal step: with $\bar\varphi=\theta+\delta$ and
+$\bar{\p}'=\p+s(\cos\bar\varphi,\sin\bar\varphi)$, let
+\[
+  e_\parallel=(\p'-\bar{\p}')\cdot\begin{pmatrix}\cos\bar\varphi\\
+  \sin\bar\varphi\end{pmatrix},\qquad
+  e_\perp=(\p'-\bar{\p}')\cdot\begin{pmatrix}-\sin\bar\varphi\\
+  \cos\bar\varphi\end{pmatrix},\qquad
+  e_\theta=\theta'-\bar\varphi,
+\]
+the errors \emph{along} the path, \emph{across} it, and in heading.
+
+\begin{proposition}{Position and heading after one step}{coupling}
+Take one step from a known pose $(\p,\theta)$ with control $(s,\delta)$,
+$s>0$, and write $d=s+\varepsilon_s$, $\varphi=\theta+\delta+
+\varepsilon_\delta$, so that $\p'=\p+d(\cos\varphi,\sin\varphi)$ and
+$\theta'=\varphi$.
+\begin{enumerate}[label=(\roman*),nosep]
+\item Given the new heading $\theta'=\varphi$, the new position lies on the
+  straight line through $\p$ in the direction $\varphi$, at a Gaussian
+  distance $d\sim\Normal(s,\sigma_s^2)$: a one-dimensional distribution,
+  with no spread across the line.
+\item Given the new position $\p'$ (and $d>0$), the new heading is
+  determined exactly: $\theta'=\operatorname{atan2}(p'^y-p^y,\,
+  p'^x-p^x)$. Its conditional distribution is a single point.
+\item To first order in the noise, $e_\parallel=\varepsilon_s$,
+  $e_\perp=s\,\varepsilon_\delta$ and $e_\theta=\varepsilon_\delta$, so
+  \[
+    \Cov(e_\parallel,e_\perp,e_\theta)=\begin{pmatrix}\sigma_s^2&0&0\\
+    0&s^2\sigma_\delta^2&s\sigma_\delta^2\\0&s\sigma_\delta^2&\sigma_\delta^2
+    \end{pmatrix},
+  \]
+  and the sideways error and the heading error have correlation $1$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(i) Conditioning on $\varphi$ is conditioning on $\varepsilon_\delta$,
+which is independent of $\varepsilon_s$; so $d$ keeps its distribution
+$\Normal(s,\sigma_s^2)$, and $\p'=\p+d(\cos\varphi,\sin\varphi)$ runs along
+a fixed line. (ii) For $d>0$, $\p'-\p$ is a positive multiple of
+$(\cos\varphi,\sin\varphi)$, so its direction is $\varphi$. (iii) Expand
+$\p'=\p+(s+\varepsilon_s)(\cos(\bar\varphi+\varepsilon_\delta),
+\sin(\bar\varphi+\varepsilon_\delta))$ to first order:
+$\p'\approx\bar{\p}'+\varepsilon_s(\cos\bar\varphi,\sin\bar\varphi)+
+s\,\varepsilon_\delta(-\sin\bar\varphi,\cos\bar\varphi)$. Projecting on the
+two directions gives $e_\parallel$ and $e_\perp$, and
+$e_\theta=\varepsilon_\delta$ exactly. The covariance follows from the
+independence of $\varepsilon_s$ and $\varepsilon_\delta$; the correlation
+of $e_\perp$ and $e_\theta$ is $s\sigma_\delta^2/\sqrt{s^2\sigma_\delta^2
+\cdot\sigma_\delta^2}=1$.
+\end{proof}
+
+\begin{inwords}
+A diagonal $M$ separates \emph{along the path} from \emph{across the path
+and heading}; it does not separate position from heading. Turning a bit
+too much both changes the heading and pushes the mower sideways, so the
+two errors are two faces of the same random number. The helicoid of
+\cref{fig:helicoid} is this statement in pictures: slices at a fixed
+heading are straight segments (i), and above each point of the lawn the
+sheet has a single height (ii). Over many steps the errors of different
+steps add up and the conditionals become genuine distributions, but the
+coupling stays strong (\cref{fig:coupling}; Exercise~\ref{ex:corr}).
+This coupling is why a filter's covariance has large off-diagonal terms
+between $\theta$ and the position, and why a measurement of the heading
+also corrects the position.
+\end{inwords}
+
 \begin{figure}[ht]
 \centering
-\includegraphics{figures/ch01_transition.pdf}
-\caption{A thousand mowers start at the origin, heading east, and receive
-the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
-15 and 25 steps. Only the positions are plotted: each cloud is the shadow
-on the lawn of a cloud in the three-dimensional pose space, which after
-several steps fills a curved volume rather than a single helicoid. Heading
-errors become position errors \emph{across} the path, along arcs: the
-clouds bend.}
-\label{fig:transition}
+\includegraphics[width=\linewidth]{figures/ch01_coupling.pdf}
+\caption{Position and heading are coupled. (a) One step with exaggerated
+noise, positions coloured by heading: the colour is a function of the
+position (the direction from the start, dotted lines). (b) 25 steps on a
+straight path with the real noise: the heading still varies
+systematically across the cloud, with some mixing. (c) Sideways error
+against heading error, each divided by its standard deviation: on a line
+after one step (correlation $0.995$; exactly $1$ to first order), an
+elongated cloud after 25 steps (correlation $0.87$).}
+\label{fig:coupling}
 \end{figure}
 
 \section{Sensors}
@@ -452,6 +539,14 @@ RTK-GNSS or a camera.
 \item\label{ex:wrapadd} Is $\wrap$ additive, i.e.\ is
   $\wrap(a+b)=\wrap(a)+\wrap(b)$? Give a proof or a counter-example, and
   explain why the code wraps the heading \emph{after} each update.
+\item\label{ex:corr} On the straight path of \cref{prop:deadreckoning},
+  show that, to first order, the correlation between the lateral error
+  $e_t$ and the heading error $\theta_t$ after $t$ steps is
+  \[
+    \rho_t=\sqrt{\frac{3(t+1)}{2(2t+1)}},
+  \]
+  so that $\rho_1=1$ and $\rho_t$ decreases to $\sqrt3/2\approx0.87$.
+  Why does the coupling never vanish?
 \end{enumerate}
 
 \subsection*{Solutions}
@@ -498,3 +593,22 @@ wrapped, the next innovation (a difference of angles,
 \cref{lem:wrap}) or the next circular mean will treat a heading of
 $3.2$ and one of $-3.08$ as different, although they are the same
 direction.
+
+\textbf{1.5.} From the proof of \cref{prop:deadreckoning},
+$\theta_t=\sum_{j=1}^t\varepsilon_{\delta,j}$ and
+$e_t\approx s\sum_{j=1}^t(t-j+1)\varepsilon_{\delta,j}$. With independent
+$\varepsilon_{\delta,j}$ of variance $\sigma_\delta^2$,
+\[
+  \Cov(e_t,\theta_t)\approx s\sigma_\delta^2\sum_{m=1}^tm=
+  s\sigma_\delta^2\frac{t(t+1)}2,\quad
+  \Var(e_t)\approx s^2\sigma_\delta^2\frac{t(t+1)(2t+1)}6,\quad
+  \Var(\theta_t)=t\sigma_\delta^2 .
+\]
+Hence $\rho_t^2=\frac{t^2(t+1)^2/4}{t\cdot t(t+1)(2t+1)/6}=
+\frac{3(t+1)}{2(2t+1)}$, which is $1$ for $t=1$ and tends to $3/4$. A
+Monte Carlo run with the noise of the simulations gives $0.903$ and $0.874$
+after 5 and 25 steps, against $0.905$ and $0.875$. The coupling never
+vanishes because every turn error that contributes to the final heading
+error also pushed the mower sideways for the rest of the path; old turn
+errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
+which mixes the two sums without decorrelating them.

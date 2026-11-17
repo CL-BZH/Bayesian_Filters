@@ -515,9 +515,53 @@ def fig_helicoid():
     ax.tick_params(labelsize=7)
     save(fig, "ch01_helicoid")
 
+
+def fig_coupling():
+    """Position and heading are coupled: one step (exaggerated noise) and 25 steps (real noise)."""
+    world = World.default()
+    rng = np.random.default_rng(2)
+    # (a) one step, exaggerated noise, positions coloured by heading
+    eps = rng.normal(0, [0.6, 0.35], size=(1500, 2))
+    d, phi = 4.0 + eps[:, 0], eps[:, 1]
+    # (b), (c) straight path, real noise
+    n = 4000
+    x = np.zeros((n, 3))
+    u = np.array([4.0, 0.0])
+    x1 = None
+    for t in range(1, 26):
+        x = motion_model(x, u + rng.normal(0, [world.sigma_step, world.sigma_turn], size=(n, 2)))
+        if t == 1:
+            x1 = x.copy()
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.33), gridspec_kw=dict(width_ratios=[1, 1, 1]))
+    a1, a2, a3 = axes
+    sc = a1.scatter(d * np.cos(phi), d * np.sin(phi), c=phi, cmap="coolwarm", s=3, lw=0, vmin=-1, vmax=1)
+    a1.scatter([0], [0], s=20, color=viz.INK)
+    for f in (-0.6, 0.0, 0.6):
+        a1.plot([0, 6 * np.cos(f)], [0, 6 * np.sin(f)], color=viz.INK_2, lw=0.6, ls=":")
+    a1.set_aspect("equal"); a1.set_xlabel("$p^x$"); a1.set_ylabel("$p^y$")
+    a1.set_title("one step: colour = heading", fontsize=8)
+    cb = fig.colorbar(sc, ax=a1, fraction=0.046, pad=0.03); cb.set_label(r"$\theta$", fontsize=8); cb.ax.tick_params(labelsize=6.5)
+    sc2 = a2.scatter(x[:, 0], x[:, 1], c=x[:, 2], cmap="coolwarm", s=2, lw=0, vmin=-0.45, vmax=0.45)
+    a2.set_xlabel("$p^x$"); a2.set_ylabel("$p^y$")
+    a2.set_title("25 steps: colour = heading", fontsize=8)
+    cb2 = fig.colorbar(sc2, ax=a2, fraction=0.046, pad=0.03); cb2.ax.tick_params(labelsize=6.5)
+    z = lambda v: (v - v.mean()) / v.std()
+    a3.scatter(z(x[:, 2]), z(x[:, 1]), s=2, lw=0, color=viz.COLORS["EKF"], alpha=0.4, label="after 25 steps")
+    a3.scatter(z(x1[:, 2]), z(x1[:, 1]), s=2, lw=0, color=viz.COLORS["UKF"], alpha=0.8, label="after 1 step")
+    c25 = np.corrcoef(x[:, 1], x[:, 2])[0, 1]
+    c1 = np.corrcoef(x1[:, 1], x1[:, 2])[0, 1]
+    a3.set_xlim(-4, 4); a3.set_ylim(-4, 4); a3.set_aspect("equal")
+    a3.set_xlabel(r"heading error $e_\theta/\sigma$"); a3.set_ylabel(r"sideways error $e_\perp/\sigma$")
+    a3.set_title(f"correlation {c1:.3f} (1 step), {c25:.2f} (25)", fontsize=8)
+    a3.legend(fontsize=6.5, loc="upper left", markerscale=4)
+    plt.tight_layout()
+    save(fig, "ch01_coupling")
+    print("coupling corr", round(c1, 3), round(c25, 3))
+
 if __name__ == "__main__":
     fig_transition()
     fig_helicoid()
+    fig_coupling()
     fig_dead_reckoning()
     fig_grid()
     fig_kf_nees()
