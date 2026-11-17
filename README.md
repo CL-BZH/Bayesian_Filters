@@ -111,6 +111,7 @@ for f in [EKF.from_world(world, run.truth[0], np.diag([10, 10, 0.05])),
 * S. J. Julier, J. K. Uhlmann, "A new extension of the Kalman filter to nonlinear systems", 1997.
 * E. A. Wan, R. van der Merwe, "The unscented Kalman filter for nonlinear estimation", 2000.
 * A. Doucet, A. M. Johansen, "A tutorial on particle filtering and smoothing: fifteen years later", 2009.
+* Background: [advanced-calculus-for-ml](https://github.com/CL-BZH/advanced-calculus-for-ml), the calculus behind the Jacobians, Taylor expansions, Gauss–Newton steps and densities used here.
 * Sequel: [Deep-Kalman-Filters](https://github.com/CL-BZH/Deep-Kalman-Filters), where the models are learned.
 * Sequel: [vslam-course](https://github.com/CL-BZH/vslam-course), visual SLAM for the same robot mower: smoothing over a factor graph instead of filtering.
 
