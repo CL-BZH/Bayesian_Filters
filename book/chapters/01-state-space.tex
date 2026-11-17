@@ -10,40 +10,66 @@ showing why the obvious answer, integrating the commands
 (\emph{dead reckoning}), is not good enough.
 
 \section{State, control and motion}
+\label{sec:motion}
+
+This section builds the motion model in five steps: what the state of the
+mower is and how one command moves it (\cref{sec:pose}); how the real
+mower deviates from the command (\cref{sec:noise}); how these deviations
+become errors on the pose (\cref{sec:errors}); and what the resulting
+uncertainty looks like (\cref{sec:shape,sec:coupling}). The first three
+steps are elementary. The last two are more demanding; the section ends
+with a summary of what to remember.
+
+\subsection{The pose and the control}
+\label{sec:pose}
+
+Two numbers say where the mower is on the lawn. To predict where it will
+be after the next command, we also need to know which way it faces. These
+three numbers are its \emph{state}.
 
 \begin{definition}{Pose and control}{pose}
 The \emph{state} (or \emph{pose}) of the mower at step $t$ is
 \[
   \x_t=(p^x_t,\,p^y_t,\,\theta_t)\T\in\R^2\times[-\pi,\pi),
 \]
-its position on the lawn and its heading. The \emph{control} is
-$\uu_t=(s_t,\delta_t)\T$: first turn by $\delta_t$, then drive a distance
-$s_t$ along the new heading.
+its position $\p_t=(p^x_t,p^y_t)$ on the lawn and its heading $\theta_t$,
+the angle from the $x$-axis to the direction it faces, measured
+anticlockwise. The \emph{control} is $\uu_t=(s_t,\delta_t)\T$: first turn
+by the angle $\delta_t$, then drive a distance $s_t$ along the new heading.
 \end{definition}
 
+One command moves the mower in two stages (\cref{fig:pose}).
+\begin{enumerate}[nosep]
+  \item \emph{Turn.} The heading becomes $\theta'=\theta+\delta$. The
+    position does not change.
+  \item \emph{Drive.} The mower advances by $s$ in the direction $\theta'$,
+    that is, along the unit vector $(\cos\theta',\sin\theta')$. Its
+    position changes by $s\cos\theta'$ in $x$ and $s\sin\theta'$ in $y$.
+\end{enumerate}
+Throughout this section, $\theta'=\theta+\delta$ denotes the heading after
+the turn.
+
 \begin{definition}{Motion model}{motion}
-The noise-free motion model is the map
+The noise-free motion model is the map that sends a pose and a control to
+the next pose:
 \begin{equation}\label{eq:f}
   f(\x,\uu)=\begin{pmatrix}p^x+s\cos(\theta+\delta)\\
   p^y+s\sin(\theta+\delta)\\ \wrap(\theta+\delta)\end{pmatrix}.
 \end{equation}
-The real mower executes a corrupted control:
-\begin{equation}\label{eq:motionnoise}
-  \x_{t+1}=f(\x_t,\uu_t+\bepsilon_t),\qquad
-  \bepsilon_t=\begin{pmatrix}\varepsilon_{s,t}\\\varepsilon_{\delta,t}
-  \end{pmatrix}\sim\Normal(\vect0,M),\quad
-  M=\diag(\sigma_s^2,\sigma_\delta^2),
-\end{equation}
-with $\bepsilon_0,\bepsilon_1,\dots$ independent and independent of
-$\x_0$. The component $\varepsilon_{s,t}$ is the error on the distance
-driven and $\varepsilon_{\delta,t}$ the error on the angle turned; since
-$\bepsilon_t$ is jointly Gaussian with diagonal covariance, they are
-independent, with standard deviations $\sigma_s$ and $\sigma_\delta$. When a single step is discussed, the time index is
-dropped: $\varepsilon_s$, $\varepsilon_\delta$.
 \end{definition}
 
-\Cref{fig:pose} shows the pose and one step of the motion model. The
-heading $\theta$ is measured anticlockwise from the $x$-axis.
+The function $\wrap$ brings an angle back into $[-\pi,\pi)$ by adding a
+multiple of $2\pi$; it changes the number that represents the heading, not
+the direction itself (\cref{sec:sensors} gives the details).
+
+\begin{example}{One step}{onestep}
+The mower is at $(2,1)$ with heading $\pi/6$ ($30^\circ$): $\x=(2,1,\pi/6)$.
+The command is ``turn by $\pi/3$ ($60^\circ$), then drive $4$'':
+$\uu=(4,\pi/3)$. After the turn the heading is $\theta'=\pi/6+\pi/3=\pi/2$:
+the mower faces north. Driving $4$ in that direction adds
+$4\cos(\pi/2)=0$ to $p^x$ and $4\sin(\pi/2)=4$ to $p^y$. So
+$f(\x,\uu)=(2,\,5,\,\pi/2)$.
+\end{example}
 
 \begin{figure}[ht]
 \centering
@@ -98,19 +124,85 @@ $\x_{t+1}=f(\x_t,\uu_t)$ with $\theta_{t+1}=\theta_t+\delta_t$.}
 \label{fig:pose}
 \end{figure}
 
-The noise enters through the \emph{control}, not added to the state. This
-is the physically right model: the wheels slip, so the mower drives a
-little more or less than commanded ($\varepsilon_s$) and turns a little
-more or less ($\varepsilon_\delta$). These are errors in the commands,
-not yet in the position. The motion model converts them into position
-errors through the $\cos$ and $\sin$ in \eqref{eq:f}: a distance error
-moves the mower forward or backward \emph{along} its heading, whereas a
-turn error changes the heading itself, and so moves the mower
-\emph{sideways}, by an amount proportional to the distance driven.
+\subsection{The real mower: noise in the control}
+\label{sec:noise}
 
-\paragraph{Why a turn error moves the mower sideways.} The mower starts at
-$\p$ and drives a distance $s$ along the heading $\theta'$; its new
-position is
+A real mower does not execute its commands exactly. Its wheels slip on the
+grass, so it drives a little more or a little less than commanded, and
+turns a little more or a little less. We model this by adding a random
+error to each of the two numbers of the command, \emph{before} applying
+the motion model.
+
+\begin{definition}{Noisy motion}{noise}
+The real mower executes a corrupted control:
+\begin{equation}\label{eq:motionnoise}
+  \x_{t+1}=f(\x_t,\uu_t+\bepsilon_t),\qquad
+  \bepsilon_t=\begin{pmatrix}\varepsilon_{s,t}\\\varepsilon_{\delta,t}
+  \end{pmatrix}\sim\Normal(\vect0,M),\quad
+  M=\diag(\sigma_s^2,\sigma_\delta^2),
+\end{equation}
+with $\bepsilon_0,\bepsilon_1,\dots$ independent and independent of
+$\x_0$.
+\end{definition}
+
+In words, at step $t$ the mower turns by $\delta_t+\varepsilon_{\delta,t}$
+instead of $\delta_t$, and then drives $s_t+\varepsilon_{s,t}$ instead of
+$s_t$. Each part of the definition says something concrete.
+\begin{itemize}[nosep]
+  \item $\varepsilon_{s,t}$ is the error on the distance driven and
+    $\varepsilon_{\delta,t}$ the error on the angle turned. Their standard
+    deviations are $\sigma_s$ and $\sigma_\delta$.
+  \item Both have mean zero: the mower has no systematic bias, such as
+    always pulling to the left.
+  \item $M$ is diagonal and $\bepsilon_t$ is jointly Gaussian, so the two
+    errors are independent: slipping while driving says nothing about
+    slipping while turning.
+  \item The errors of different steps are independent: a slip now says
+    nothing about the next one.
+\end{itemize}
+When a single step is discussed, the time index is dropped:
+$\varepsilon_s$, $\varepsilon_\delta$. In the simulations of this book a
+step is $s=4$ long, with $\sigma_s=0.4$ and $\sigma_\delta=0.03$\,rad
+(about $1.7^\circ$).
+
+The noise enters through the \emph{control}; it is not added to the pose.
+Many textbooks use the simpler model $\x_{t+1}=f(\x_t,\uu_t)+\vect{w}_t$,
+with a Gaussian $\vect{w}_t$ added to the three coordinates of the pose.
+The model \eqref{eq:motionnoise} is closer to the physics: $\varepsilon_s$
+and $\varepsilon_\delta$ are errors on the commands, not yet on the pose.
+The motion model $f$ converts them into pose errors, and the next
+subsection shows how.
+
+\subsection{From control errors to pose errors}
+\label{sec:errors}
+
+Fix the pose $\x=(\p,\theta)$ and the control $\uu=(s,\delta)$. Without
+noise, the mower would end at $f(\x,\uu)$, with heading
+$\theta'=\theta+\delta$. What does each of the two errors do to this end
+pose? Take them one at a time.
+
+\paragraph{A distance error moves the mower along its heading.} With
+$\varepsilon_\delta=0$, the mower faces the right direction $\theta'$ and
+drives $s+\varepsilon_s$ instead of $s$. It ends
+\[
+  \varepsilon_s\begin{pmatrix}\cos\theta'\\\sin\theta'\end{pmatrix}
+\]
+away from the intended position: ahead of it if $\varepsilon_s>0$, behind
+it if $\varepsilon_s<0$. Its heading is correct. This is exact, not an
+approximation.
+
+\paragraph{A turn error changes the heading and moves the mower sideways.}
+With $\varepsilon_s=0$, the mower drives the right distance $s$, but in
+the direction $\theta'+\varepsilon_\delta$ instead of $\theta'$. Its final
+heading is wrong by $\varepsilon_\delta$. Its final position is wrong too:
+having driven in a slightly wrong direction, it ends beside the intended
+position, displaced \emph{sideways} (at a right angle to the heading) by
+about $s\,\varepsilon_\delta$. The rest of this paragraph justifies these
+two claims, the direction and the amount.
+
+\paragraph{Why sideways, and by how much.} Forget the noise for a moment and
+look only at the geometry. The mower starts at $\p$ and drives a distance
+$s$ along the heading $\theta'$; its new position is
 \[
   \p'=\p+s\begin{pmatrix}\cos\theta'\\\sin\theta'\end{pmatrix}.
 \]
@@ -227,8 +319,44 @@ approximation: the end point also falls back along the heading, by
 $s(1-\cos\Delta\theta)\approx s\,\Delta\theta^2/2$, the second-order
 shortening of \cref{prop:deadreckoning}.
 
-This conversion of control errors into pose errors has two consequences
-that will follow us through the book.
+\paragraph{Both errors together.} When both errors are present and small,
+their effects add up, to first order. The pose error is then
+\begin{equation}\label{eq:firstorder}
+  \x_{t+1}-f(\x_t,\uu_t)\;\approx\;
+  \varepsilon_s\underbrace{\begin{pmatrix}\cos\theta'\\ \sin\theta'\\ 0
+  \end{pmatrix}}_{\text{along the heading}}
+  +\;\varepsilon_\delta\underbrace{\begin{pmatrix}-s\sin\theta'\\
+  s\cos\theta'\\ 1\end{pmatrix}}_{\text{sideways, and heading}}
+  \;=\;V\bepsilon_t.
+\end{equation}
+The third entry of each vector is the heading error: $0$ for a distance
+error, $\varepsilon_\delta$ for a turn error. The matrix
+\[
+  V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
+  \\0&1\end{pmatrix}
+\]
+simply stores the two vectors as its columns, so that $V\bepsilon_t$ is
+the combination above. Its first column is the derivative of $f$ with respect to
+$s$, its second the derivative with respect to $\delta$ (differentiate the
+three components of \eqref{eq:f}): $V=\partial f/\partial\uu$ is the
+\emph{Jacobian matrix} of $f$ with respect to the control, and
+\eqref{eq:firstorder} is the first-order Taylor expansion of
+$f(\x_t,\uu_t+\bepsilon_t)$ in the noise.
+
+With the values of the simulations, the error along the heading has
+standard deviation $\sigma_s=0.4$, the sideways error
+$s\,\sigma_\delta=4\times0.03=0.12$, and the heading error
+$\sigma_\delta=0.03$\,rad.
+
+\subsection{The shape of the uncertainty after one step}
+\label{sec:shape}
+
+The approximation \eqref{eq:firstorder} is linear in the Gaussian noise
+$\bepsilon_t$, so it describes the next pose as a Gaussian. The exact
+distribution of the next pose differs from it in two ways that matter for
+the filters of this book. Both come from the same observation: the pose
+has \emph{three} coordinates, but one step from a known pose is decided by
+only \emph{two} random numbers, $\varepsilon_s$ and $\varepsilon_\delta$.
 
 \begin{proposition}{The transition is non-Gaussian and degenerate}{degenerate}
 Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
@@ -240,7 +368,7 @@ Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
 \item To first order in the noise,
   $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$, where
   $V=\frac{\partial f}{\partial\uu}(\x_t,\uu_t)$ is the $3\times2$
-  Jacobian matrix of $f$ with respect to the control. The covariance of
+  matrix of \eqref{eq:firstorder}. The covariance of
   $\x_{t+1}$ is then approximately $Q_t=VMV\T$, a $3\times3$ matrix of
   rank $2$.
 \end{enumerate}
@@ -259,31 +387,12 @@ density) or supported on an affine subspace. The surface of (ii) is not
 flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
 enters the position through $\cos$ and $\sin$, so for a fixed step the
 position runs along a circular arc as $\varepsilon_\delta$ varies.
-(iii) The noise is small, so expand $f$ to first order in its second
-argument (Taylor's formula):
-\[
-  f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
-  +O(\norm{\bepsilon_t}^2),\qquad
-  V_{ij}=\frac{\partial f_i}{\partial u_j}(\x_t,\uu_t),
-\]
-where $u_1=s$ and $u_2=\delta$. Differentiating the three components of
-\eqref{eq:f} with respect to $s$ and to $\delta$, with
-$\theta'=\theta+\delta$ (both $\theta$ and $\delta$ enter only through
-$\theta'$), gives the two columns
-\[
-  V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
-  \\0&1\end{pmatrix}
-  =\Bigl(\ \frac{\partial f}{\partial s}\ \Big|\ 
-  \frac{\partial f}{\partial\delta}\ \Bigr).
-\]
-The first column is the effect of driving further: per unit of extra
-distance, the position moves along the heading and the heading does not
-change. The second is the effect of a small extra turn: per radian, the
-heading changes by $1$ and the position moves sideways by $s$,
-perpendicular to the heading, as shown above (\cref{fig:tangent}). So, to
-first order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
-=\varepsilon_s\,\frac{\partial f}{\partial s}+\varepsilon_\delta\,
-\frac{\partial f}{\partial\delta}$, a linear map of the Gaussian
+(iii) The approximation is \eqref{eq:firstorder}; formally, it is Taylor's
+formula
+$f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
++O(\norm{\bepsilon_t}^2)$ with
+$V_{ij}=\partial f_i/\partial u_j(\x_t,\uu_t)$, $u_1=s$, $u_2=\delta$. The
+error $V\bepsilon_t$ is a linear map of the Gaussian
 $\bepsilon_t$, whose covariance is
 $\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
 (\cref{lem:affine}). The two columns of $V$ are independent when $s\neq0$
@@ -320,7 +429,8 @@ clouds bend.}
 \label{fig:transition}
 \end{figure}
 
-The two-dimensional sheet of reachable poses is easy to describe. Call $d=s+\varepsilon_s$ the distance
+\paragraph{The sheet is a helicoid.} The two-dimensional sheet of reachable
+poses is easy to describe. Call $d=s+\varepsilon_s$ the distance
 actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
 actually reached. The reachable poses are
 \[
@@ -353,7 +463,10 @@ $\sigma_\delta=0.03$), one step covers only a small patch of the
 staircase, which looks almost flat. The curvature becomes visible as the
 steps accumulate.
 
-\paragraph{Position and heading are coupled.} Because $M$ is diagonal, the
+\subsection{Position and heading are coupled}
+\label{sec:coupling}
+
+Because $M$ is diagonal, the
 two \emph{control} errors $\varepsilon_s$ and $\varepsilon_\delta$ are
 independent. It is tempting to conclude that the new position and the new
 heading are independent too, so that the position at a given heading is
@@ -426,7 +539,23 @@ between $\theta$ and the position, and why a measurement of the heading
 also corrects the position.
 \end{inwords}
 
-\paragraph{A Dirac in one direction only.} \Cref{prop:degenerate} says
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch01_coupling.pdf}
+\caption{Position and heading are coupled. (a) One step with exaggerated
+noise, positions coloured by heading: the colour is a function of the
+position (the direction from the start, dotted lines). (b) 25 steps on a
+straight path with the real noise: the heading still varies
+systematically across the cloud, with some mixing. (c) Sideways error
+against heading error, each divided by its standard deviation: on a line
+after one step (correlation $0.995$; exactly $1$ to first order), an
+elongated cloud after 25 steps (correlation $0.87$).}
+\label{fig:coupling}
+\end{figure}
+
+\paragraph{A Dirac in one direction only.} \emph{This paragraph and the
+next are for readers who know the Dirac distribution; they can be skipped
+on a first reading.} \Cref{prop:degenerate} says
 that the one-step transition has no density on $\R^3$, but it is not a
 Dirac distribution either: its mass is spread smoothly over a surface,
 not concentrated at a point. \Cref{prop:coupling}(ii) makes this exact.
@@ -462,21 +591,31 @@ smears the sheet into a volume: from two steps on, the distribution of the
 pose has a genuine density on $\R^3$, and the singularity of a single
 transition causes no difficulty in the filters.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{figures/ch01_coupling.pdf}
-\caption{Position and heading are coupled. (a) One step with exaggerated
-noise, positions coloured by heading: the colour is a function of the
-position (the direction from the start, dotted lines). (b) 25 steps on a
-straight path with the real noise: the heading still varies
-systematically across the cloud, with some mixing. (c) Sideways error
-against heading error, each divided by its standard deviation: on a line
-after one step (correlation $0.995$; exactly $1$ to first order), an
-elongated cloud after 25 steps (correlation $0.87$).}
-\label{fig:coupling}
-\end{figure}
+\paragraph{What to remember from this section.}
+\begin{enumerate}[nosep]
+  \item The state is the pose $(p^x,p^y,\theta)$. A control $(s,\delta)$
+    turns the mower by $\delta$, then drives it $s$ along the new heading:
+    this is the motion model $f$ of \eqref{eq:f}.
+  \item The noise is on the control: the mower really turns by
+    $\delta+\varepsilon_\delta$ and drives $s+\varepsilon_s$, with two
+    independent zero-mean Gaussian errors.
+  \item A distance error moves the mower along its heading. A turn error
+    changes the heading \emph{and} moves the mower sideways, by about
+    $s\,\varepsilon_\delta$. To first order the pose error is
+    $V\bepsilon_t$ \eqref{eq:firstorder}, with covariance $Q=VMV\T$.
+  \item Exactly, the poses reachable in one step form a curved
+    two-dimensional sheet in the three-dimensional pose space. The
+    distribution of the next pose is therefore not Gaussian and has no
+    density; a Gaussian with covariance $Q$ is a flat approximation of it.
+    Over several steps the uncertainty fills a volume, but stays curved
+    (the banana).
+  \item The sideways error and the heading error come from the same random
+    number, so they are strongly correlated. This is why measuring the
+    heading also corrects the position.
+\end{enumerate}
 
 \section{Sensors}
+\label{sec:sensors}
 
 Angles need one piece of notation. All headings and bearings are kept in
 $[-\pi,\pi)$ by
