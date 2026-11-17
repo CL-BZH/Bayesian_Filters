@@ -118,8 +118,11 @@ Change only the heading and keep $s$ fixed. Whatever $\theta'$ is, the end
 point stays at distance $s$ from $\p$, so as $\theta'$ varies it travels
 along the circle of radius $s$ centred at the start
 (\cref{fig:tangent}). The heading vector $(\cos\theta',\sin\theta')$ points
-along that circle's radius, and a point moving along a circle moves along
-the tangent, perpendicular to the radius. The derivative says the same:
+along that circle's radius. Since the distance $\|\p'-\p\|$ stays equal to
+$s$, differentiating $\|\p'-\p\|^2=s^2$ with respect to $\theta'$ gives
+$2(\p'-\p)\cdot\partial\p'/\partial\theta'=0$: the direction in which the end
+point moves is perpendicular to the radius, that is, tangent to the circle.
+Explicitly,
 \[
   \frac{\partial\p'}{\partial\theta'}=s\begin{pmatrix}-\sin\theta'\\
   \cos\theta'\end{pmatrix},
