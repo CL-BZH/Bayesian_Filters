@@ -136,9 +136,15 @@ $(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
     chord. Each half is a right triangle with hypotenuse $s$ and angle
     $\Delta\theta/2$ at $\p$, whose opposite side, half the chord, is
     $s\sin(\Delta\theta/2)$. The chord therefore has length
-    $2s\sin(\Delta\theta/2)$. Since $\sin x=x-x^3/6+\dotsb$, this is
-    $s\,\Delta\theta-s\,\Delta\theta^3/24+\dotsb$: slightly shorter than the
-    arc length $s\,\Delta\theta$, and equal to it to first order. To first
+    $2s\sin(\Delta\theta/2)$. It is shorter than the arc length
+    $s\,\Delta\theta$, since a straight segment is shorter than any other
+    path between its ends; this is the inequality $\sin x<x$ for
+    $0<x<\pi/2$. Conversely, the arc is shorter than the path made of the two
+    tangents at $\p'$ and $\p''$ up to where they meet, which gives
+    $x<\tan x$. Together, with $x=\Delta\theta/2$,
+    $\cos(\Delta\theta/2)<2s\sin(\Delta\theta/2)/(s\,\Delta\theta)<1$, and
+    the ratio tends to $1$ as $\Delta\theta\to0$: the chord and the arc are
+    equal to first order. To first
     order the displacement is thus proportional to both the distance driven
     and the turn error.
 \end{itemize}
