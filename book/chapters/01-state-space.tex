@@ -272,6 +272,42 @@ between $\theta$ and the position, and why a measurement of the heading
 also corrects the position.
 \end{inwords}
 
+\paragraph{A Dirac in one direction only.} \Cref{prop:degenerate} says
+that the one-step transition has no density on $\R^3$, but it is not a
+Dirac distribution either: its mass is spread smoothly over a surface,
+not concentrated at a point. \Cref{prop:coupling}(ii) makes this exact.
+Write $\delta_{\mathrm D}$ for the Dirac distribution (to avoid a clash with
+the turn $\delta$), and, for a position $\p'\ne\p$, let
+$d(\p')=\norm{\p'-\p}$ and $\varphi(\p')$ be the direction of $\p'-\p$.
+Then, for $\sigma_\delta$ small enough that wrapping can be ignored,
+\begin{equation}\label{eq:diracform}
+  p(\p',\theta'\mid\x,\uu)=g(\p')\;\delta_{\mathrm D}\bigl(\theta'-
+  \varphi(\p')\bigr),\qquad
+  g(\p')=\frac{\Normal\bigl(d(\p');s,\sigma_s^2\bigr)\,
+  \Normal\bigl(\varphi(\p');\theta+\delta,\sigma_\delta^2\bigr)}{d(\p')}.
+\end{equation}
+The first factor $g$ is an ordinary density on the lawn: the density of
+$(d,\varphi)$, which are independent Gaussians, rewritten in Cartesian
+coordinates, where $1/d$ is the Jacobian of polar coordinates
+($\mathrm dp^x\,\mathrm dp^y=d\,\mathrm dd\,\mathrm d\varphi$). It is the
+arc-shaped band of \cref{fig:helicoid}, in grey. The second factor says
+that, given the position, the heading is fixed: the single height of the
+sheet above each point of the lawn. In measure-theoretic terms the
+transition is \emph{singular} with respect to volume, with a density with
+respect to the area of the surface.
+
+The Gaussian approximation has the same structure in linear form: $Q=VMV\T$
+has rank two (\cref{prop:degenerate}(iii)), so it describes a Gaussian
+squashed onto a plane, with a density within the plane and a Dirac across
+it; the EKF replaces the curved sheet by its tangent plane. After a second
+step there are four noise variables for three coordinates, and they move
+the pose in three independent directions: both turn errors change the
+heading by the same amount, but the first one also pushes the mower
+sideways over \emph{both} legs, the second only over the second leg. This
+smears the sheet into a volume: from two steps on, the distribution of the
+pose has a genuine density on $\R^3$, and the singularity of a single
+transition causes no difficulty in the filters.
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch01_coupling.pdf}
