@@ -138,21 +138,61 @@ of the columns, computed in Exercise~\ref{ex:nullspace}.
 \end{proof}
 
 \begin{inwords}
-After one step from a known pose, the mower can only be at positions and
-headings that some combination of ``drove a bit more or less'' and
-``turned a bit more or less'' explains: a curved two-dimensional sheet in
-the three-dimensional pose space. A Gaussian can only approximate it.
-After several steps the uncertainty fills all three dimensions, but it
-stays curved: the familiar ``banana'' of \cref{fig:transition}.
+The pose space is three-dimensional: $(p^x,p^y,\theta)$. After one step
+from a known pose, the new pose is fixed by only \emph{two} random
+numbers, ``drove a bit more or less'' ($\varepsilon_s$) and ``turned a
+bit more or less'' ($\varepsilon_\delta$). Three coordinates that depend on
+two random inputs cannot fill a three-dimensional region: the reachable
+poses form a two-dimensional sheet, and every pose off the sheet is
+impossible. A Gaussian can only approximate it. After several steps the
+noises of all the steps compound, the uncertainty fills all three
+dimensions, but it stays curved: the familiar ``banana'' of
+\cref{fig:transition}.
 \end{inwords}
+
+The sheet is easy to describe. Call $d=s+\varepsilon_s$ the distance
+actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
+actually reached. The reachable poses are
+\[
+  (d,\varphi)\longmapsto\bigl(p^x+d\cos\varphi,\;p^y+d\sin\varphi,\;
+  \varphi\bigr),
+\]
+a \emph{helicoid}: the shape of a spiral staircase around the vertical
+line through the start position (\cref{fig:helicoid}). At height $\varphi$
+(a given heading), the possible positions form a straight segment pointing
+in the direction $\varphi$; as the height increases, the segment rotates.
+Each horizontal slice is straight, but the sheet twists, so it is not a
+plane, and no Gaussian, whose level sets are ellipsoids, can follow it.
+Its shadow on the lawn, the set of reachable positions, is an arc-shaped
+band.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.75\linewidth]{figures/ch01_transition.pdf}
+\includegraphics[width=0.72\linewidth]{figures/ch01_helicoid.pdf}
+\caption{The poses reachable in one step from the start pose (black dot),
+with the noise exaggerated for visibility ($\sigma_s=0.6$,
+$\sigma_\delta=0.35$\,rad). Orange: 500 sampled poses $(p^x,p^y,\theta)$;
+they all lie on a helicoid (blue), whose horizontal slices are the
+straight segments of fixed heading (dark lines). Grey: their shadow on
+the lawn, the positions alone, an arc-shaped band.}
+\label{fig:helicoid}
+\end{figure}
+
+With the real noise of the simulations ($\sigma_s=0.4$,
+$\sigma_\delta=0.03$), one step covers only a small patch of the
+staircase, which looks almost flat. The curvature becomes visible as the
+steps accumulate.
+
+\begin{figure}[ht]
+\centering
+\includegraphics{figures/ch01_transition.pdf}
 \caption{A thousand mowers start at the origin, heading east, and receive
 the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
-15 and 25 steps. Heading errors become position errors \emph{across} the
-path, along arcs: the clouds bend.}
+15 and 25 steps. Only the positions are plotted: each cloud is the shadow
+on the lawn of a cloud in the three-dimensional pose space, which after
+several steps fills a curved volume rather than a single helicoid. Heading
+errors become position errors \emph{across} the path, along arcs: the
+clouds bend.}
 \label{fig:transition}
 \end{figure}
 

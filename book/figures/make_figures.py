@@ -486,8 +486,38 @@ def fig_amcl():
     save(fig, "ch06_amcl")
     print("amcl injected before/after", inj[150:200].sum(), inj[200:230].sum())
 
+
+def fig_helicoid():
+    """Poses reachable in one step lie on a helicoid; their shadow on the lawn is an arc band."""
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+    s0, d0 = 4.0, 0.0          # commanded step and turn, from the pose (0, 0, 0)
+    sig_s, sig_d = 0.6, 0.35   # exaggerated noise, for visibility
+    rng = np.random.default_rng(1)
+    eps = rng.normal(0, [sig_s, sig_d], size=(500, 2))
+    dist, phi = s0 + eps[:, 0], d0 + eps[:, 1]
+    px, py = dist * np.cos(phi), dist * np.sin(phi)
+    D, PHI = np.meshgrid(np.linspace(0, 6.2, 30), np.linspace(-1.1, 1.1, 40))
+    X, Y = D * np.cos(PHI), D * np.sin(PHI)
+    fig = plt.figure(figsize=(W * 0.75, W * 0.6))
+    ax = fig.add_subplot(projection="3d")
+    ax.plot_surface(X, Y, PHI, color=viz.COLORS["EKF"], alpha=0.18, linewidth=0, antialiased=True)
+    ax.plot_wireframe(X, Y, PHI, color=viz.COLORS["EKF"], linewidth=0.25, alpha=0.5, rstride=4, cstride=5)
+    z0 = -1.1
+    ax.scatter(px, py, np.full_like(px, z0), s=1.5, color=viz.MUTED, alpha=0.6, depthshade=False)
+    ax.scatter(px, py, phi, s=2.5, color=viz.COLORS["UKF"], alpha=0.8, depthshade=False)
+    for f in (-0.7, 0.0, 0.7):  # straight horizontal rulings: fixed heading, varying distance
+        ax.plot([0, 6.2 * np.cos(f)], [0, 6.2 * np.sin(f)], [f, f], color=viz.INK_2, lw=1.0)
+    ax.scatter([0], [0], [0], s=30, color=viz.INK, depthshade=False)
+    ax.text(0, 0, 0.12, "start pose", fontsize=7.5, color=viz.INK)
+    ax.set_xlabel("$p^x$"); ax.set_ylabel("$p^y$"); ax.set_zlabel(r"$\theta$")
+    ax.set_xlim(0, 6.5); ax.set_ylim(-4.5, 4.5); ax.set_zlim(z0, 1.1)
+    ax.view_init(elev=18, azim=-35)
+    ax.tick_params(labelsize=7)
+    save(fig, "ch01_helicoid")
+
 if __name__ == "__main__":
     fig_transition()
+    fig_helicoid()
     fig_dead_reckoning()
     fig_grid()
     fig_kf_nees()
