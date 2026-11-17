@@ -116,8 +116,12 @@ Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
 \item It is concentrated on a two-dimensional surface of the
   three-dimensional state space, so it has no density with respect to
   the Lebesgue measure on $\R^3$.
-\item Linearising $f$ in the noise gives the state-space covariance
-  $Q_t=VMV\T$ with $V=\partial f/\partial\uu$, which has rank $2$.
+\item To first order in the noise,
+  $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$, where
+  $V=\frac{\partial f}{\partial\uu}(\x_t,\uu_t)$ is the $3\times2$
+  Jacobian matrix of $f$ with respect to the control. The covariance of
+  $\x_{t+1}$ is then approximately $Q_t=VMV\T$, a $3\times3$ matrix of
+  rank $2$.
 \end{enumerate}
 \end{proposition}
 
@@ -134,15 +138,38 @@ density) or supported on an affine subspace. The surface of (ii) is not
 flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
 enters the position through $\cos$ and $\sin$, so for a fixed step the
 position runs along a circular arc as $\varepsilon_\delta$ varies.
-(iii) With $\theta'=\theta+\delta$,
+(iii) The noise is small, so expand $f$ to first order in its second
+argument (Taylor's formula):
+\[
+  f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
+  +O(\norm{\bepsilon_t}^2),\qquad
+  V_{ij}=\frac{\partial f_i}{\partial u_j}(\x_t,\uu_t),
+\]
+where $u_1=s$ and $u_2=\delta$. Differentiating the three components of
+\eqref{eq:f} with respect to $s$ and to $\delta$, with
+$\theta'=\theta+\delta$ (both $\theta$ and $\delta$ enter only through
+$\theta'$), gives the two columns
 \[
   V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
-  \\0&1\end{pmatrix}.
+  \\0&1\end{pmatrix}
+  =\Bigl(\ \frac{\partial f}{\partial s}\ \Big|\ 
+  \frac{\partial f}{\partial\delta}\ \Bigr).
 \]
-Its two columns are independent when $s\neq0$ (the first has a zero third
-entry, the second does not), so $V$ has rank 2 and so has $VMV\T$ since
-$M$ is positive definite. Its null space is spanned by the cross product
-of the columns, computed in Exercise~\ref{ex:nullspace}.
+The first column is the effect of driving one unit further: the position
+moves along the heading and the heading does not change. The second is
+the effect of turning one radian more: the heading changes by $1$ and the
+position moves sideways by $s$, perpendicular to the heading. So, to first
+order, $\x_{t+1}-f(\x_t,\uu_t)\approx V\bepsilon_t
+=\varepsilon_s\,\frac{\partial f}{\partial s}+\varepsilon_\delta\,
+\frac{\partial f}{\partial\delta}$, a linear map of the Gaussian
+$\bepsilon_t$, whose covariance is
+$\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
+(\cref{lem:affine}). The two columns of $V$ are independent when $s\neq0$
+(the first has a zero third entry, the second does not), so $V$ has rank
+2, and so has $VMV\T$ since $M$ is positive definite. Its null space is
+spanned by the cross product of the columns, computed in
+Exercise~\ref{ex:nullspace}. The same Jacobian is used by the extended
+Kalman filter (\cref{prop:jacobians}).
 \end{proof}
 
 \begin{inwords}
