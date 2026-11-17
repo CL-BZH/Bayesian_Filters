@@ -112,6 +112,7 @@ for f in [EKF.from_world(world, run.truth[0], np.diag([10, 10, 0.05])),
 * E. A. Wan, R. van der Merwe, "The unscented Kalman filter for nonlinear estimation", 2000.
 * A. Doucet, A. M. Johansen, "A tutorial on particle filtering and smoothing: fifteen years later", 2009.
 * Sequel: [Deep-Kalman-Filters](https://github.com/CL-BZH/Deep-Kalman-Filters), where the models are learned.
+* Sequel: [vslam-course](https://github.com/CL-BZH/vslam-course), visual SLAM for the same robot mower: smoothing over a factor graph instead of filtering.
 
 Reference pages (notation, models, pitfalls) are on the
 [project wiki](https://github.com/CL-BZH/Bayesian_Filters/wiki).
