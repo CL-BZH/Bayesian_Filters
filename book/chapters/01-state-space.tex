@@ -808,17 +808,33 @@ for the filters of this book, and something for the methods that must
   \item ``The robot is at this pose. Where does one noisy step take it?''
     This is answered by drawing a noise $\bepsilon$ and computing
     $f(\x,\uu+\bepsilon)$, which is always possible.
-  \item ``How probable is it that one step leads from this pose $\x_t$ to
-    that pose $\x_{t+1}$?'' The answer expected is a number, the value of
-    a density $p(\x_{t+1}\mid\x_t,\uu_t)$. Here that number does not
-    exist. A pose $\x_{t+1}$ chosen freely is not on the surface of
-    \cref{prop:degenerate}: its heading is not the direction of its
-    displacement, and one step cannot reach it at all, however close to
-    the surface it is.
+  \item ``Here are two candidates for the next pose. Which one is the
+    more plausible, and how many times more?'' The answer expected is the
+    ratio of two numbers, the values of a density
+    $p(\x_{t+1}\mid\x_t,\uu_t)$ at the two candidates.
 \end{itemize}
+The second question needs a word on what the \emph{value} of a density
+is. It is not a probability: the probability of one exact pose is zero,
+with or without a density. It is a probability \emph{per unit volume}: the
+probability of a small ball around the pose, divided by the volume of the
+ball. Probabilities of regions are obtained from it by integration, and
+for those a distribution is enough. What only a density provides is this
+number attached to each single pose, which allows two poses to be
+compared.
 
-\emph{The filters of this book ask only the first question.} All of them
-compute the prediction by pushing poses and noise through $f$.
+For the one-step transition that number does not exist. If the candidate
+is off the surface of \cref{prop:degenerate} (its heading is not the
+direction of its displacement), a small enough ball around it does not
+meet the surface: its probability is zero, however close to the surface
+the candidate is. If the candidate is on the surface, a ball of radius $r$
+contains a piece of the surface whose area is proportional to $r^2$, and
+so is its probability, while its volume is proportional to $r^3$: the
+ratio grows without bound as $r\to0$. The probability per unit volume is zero or infinite, and
+the candidates cannot be compared in this way.
+
+\emph{The filters of this book ask only the first question of the motion
+model.} All of them compute the prediction by pushing poses and noise
+through $f$.
 \begin{itemize}[nosep]
   \item The particle filter moves each particle by
     $f(\x^{(i)},\uu+\bepsilon^{(i)})$, with its own draw of the noise. The
@@ -828,6 +844,11 @@ compute the prediction by pushing poses and noise through $f$.
     cannot be inverted, but it never is: it is only added to $FPF\T$, and
     the sum is invertible.
 \end{itemize}
+The filters do ask the second question, but of the \emph{sensor} model:
+the update compares the poses by the value $p(\z\mid\x)$ of the
+measurement density at the reading that was received
+(\cref{ch:bayes}). That density exists, because the measurement
+noise has an invertible covariance.
 
 \emph{The belief that they carry keeps a density.}
 \Cref{prop:degenerate} is about the next pose from \emph{one} exactly
@@ -879,7 +900,7 @@ region.}
 \label{fig:spread}
 \end{figure}
 
-\emph{Some methods ask the second question.} The smoother of
+\emph{Some methods ask the second question of the motion model.} The smoother of
 \cref{sec:smoothing} is one: it gives a score to every candidate pair
 $(\x_t,\x_{t+1})$, through a term
 $\vect e\T Q_t^{-1}\vect e$ with $\vect e=\x_{t+1}-f(\x_t,\uu_t)$, which
@@ -888,9 +909,10 @@ a method the remedy is to put the question to the noise instead of the
 pose. If $\x_{t+1}$ is on the surface, exactly one value of the noise
 leads to it from $\x_t$: by \eqref{eq:actual}, $\varepsilon_s=d-s$ and
 $\varepsilon_\delta=\varphi-\theta'$. And the noise does have an ordinary
-Gaussian density on $\R^2$, with the invertible covariance $M$. So ``how
-probable is this step?'' is answered by ``how probable is the noise that
-produces it?'': the term becomes $\bepsilon_t\T M^{-1}\bepsilon_t$, and the pose
+Gaussian density on $\R^2$, with the invertible covariance $M$; it is a
+density \emph{on the surface}, in its own two coordinates $(d,\varphi)$.
+So two candidates on the surface are compared through the noises that
+produce them: the term becomes $\bepsilon_t\T M^{-1}\bepsilon_t$, and the pose
 $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ is computed from the noise instead of
 being a free unknown.
 
