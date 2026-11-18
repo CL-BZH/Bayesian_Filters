@@ -22,7 +22,10 @@ bends, the two results are not symmetric about $g(\mu)$, and their average
 moves away from it, as the true mean does.
 
 In $n$ dimensions the same is done along $n$ directions, the columns of a
-square root of the covariance, with a centre point added. Three parameters
+square root of the covariance, with a centre point added. The square root
+used is the \emph{Cholesky factor} of $\Sigma$: the lower-triangular
+matrix $L$ with $LL\T=\Sigma$, which exists and is unique (with a positive
+diagonal) when $\Sigma$ is positive definite. Three parameters
 tune the construction: $\alpha$ and $\kappa$ set how far from the mean the
 points are placed, and $\beta$ adjusts the weight of the centre point in
 the covariance.
@@ -163,8 +166,21 @@ The standard remedy is to \emph{augment} the state with the noise,
   \begin{pmatrix}P&0\\0&M\end{pmatrix}\right),\qquad n_a=3+2=5,
 \]
 draw $2n_a+1=11$ sigma points and push each through
-$f(\x,\uu+\bepsilon)$. The measurement noise is additive and does not need
-augmentation.
+$f(\x,\uu+\bepsilon)$. Each augmented sigma point $\chi^a_j$ has five
+components: the first three, written $\chi^x_j$, are a pose, and the last
+two, written $\chi^\varepsilon_j$, are a control noise. The measurement
+noise is additive and does not need augmentation.
+
+\paragraph{The update.} The prediction gives a new Gaussian
+$\Normal(\bx,\bar P)$, so new sigma points $\chi_j$ are drawn from it,
+seven of them. Pushing them through the sensor model, $Z_j=h(\chi_j)$,
+gives sigma-point estimates of three quantities: the predicted measurement
+$\hat\z$, the covariance $S$ of the measurement (to which the sensor noise
+$R$ is added), and the cross-covariance $P_{xz}=\Cov(\x,\z)$ between the
+pose and the measurement. The update is then \cref{thm:conditioning},
+applied as if $(\x,\z)$ were jointly Gaussian with these moments: the gain
+is $\Sigma_{xy}\Sigma_{yy}^{-1}=P_{xz}S^{-1}$, and the covariance decreases
+by $\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}=KSK\T$.
 
 \begin{definition}{Unscented Kalman filter}{ukf}
 \emph{Predict}: sigma points $\chi^a_j$ of the augmented Gaussian;
@@ -184,20 +200,35 @@ Heading and bearing components are averaged on the circle and every
 residual is wrapped (\cref{sec:circular}).
 \end{definition}
 
-In the prediction, $\chi^x_j$ denotes the first three components of the
-augmented point $\chi^a_j$ (a pose) and $\chi^\varepsilon_j$ its last two
-(a control noise). In the update, $P_{xz}$ estimates the cross-covariance
-$\Cov(\x,\z)$ between the pose and the measurement, and $S$ the covariance
-of the measurement. The update is then \cref{thm:conditioning} applied as
-if $(\x,\z)$ were jointly Gaussian with these covariances: the gain is
-$\Sigma_{xy}\Sigma_{yy}^{-1}=P_{xz}S^{-1}$ and the covariance decreases by
-$\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}=KSK\T$.
-
 For a linear $h$ these are $P_{xz}=\bar PH\T$ and $S=H\bar PH\T+R$, and
 the update is exactly the Kalman update of \cref{thm:kf}. In general it is
 that update with $\bar PH\T$ and $H\bar PH\T+R$ replaced by their
-sigma-point estimates.
-The next result says precisely what that replacement does.
+sigma-point estimates. What does that replacement do?
+
+\Cref{fig:regression} shows it in one dimension. The EKF replaces $h$ by
+its tangent at the mean. The UKF never computes a slope, but its update
+behaves as if $h$ had been replaced by another straight line: the one that
+fits the values of $h$ at the sigma points best, in the least-squares
+sense. This is a \emph{regression} line, and its slope is
+$\Cov(\z,\x)\Cov(\x)^{-1}$, here $\tilde H=P_{xz}\T\bar P^{-1}$. Because
+$h$ is curved, the sigma points do not lie exactly on that line. Their
+scatter around it is what a straight line cannot explain, and the UKF
+counts it as extra measurement noise. The next theorem states this
+precisely; ``statistically linearised'' is the usual name for a slope
+obtained by regression instead of differentiation.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch05_regression.pdf}
+\caption{The example of \cref{fig:linearisation} with the unscented
+transform. The UKF evaluates $\cos$ at three sigma points and fits a
+regression line through them (slope $\tilde H=-0.43$; the tangent's is
+$-0.48$). The points do not lie on that line; their scatter around it,
+$\Omega=0.14$, is added to the output variance. The UKF's mean ($0.61$) is
+close to the true mean ($0.64$), and its spread covers the true
+distribution.}
+\label{fig:regression}
+\end{figure}
 
 \begin{theorem}{The UKF update is a Kalman update with an inflated $R$}{slr}
 Assume all $W^{(c)}_j\ge0$. Define the \emph{statistically linearised}
@@ -237,33 +268,48 @@ where the EKF trusted it too much. This is why it stays consistent after
 an uncertain start.
 \end{inwords}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{figures/ch05_regression.pdf}
-\caption{The example of \cref{fig:linearisation} with the unscented
-transform. The UKF evaluates $\cos$ at three sigma points and fits a
-regression line through them (slope $\tilde H=-0.43$; the tangent's is
-$-0.48$). The points do not lie on that line; their scatter around it,
-$\Omega=0.14$, is added to the output variance. The UKF's mean ($0.61$) is
-close to the true mean ($0.64$), and its spread covers the true
-distribution.}
-\label{fig:regression}
-\end{figure}
-
-\Cref{fig:regression} shows the regression line, the residuals $\vect\zeta_j$
-and the resulting Gaussian in one dimension.
 
 \section{Angles on the circle}
 \label{sec:circular}
 
 The weighted average of the headings $3.1$ and $-3.1$ is $0$: pointing the
-wrong way. Headings and bearings are therefore averaged with the
-\emph{circular mean}
+wrong way (\cref{fig:circmean}). The two headings are almost the same
+direction, just on either side of the cut at $\pm\pi$, and averaging the
+numbers ignores that. The remedy is to average \emph{directions} instead
+of numbers: replace each angle by the unit vector
+$(\cos\theta_j,\sin\theta_j)$, add the vectors with their weights, and
+take the direction of the sum. This is the \emph{circular mean}
 \[
   \bar\theta=\operatorname{atan2}\Bigl(\sum_jw_j\sin\theta_j,\;
-  \sum_jw_j\cos\theta_j\Bigr),
+  \sum_jw_j\cos\theta_j\Bigr).
 \]
-and every difference of angles (in $P_y$, $P_{xz}$, the innovation) is
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.7,>=Stealth]
+  \draw[black!35] (0,0) circle (1);
+  \draw[black!35,->] (-1.35,0) -- (1.5,0) node[right,font=\small] {$x$};
+  \draw[black!35,->] (0,-1.2) -- (0,1.25);
+  \draw[->,thick,black!80] (0,0) -- (160:1) node[above left=-1pt,
+    font=\small] {$\theta_1=3.1$};
+  \draw[->,thick,black!80] (0,0) -- (-160:1) node[below left=-1pt,
+    font=\small] {$\theta_2=-3.1$};
+  \draw[->,very thick,red!70!black] (0,0) -- (0:0.8);
+  \node[font=\small,red!70!black,anchor=west,align=left] at (1.25,-0.55)
+    {average of the\\numbers: $0$};
+  \draw[red!70!black,thin] (1.25,-0.5) -- (0.6,-0.04);
+  \draw[->,very thick,green!45!black] (0,0) -- (180:0.8);
+  \node[font=\small,green!45!black,anchor=east,align=right] at (-1.4,0)
+    {circular mean:\\$\pi$};
+\end{tikzpicture}
+\caption{Two headings on either side of the cut at $\pm\pi$ (angles
+exaggerated). The average of the two numbers is $0$, which points the
+opposite way (red). Adding the two unit vectors and taking the direction
+of the sum gives the circular mean (green), between the two headings.}
+\label{fig:circmean}
+\end{figure}
+
+Every difference of angles (in $P_y$, $P_{xz}$, the innovation) is
 wrapped. For non-negative weights, $\bar\theta$ minimises
 $\sum_jw_j(1-\cos(\theta_j-m))$ over $m$ (Exercise~\ref{ex:circmean}), a
 natural ``squared distance'' on the circle.
