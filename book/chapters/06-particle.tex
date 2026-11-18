@@ -37,6 +37,20 @@ rarely, less where it proposes too often. In a filter, $\pi$ is known only
 up to its normalising constant (the $\eta$ of \cref{thm:bayes}); dividing
 the weights by their sum removes the need for it.
 
+\begin{example}{Two outcomes}{istwo}
+A target gives probability $0.2$ to $a$ and $0.8$ to $b$; the proposal
+gives $0.5$ to each. The weights are $\pi/q=0.4$ for $a$ and $1.6$ for $b$.
+Let $\varphi(a)=0$ and $\varphi(b)=10$, so that $\E_\pi[\varphi]=8$.
+Suppose ten draws from the proposal give $a$ six times and $b$ four times.
+The plain average of $\varphi$ over the draws is $4$, far from $8$. The
+weights of the ten draws sum to $6\times0.4+4\times1.6=8.8$, and the
+weighted average, with the weights divided by their sum, is
+$(4\times1.6\times10)/8.8=7.3$: the weights have corrected
+most of the mismatch between proposal and target, and the rest is sampling
+noise, which vanishes as the number of draws grows.
+\end{example}
+
+\Cref{fig:importance} shows the same idea with continuous distributions.
 The definition below is stated for general distributions; with densities,
 $\mathrm d\pi/\mathrm dq$ is simply the ratio $\pi(x)/q(x)$.
 
@@ -84,19 +98,8 @@ $\pi$. Samples where $q$ over-represents $\pi$ get small weights.}
 \label{fig:importance}
 \end{figure}
 
-\begin{example}{Two outcomes}{istwo}
-A target gives probability $0.2$ to $a$ and $0.8$ to $b$; the proposal
-gives $0.5$ to each. The weights are $\pi/q=0.4$ for $a$ and $1.6$ for $b$.
-Let $\varphi(a)=0$ and $\varphi(b)=10$, so that $\E_\pi[\varphi]=8$.
-Suppose ten draws from the proposal give $a$ six times and $b$ four times.
-The plain average of $\varphi$ over the draws is $4$, far from $8$. The
-weights sum to $6\times0.4+4\times1.6=8.8$, and the self-normalised
-estimate is $(4\times1.6\times10)/8.8=7.3$: the weights have corrected
-most of the mismatch between proposal and target, and the rest is sampling
-noise, which vanishes as the number of draws grows.
-\end{example}
 
-\Cref{fig:importance} shows the idea. The self-normalised estimate is
+The self-normalised estimate is
 biased for finite $N$
 (Exercise~\ref{ex:isbias}), but the bias is $O(1/N)$ and vanishes as $N$
 grows.
@@ -196,6 +199,10 @@ weights, break as soon as the number of visible landmarks or the noise
 level changes.
 
 \section{Weight degeneracy}
+
+At each update the weights are multiplied by likelihoods, and after a few
+updates they become very uneven: a few particles carry almost all the
+weight. One number summarises how uneven they are.
 
 \begin{definition}{Effective sample size}{ess}
 For normalised weights, $\ESS=1/\sum_i(w^{(i)})^2\in[1,N]$.

@@ -15,7 +15,12 @@ $\uu_t=(s_t,\delta_t)$ & control: turn by $\delta$, then drive $s$ &
   \code{run.controls[t]}\\
 $\x_{0:t}$, $\z_{1:t}$ & the sequences $(\x_0,\dots,\x_t)$,
   $(\z_1,\dots,\z_t)$ & \\
-$\theta'=\theta+\delta$ & heading after the turn & \\
+$\theta'=\theta+\delta$, $\p'$ & intended heading and position after one
+  step & \\
+$\varphi$, $d$, $\q$ & actual heading, distance driven and position after
+  one step & \\
+$e_\parallel$, $e_\perp$, $e_\theta$ & errors along the heading, sideways,
+  and in heading & \\
 $\bepsilon_t\sim\Normal(\vect0,M)$ & control noise,
   $M=\diag(\sigma_s^2,\sigma_\delta^2)$ & \code{world.motion\_cov}\\
 $f$, $F$, $V$ & motion model and its Jacobians & \code{motion\_model},

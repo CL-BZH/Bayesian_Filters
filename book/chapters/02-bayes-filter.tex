@@ -162,6 +162,9 @@ well it explains what was just seen, then renormalise. The belief
 sharpens. Repeat.
 \end{inwords}
 
+\Cref{fig:bayescycle} shows one cycle on a one-dimensional example, where
+everything can be computed exactly.
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch02_bayes_cycle.pdf}
@@ -173,9 +176,6 @@ that agrees with the measurement survives; the other one almost
 disappears.}
 \label{fig:bayescycle}
 \end{figure}
-
-\Cref{fig:bayescycle} shows one cycle on a one-dimensional example, where
-everything can be computed exactly.
 
 
 The normaliser has a meaning of its own, which the particle filter will
@@ -214,8 +214,8 @@ and only the position is uncertain. The state is then the position
 $\p_t$ alone.
 
 \begin{definition}{Grid belief}{grid}
-Partition the lawn into square cells $C_1,\dots,C_n$ of side $c$ and
-centres $\vect{c}_i$. The \emph{grid belief} is the vector
+Partition the lawn into $n$ square cells $C_1,\dots,C_n$, with centres
+$\vect{c}_1,\dots,\vect{c}_n$. The \emph{grid belief} is the vector
 $b_i\approx\Pr(\p_t\in C_i\mid\z_{1:t},\uu_{0:t-1})$, with $\sum_ib_i=1$.
 \end{definition}
 

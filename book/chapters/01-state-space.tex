@@ -573,7 +573,8 @@ plane that touches it at the intended pose.
 \Cref{fig:onestepray} shows (iii) and (iv) on the lawn. One step is a
 single straight segment starting at $\p$, so the line from the start to the
 end position \emph{is} the path, and the mower, which has just driven
-along it, faces along it.
+along it, faces along it. Panel~(a) of \cref{fig:coupling} shows the same
+thing with many sampled steps.
 
 \begin{figure}[ht]
 \centering
@@ -655,30 +656,6 @@ Together with the distance
 errors, which move the mower along the path, the errors displace the pose
 in three independent directions. From two steps on, the distribution of
 the pose has a genuine density on $\R^3$.
-
-\emph{What the degeneracy means for the filters.} The formulas of the next
-chapters are written with densities, and the one-step transition has
-none. This does no harm, for two reasons.
-\begin{itemize}[nosep]
-  \item \emph{A filter never starts a step from an exactly known pose.}
-    \Cref{prop:degenerate} is about the next pose given \emph{one} current
-    pose. What a filter carries is a belief about the current pose, spread
-    over a volume of the pose space, with a density. One noisy step sends
-    such a belief to a belief that again has a density: for each value of
-    the noise, the map $\x\mapsto f(\x,\uu+\bepsilon)$ only shifts and
-    turns the poses, without changing volumes, and the next belief is an
-    average of the results over the noise. The uncertainty on the current
-    pose fills the direction that the two noise variables cannot reach.
-  \item \emph{No filter of this book needs the value of the transition
-    density.} The Kalman-type filters use the covariance $Q_t=VMV\T$ only
-    added to another covariance, $FPF\T+Q_t$, which is invertible even
-    though $Q_t$ is not. The unscented and particle filters push the noise
-    through $f$ and never write the transition as a density.
-\end{itemize}
-The degeneracy would matter for a method that must evaluate
-$p(\x_{t+1}\mid\x_t,\uu_t)$ as a number, or invert $Q_t$: such a method
-has to keep the control noise $\bepsilon_t$ itself as the unknown, instead
-of the pose error.
 
 \begin{figure}[ht]
 \centering
@@ -801,6 +778,30 @@ errors across the path, along arcs, and the cloud of possible positions
 bends into a ``banana''. Position and heading are no longer tied exactly,
 but they stay strongly correlated (Exercise~\ref{ex:corr}).
 
+\paragraph{What the degeneracy means for the filters.} The formulas of the next
+chapters are written with densities, and the one-step transition has
+none. This does no harm, for two reasons.
+\begin{itemize}[nosep]
+  \item \emph{A filter never starts a step from an exactly known pose.}
+    \Cref{prop:degenerate} is about the next pose given \emph{one} current
+    pose. What a filter carries is a belief about the current pose, spread
+    over a volume of the pose space, with a density. One noisy step sends
+    such a belief to a belief that again has a density: for each value of
+    the noise, the map $\x\mapsto f(\x,\uu+\bepsilon)$ only shifts and
+    turns the poses, without changing volumes, and the next belief is an
+    average of the results over the noise. The uncertainty on the current
+    pose fills the direction that the two noise variables cannot reach.
+  \item \emph{No filter of this book needs the value of the transition
+    density.} The Kalman-type filters use the covariance $Q_t=VMV\T$ only
+    added to another covariance, $FPF\T+Q_t$, which is invertible even
+    though $Q_t$ is not. The unscented and particle filters push the noise
+    through $f$ and never write the transition as a density.
+\end{itemize}
+The degeneracy would matter for a method that must evaluate
+$p(\x_{t+1}\mid\x_t,\uu_t)$ as a number, or invert $Q_t$: such a method
+has to keep the control noise $\bepsilon_t$ itself as the unknown, instead
+of the pose error.
+
 \begin{figure}[ht]
 \centering
 \includegraphics{figures/ch01_transition.pdf}
@@ -863,7 +864,7 @@ around the lawn.
 
 \subsection{Angles and the function wrap}
 
-Angles need one piece of notation. All headings and bearings are kept in
+All headings and bearings are kept in
 $[-\pi,\pi)$ by
 \[
   \wrap(a)=a+2\pi k\quad\text{with the unique }k\in\mathbb{Z}\text{ such

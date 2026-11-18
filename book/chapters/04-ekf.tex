@@ -270,8 +270,8 @@ covariance through $F$.}
 
 \section{Over-confidence}
 
-Inside the filter, the same mechanism makes the EKF \emph{over-confident}
-after an uncertain start. Twenty runs start from an estimate drawn from
+Linearisation has a second effect, this time in the update: it makes the
+EKF \emph{over-confident} after an uncertain start. Twenty runs start from an estimate drawn from
 $\Normal(\x_0,P_0)$ with $\sigma_{xy}=30$ and $\sigma_\theta=0.8$; the
 sensor range is limited to 110 units, so that only one or two landmarks are
 seen at a time. The average NEES (\cref{fig:ekftransient}) is $297$ after

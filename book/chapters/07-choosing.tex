@@ -78,8 +78,8 @@ position fix, and the likelihood has a single peak. Even a wildly wrong
 Gaussian is pulled towards it, step after step. The pull is slow because
 the covariance is small (the filter was confident before the kidnapping),
 so the filter keeps trusting its prediction and moves only a little at
-each update. The particle filter re-samples the lawn and jumps to the new
-pose in a few steps. The real lesson is that \emph{identified landmarks
+each update. The particle filter injects random particles over the lawn
+(\cref{sec:amcl}) and jumps to the new pose in a few steps. The real lesson is that \emph{identified landmarks
 make the problem unimodal}, the situation in which a Gaussian filter is
 at home.
 
