@@ -12,6 +12,21 @@ linearisation error that made the EKF over-confident.
 
 \section{The unscented transform}
 
+The problem is the one of \cref{prop:secondorder}: $X$ is Gaussian, $g$ is
+non-linear, and we want the mean and the covariance of $g(X)$. The idea is
+best seen in one dimension. Replace $\Normal(\mu,\sigma^2)$ by two points,
+$\mu-\sigma$ and $\mu+\sigma$, each with weight $\tfrac12$. These two
+points have the same mean and the same variance as the Gaussian. Apply $g$
+to each, and take the mean and the variance of the two results. If $g$
+bends, the two results are not symmetric about $g(\mu)$, and their average
+moves away from it, as the true mean does.
+
+In $n$ dimensions the same is done along $n$ directions, the columns of a
+square root of the covariance, with a centre point added. Three parameters
+tune the construction: $\alpha$ and $\kappa$ set how far from the mean the
+points are placed, and $\beta$ adjusts the weight of the centre point in
+the covariance.
+
 \begin{definition}{Scaled sigma points}{sigma}
 Let $\bmu\in\R^n$, $\Sigma\succ0$ with Cholesky factor $LL\T=\Sigma$
 (columns $L_i$), and parameters $\alpha>0$, $\beta\ge0$, $\kappa$ with
@@ -44,7 +59,21 @@ ellipse; dashed: $2\sigma$.}
 \label{fig:sigmapoints}
 \end{figure}
 
-\Cref{fig:sigmapoints} shows the points for $n=2$.
+\Cref{fig:sigmapoints} shows the points for $n=2$. The columns $L_i$ of
+the Cholesky factor play the role of $\sigma$ in one dimension: each is
+one standard deviation of the Gaussian in one of $n$ independent
+directions.
+
+\begin{example}{The mean of a cosine}{utcos}
+Take the example of \cref{fig:linearisation}: $\theta\sim\Normal(0.5,
+0.8^2)$ and $g=\cos$. With the parameters used in this book ($\alpha=1$,
+$\beta=2$, $\kappa=0$) and $n=1$, $\lambda=0$: the sigma points are $0.5$
+and $0.5\pm0.8$, that is $-0.3$, $0.5$ and $1.3$, with mean weights
+$\tfrac12$, $0$, $\tfrac12$. The unscented mean is
+$\tfrac12(\cos(-0.3)+\cos1.3)=\tfrac12(0.955+0.267)=0.611$. The true mean
+is $e^{-0.32}\cos0.5=0.637$, and linearisation gives $\cos0.5=0.878$. Two
+evaluations of the function have removed nine tenths of the error.
+\end{example}
 
 \begin{proposition}{Sigma points match the first two moments}{moments}
 $\sum_jW^{(m)}_j=1$, $\sum_jW^{(m)}_j\chi_j=\bmu$ and
@@ -96,8 +125,8 @@ $\mu^2+\sigma^2$ and the variance $4\mu^2\sigma^2+2\sigma^4$
 (Exercise~\ref{ex:square}).
 
 \paragraph{Choosing the parameters.} The original choice $\lambda=3-n$
-($\alpha=1$, $\kappa=3-n$, $\beta=0$) matches the Gaussian kurtosis along
-each axis (Exercise~\ref{ex:kurtosis}), but makes the centre weight
+($\alpha=1$, $\kappa=3-n$, $\beta=0$) matches the Gaussian kurtosis (the
+fourth moment, $3\sigma^4$) along each axis (Exercise~\ref{ex:kurtosis}), but makes the centre weight
 $W_0=(3-n)/3$ \emph{negative} as soon as $n>3$. A negative weight in a
 covariance can produce an indefinite $P_y$ (Exercise~\ref{ex:negative}),
 after which the next Cholesky factorisation fails. This book uses
@@ -120,8 +149,13 @@ transform (orange) with its seven transformed sigma points.}
 
 \section{The filter}
 
-\paragraph{Non-additive noise.} The control noise is turned before it is
-driven: it enters $f$ non-linearly and cannot simply be added as a $Q$.
+The filter uses the unscented transform twice per cycle: through the
+motion model $f$ for the prediction, and through the sensor model $h$ for
+the update.
+
+\paragraph{Non-additive noise.} The control noise acts inside the motion
+model, $f(\x,\uu+\bepsilon)$: the turn error is applied before the mower
+drives. It enters $f$ non-linearly and cannot simply be added as a $Q$.
 The standard remedy is to \emph{augment} the state with the noise,
 \[
   \x^a=\begin{pmatrix}\x\\\bepsilon\end{pmatrix}\sim
@@ -150,8 +184,19 @@ Heading and bearing components are averaged on the circle and every
 residual is wrapped (\cref{sec:circular}).
 \end{definition}
 
-This is the Kalman update of \cref{thm:kf} with $\bar PH\T$ and
-$H\bar PH\T+R$ replaced by their sigma-point estimates $P_{xz}$ and $S$.
+In the prediction, $\chi^x_j$ denotes the first three components of the
+augmented point $\chi^a_j$ (a pose) and $\chi^\varepsilon_j$ its last two
+(a control noise). In the update, $P_{xz}$ estimates the cross-covariance
+$\Cov(\x,\z)$ between the pose and the measurement, and $S$ the covariance
+of the measurement. The update is then \cref{thm:conditioning} applied as
+if $(\x,\z)$ were jointly Gaussian with these covariances: the gain is
+$\Sigma_{xy}\Sigma_{yy}^{-1}=P_{xz}S^{-1}$ and the covariance decreases by
+$\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}=KSK\T$.
+
+For a linear $h$ these are $P_{xz}=\bar PH\T$ and $S=H\bar PH\T+R$, and
+the update is exactly the Kalman update of \cref{thm:kf}. In general it is
+that update with $\bar PH\T$ and $H\bar PH\T+R$ replaced by their
+sigma-point estimates.
 The next result says precisely what that replacement does.
 
 \begin{theorem}{The UKF update is a Kalman update with an inflated $R$}{slr}
@@ -266,6 +311,28 @@ antenna lever arms. Its cost grows with the number of sigma points,
 linearly in the state dimension, and each point needs one evaluation of
 the models; for the few-dimensional state of a mower this is negligible.
 \end{mower}
+
+\section*{What to remember from this chapter}
+\addcontentsline{toc}{section}{What to remember}
+
+\begin{enumerate}[nosep]
+  \item The unscented transform replaces a Gaussian by $2n+1$ weighted
+    points with the same mean and covariance, pushes them through the
+    exact non-linear function, and fits a Gaussian to the results. No
+    Jacobian is needed.
+  \item Its mean is exact for polynomials up to degree $3$: it captures
+    the curvature term that the EKF misses.
+  \item The UKF is a Kalman filter in which the predicted mean and
+    covariance, the innovation covariance $S$ and the cross-covariance
+    $P_{xz}$ are computed from sigma points. The control noise is handled
+    by augmenting the state.
+  \item Its update is a Kalman update with the regression slope $\tilde H$
+    and an inflated noise $R+\Omega$: what a straight line cannot explain
+    is counted as noise. This keeps the UKF consistent where the EKF is
+    over-confident.
+  \item Angles need care: circular means, wrapped residuals, and
+    non-negative covariance weights.
+\end{enumerate}
 
 \FloatBarrier
 \section*{Exercises}
