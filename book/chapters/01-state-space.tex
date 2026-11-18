@@ -530,6 +530,11 @@ volume. The result of a die has a distribution but no density, since all
 the probability sits on six points; the same happens when all the
 probability sits on a curve or on a surface.
 
+A distribution on $\R^3$ of this last kind, with all its probability on a
+set that has no volume (a point, a curve, a surface), is called
+\emph{degenerate}. The variable then has fewer degrees of freedom than
+coordinates, and its distribution has no density on $\R^3$.
+
 \begin{proposition}{The transition is degenerate and not Gaussian}{degenerate}
 Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
 \eqref{eq:actual}.
@@ -791,7 +796,10 @@ errors across the path, along arcs, and the cloud of possible positions
 bends into a ``banana''. Position and heading are no longer tied exactly,
 but they stay strongly correlated (Exercise~\ref{ex:corr}).
 
-\paragraph{What the degeneracy means for the filters.} In short: nothing
+\paragraph{What the degenerate transition means for the filters.}
+\Cref{prop:degenerate} says that the one-step transition is degenerate:
+given the current pose, the next pose lies on a surface, and its
+distribution has no density. What does this change? In short: nothing
 for the filters of this book, and something for the methods that must
 \emph{evaluate} the transition. Here is why.
 
