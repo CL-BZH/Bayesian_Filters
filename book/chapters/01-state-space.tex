@@ -825,31 +825,6 @@ elongated cloud after 25 steps (correlation $0.87$).}
 \label{fig:coupling}
 \end{figure}
 
-\paragraph{The one-step transition as a formula.} \emph{This paragraph is
-for readers who know the Dirac distribution; it can be skipped on a first
-reading.} The transition has no density on $\R^3$, but it is not a point
-mass either: its mass is spread smoothly over the helicoid. Write
-$\delta_{\mathrm D}$ for the Dirac distribution (to avoid a clash with the
-turn $\delta$), and, for a position $\q\neq\p$, let $d(\q)=\norm{\q-\p}$
-and $\alpha(\q)$ be the direction of $\q-\p$. For $\sigma_\delta$ small
-enough that wrapping can be ignored, and $\sigma_s$ small enough compared
-with $s$ that $d>0$ in practice,
-\begin{equation}\label{eq:diracform}
-  p(\q,\varphi\mid\x,\uu)=g(\q)\;\delta_{\mathrm D}\bigl(\varphi-
-  \alpha(\q)\bigr),\qquad
-  g(\q)=\frac{\Normal\bigl(d(\q);s,\sigma_s^2\bigr)\,
-  \Normal\bigl(\alpha(\q);\theta',\sigma_\delta^2\bigr)}{d(\q)}.
-\end{equation}
-The factor $g$ is an ordinary density on the lawn: the density of the
-independent Gaussians $(d,\varphi)$ rewritten in Cartesian coordinates,
-where $1/d$ is the Jacobian of polar coordinates
-($\mathrm dq^x\,\mathrm dq^y=d\,\mathrm dd\,\mathrm d\varphi$). It is the
-grey band of \cref{fig:helicoid}. The Dirac factor is
-\cref{prop:degenerate}(iv): given the position, the heading is fixed. The
-Gaussian approximation has the same structure in linear form: $Q_t$ has
-rank two, so it describes a Gaussian squashed onto a plane, with a density
-within the plane and a Dirac across it.
-
 \FloatBarrier
 \paragraph{What to remember from this section.}
 \begin{enumerate}[nosep]
