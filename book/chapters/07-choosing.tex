@@ -12,7 +12,11 @@ Each scenario is repeated over several random seeds. A filter is
 \emph{lost} when its median position error over the last 50 steps exceeds
 10 units. The EKF, UKF and particle filter use the range--bearing sensor;
 the KF uses the compass and the GPS (Chapter~\ref{ch:kalman}), so its
-numbers measure a different sensor suite.
+numbers measure a different sensor suite. The figures below are averages
+over several runs, each started from an initial estimate drawn at random
+around the truth. They therefore differ slightly from those quoted in the
+previous chapters, which were for the single standard run started from
+the exact pose (for the EKF, $1.20$ here against $1.13$ there).
 
 \paragraph{Tracking.} A good initial estimate, drawn from
 $\Normal(\x_0,P_0)$, four landmarks always visible and identified, 10
@@ -212,8 +216,18 @@ past.}
 \Cref{fig:factorgraph} draws the structure of $J$. It is the Bayesian
 network of \cref{fig:bayesnet} seen from the side of the cost: each
 conditional density of the network becomes one factor, that is, one
-squared term of $J$. In the non-linear case
-the equivalence breaks. The EKF linearises each
+squared term of $J$.
+
+The cost $J$ divides by $Q_t$, which must therefore be invertible. For
+the mower's motion model it is not: $Q_t=VMV\T$ has rank $2$
+(\cref{prop:firstorder}). The motion term is then written with the
+control noise as the unknown, $\tfrac12\norm{\bepsilon_t}_M^2$ subject to
+$\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$, which is the case announced at the
+end of \cref{sec:shape}.
+
+In the non-linear case
+the equivalence between filtering and smoothing breaks. The EKF linearises
+each
 measurement once, at the estimate available \emph{at that time}, and
 never revisits that decision, even after later measurements have shown the
 estimate to be wrong. The minimiser of the same cost $J$ with $f$ and $h$
