@@ -241,12 +241,14 @@ def figure_eight_control(t, step=4.0, turn=np.pi / 50):
 
 
 def fence_correction(world, x, start=0.8, gain=0.6, max_turn=0.25):
-    """Extra turn that steers the mower back towards the centre when it
-    leaves the inner ``start`` fraction of the lawn.
+    """Extra turn that steers the mower back towards the centre when the
+    pose ``x`` is outside the inner ``start`` fraction of the lawn.
 
     A smooth steering command (rather than, say, a sudden half-turn at the
-    wall) keeps the motion followable by every filter.  The pilot knows the true pose; the
-    filters only ever see the *commanded* control, which includes this term.
+    wall) keeps the motion followable by every filter.  ``x`` is the pose
+    *as the pilot knows it*: an estimate, never the true pose (see
+    :func:`simulate`).  The filters see the *commanded* control, which
+    includes this term.
     """
     if abs(x[0]) < start * world.half_width and abs(x[1]) < start * world.half_height:
         return 0.0
@@ -286,13 +288,27 @@ def simulate(
     motion_noise=True,
     sensor_noise=True,
 ):
-    """Simulate the mower and all its sensors.
+    """Simulate the mower and all its sensors, and record the run.
+
+    The result is a *recorded run*, like the log of a real robot: the
+    commands that were sent and what the sensors returned.  Filters are then
+    run over it with :func:`~bayesian_filters.base.run_filter`, all on the
+    same data.
+
+    The pilot that produces the commands does not know the true pose.  It
+    follows ``control_fn`` and, with ``fence=True``, steers back towards the
+    centre near the edge of the lawn, using the only thing a real robot has:
+    its sensors (the latest GPS fix and compass reading; the known start
+    pose before the first reading).  For a simulation in which the filter
+    itself steers the robot, see
+    :func:`~bayesian_filters.control.simulate_closed_loop`.
 
     Parameters
     ----------
     kidnap : ``None`` or ``(step, pose)``
         Teleport the true mower to ``pose`` just before control ``step`` is
-        applied (the "kidnapped robot" problem).  The filters are not told.
+        applied (the "kidnapped robot" problem).  Neither the pilot nor the
+        filters are told.
     """
     rng = np.random.default_rng(seed)
     T, M = n_steps, world.n_landmarks
@@ -303,19 +319,21 @@ def simulate(
     visible = np.zeros((T, M), dtype=bool)
     z_gps = np.zeros((T, 2))
     z_compass = np.zeros(T)
-    x = np.array(x0, dtype=float)
+    x = np.array(x0, dtype=float)  # the true pose
+    x_pilot = np.array(x0, dtype=float)  # the pose as the pilot knows it
     for t in range(T):
         if kidnap is not None and t == kidnap[0]:
             x = np.array(kidnap[1], dtype=float)
         u = np.array(control_fn(t), dtype=float)
         if fence:
-            u[1] += fence_correction(world, x)
+            u[1] += fence_correction(world, x_pilot)
         x = world.move(x, u, rng, noise=motion_noise)
         controls[t] = u
         truth[t + 1] = x
         z_rb[t], visible[t] = world.sense_range_bearing(x, rng, noise=sensor_noise)
         z_gps[t] = world.sense_gps(x, rng, noise=sensor_noise)
         z_compass[t] = world.sense_compass(x, rng, noise=sensor_noise)
+        x_pilot = np.array([z_gps[t, 0], z_gps[t, 1], z_compass[t]])
     return Run(
         world,
         truth,

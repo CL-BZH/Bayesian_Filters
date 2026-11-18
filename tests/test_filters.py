@@ -156,3 +156,56 @@ def test_grid_filter_localises(world, run):
     g = GridFilter(world, cell=4.0, sensor="range_bearing")
     res = run_filter(g, run)
     assert position_rmse(res.means, run.truth, skip=10) < 4.0
+
+
+# ------------------------------------------------------------- control -----
+def test_pilot_uses_sensors_not_truth(world):
+    # Without sensor noise the pilot's readings are exact, so the run must be
+    # identical to what a pilot fed with these readings would produce; with
+    # noise, the commands must depend on the readings (change the sensor
+    # noise seed -> same motion noise would need the same commands otherwise).
+    from bayesian_filters.world import fence_correction, figure_eight_control
+
+    r = simulate(world, 400, seed=0)
+    pilot = np.array([0.0, 0.0, 0.0])
+    for t in range(r.n_steps):
+        u = figure_eight_control(t)
+        u[1] += fence_correction(world, pilot)
+        assert np.allclose(u, r.controls[t])
+        pilot = np.array([r.z_gps[t, 0], r.z_gps[t, 1], r.z_compass[t]])
+    assert world.inside(r.truth[:, :2]).all()
+
+
+def test_path_follower_and_distance(world):
+    from bayesian_filters import PathFollower, distance_to_path, stripes_path
+
+    wp = stripes_path(world)
+    assert np.allclose(distance_to_path(wp, wp), 0.0)
+    assert np.isclose(distance_to_path(np.array([[0.0, wp[0, 1] + 3.0]]), wp)[0], 3.0)
+    # without noise, a robot that knows its pose stays on the path
+    ctl = PathFollower(wp)
+    x = np.array([wp[0, 0], wp[0, 1], 0.0])
+    xs = [x]
+    while not ctl.done and len(xs) < 2000:
+        u = ctl(x)
+        if ctl.done:
+            break
+        x = motion_model(x, u)
+        xs.append(x)
+    assert ctl.done
+    assert distance_to_path(np.array(xs), wp).max() < 6.0  # corners are cut a little
+
+
+def test_closed_loop_ekf_follows_the_path_dead_reckoning_does_not(world):
+    from bayesian_filters import (DeadReckoning, PathFollower, distance_to_path,
+                                  simulate_closed_loop, stripes_path)
+
+    wp = stripes_path(world)
+    x0 = (wp[0, 0], wp[0, 1], 0.0)
+    P0 = np.diag([1.0, 1.0, 0.01])
+    run, res = simulate_closed_loop(world, EKF.from_world(world, x0, P0), PathFollower(wp), 700, x0=x0, seed=0)
+    assert len(res.means) == run.n_steps + 1
+    assert np.sqrt(np.mean(distance_to_path(run.truth, wp) ** 2)) < 2.0
+    assert position_rmse(res.means, run.truth) < 2.5
+    run_dr, _ = simulate_closed_loop(world, DeadReckoning.from_world(world, x0, P0), PathFollower(wp), 700, x0=x0, seed=0)
+    assert distance_to_path(run_dr.truth, wp).max() > 20.0

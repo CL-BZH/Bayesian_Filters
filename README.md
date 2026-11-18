@@ -34,15 +34,16 @@ Read them in order. Each one derives its filter, implements it, and tests it on 
 | 04 | [Unscented Kalman filter](notebooks/04_unscented_kalman_filter.ipynb) | Sigma points and scaled weights; the same arc, EKF vs UT; the UKF stays consistent where the EKF does not |
 | 05 | [Particle filter](notebooks/05_particle_filter.ipynb) | Importance sampling, weight degeneracy and ESS, systematic vs multinomial resampling, global localisation, sample impoverishment, **multimodal beliefs with unknown data association**, mode collapse, kidnapping and augmented MCL |
 | 06 | [Showdown](notebooks/06_showdown.ipynb) | All filters on four scenarios, several seeds each, and a scorecard |
+| 07 | [Closing the loop](notebooks/07_closing_the_loop.ipynb) | The filter **in the loop**: a controller steers the mower along mowing stripes from the filter's estimate; dead reckoning drives it off the lawn, every real filter keeps it on its stripes |
 
 ### The short version of notebook 06
 
 | Scenario | EKF | UKF | PF |
 |---|---|---|---|
-| Tracking, landmarks identified | RMSE 1.20, 0.09 ms/step | RMSE 1.20, 0.15 ms/step | RMSE 1.28, 0.66 ms/step |
+| Tracking, landmarks identified | RMSE 1.16, 0.11 ms/step | RMSE 1.16, 0.16 ms/step | RMSE 1.22, 0.75 ms/step |
 | Uncertain start | converges, over-confident at first | converges, consistent | needs no guess, converges slower |
-| Kidnapped, landmarks identified | recovers in ~64 steps (median) | same as EKF | recovers in ~15 steps (augmented MCL) |
-| Kidnapped, landmarks **not** identified | lost in 6 of 8 runs | — | lost in 0 of 8 runs |
+| Kidnapped, landmarks identified | recovers in ~66 steps (median) | same as EKF | recovers in ~21 steps (augmented MCL) |
+| Kidnapped, landmarks **not** identified | lost in 3 of 8 runs | — | lost in 0 of 8 runs |
 
 *Kidnapped* is the standard robotics name for a robot that is picked up and moved somewhere
 else without being told (the *kidnapped robot problem*). The filter is then confidently wrong,
@@ -84,6 +85,7 @@ bayesian_filters/
 ├── ukf.py       UKF               scaled sigma points, augmented control noise, circular means
 ├── pf.py        ParticleFilter    log-weights, ESS-triggered systematic resampling,
 │                                  known/unknown association, augmented MCL, roughening
+├── control.py   closing the loop: stripes_path, PathFollower, simulate_closed_loop(), DeadReckoning
 ├── metrics.py   position RMSE, NEES and chi-square bounds
 ├── viz.py       matplotlib helpers (one fixed colour per filter)
 └── demo.py      live demo (Python turtle graphics)

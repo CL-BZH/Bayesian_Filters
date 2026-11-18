@@ -59,7 +59,8 @@ def main(argv=None):
 
     rng = np.random.default_rng(args.seed)
     world = World.random(args.landmarks, seed=args.seed) if args.landmarks else World.default()
-    x = np.zeros(3)
+    x = np.zeros(3)  # the true pose
+    x_pilot = x.copy()  # the pose as the pilot knows it (GPS fix + compass, as in ``simulate``)
     flt = build_filter(args.filter, world, x, args)
     name = flt.name
 
@@ -127,8 +128,9 @@ def main(argv=None):
             x = world.sample_uniform_poses(1, rng)[0]
             robot.penup()
         u = figure_eight_control(step)
-        u[1] += fence_correction(world, x)
+        u[1] += fence_correction(world, x_pilot)  # the pilot never sees the true pose
         x = world.move(x, u, rng)
+        x_pilot = np.append(world.sense_gps(x, rng), world.sense_compass(x, rng))
         robot.goto(x[0], x[1])
         robot.setheading(x[2])
         robot.pendown()

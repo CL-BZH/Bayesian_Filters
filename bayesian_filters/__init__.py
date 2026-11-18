@@ -8,6 +8,7 @@
 """
 
 from .base import Filter, FilterResult, run_filter
+from .control import DeadReckoning, PathFollower, distance_to_path, simulate_closed_loop, stripes_path
 from .ekf import EKF
 from .grid import GridFilter
 from .kf import CompassGpsKF, KalmanFilter
@@ -35,4 +36,5 @@ __all__ = [
     "merwe_weights", "sigma_points", "unscented_transform",
     "systematic_resample", "multinomial_resample", "effective_sample_size",
     "position_error", "position_rmse", "nees", "nees_bounds",
+    "simulate_closed_loop", "PathFollower", "stripes_path", "distance_to_path", "DeadReckoning",
 ]
