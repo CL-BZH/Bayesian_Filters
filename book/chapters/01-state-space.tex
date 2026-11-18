@@ -651,8 +651,31 @@ last turn error has had only one leg to show up in the position.
 Together with the distance
 errors, which move the mower along the path, the errors displace the pose
 in three independent directions. From two steps on, the distribution of
-the pose has a genuine density on $\R^3$, and the degeneracy of a single
-step causes no difficulty in the filters.
+the pose has a genuine density on $\R^3$.
+
+\emph{What the degeneracy means for the filters.} The formulas of the next
+chapters are written with densities, and the one-step transition has
+none. This does no harm, for two reasons.
+\begin{itemize}[nosep]
+  \item \emph{A filter never starts a step from an exactly known pose.}
+    \Cref{prop:degenerate} is about the next pose given \emph{one} current
+    pose. What a filter carries is a belief about the current pose, spread
+    over a volume of the pose space, with a density. One noisy step sends
+    such a belief to a belief that again has a density: for each value of
+    the noise, the map $\x\mapsto f(\x,\uu+\bepsilon)$ only shifts and
+    turns the poses, without changing volumes, and the next belief is an
+    average of the results over the noise. The uncertainty on the current
+    pose fills the direction that the two noise variables cannot reach.
+  \item \emph{No filter of this book needs the value of the transition
+    density.} The Kalman-type filters use the covariance $Q_t=VMV\T$ only
+    added to another covariance, $FPF\T+Q_t$, which is invertible even
+    though $Q_t$ is not. The unscented and particle filters push the noise
+    through $f$ and never write the transition as a density.
+\end{itemize}
+The degeneracy would matter for a method that must evaluate
+$p(\x_{t+1}\mid\x_t,\uu_t)$ as a number, or invert $Q_t$: such a method
+has to keep the control noise $\bepsilon_t$ itself as the unknown, instead
+of the pose error.
 
 \begin{figure}[ht]
 \centering
@@ -1082,11 +1105,13 @@ about the current state.
 \end{inwords}
 
 The densities in \eqref{eq:joint} are a convenient notation. By
-\cref{prop:degenerate} the transition has no density on $\R^3$; the
-identities in this book remain true with $p(\x_{t+1}\mid\x_t,\uu_t)$ read
-as a transition \emph{kernel}, integrals as integrals against it. The
-particle filter (\cref{ch:particle}) never needs the density at all: it
-only \emph{samples} the motion.
+\cref{prop:degenerate} the transition has no density on $\R^3$. In the
+formulas of this book, $p(\x_{t+1}\mid\x_t,\uu_t)\,\mathrm d\x_{t+1}$
+stands for the distribution of the next pose given the current one, and an
+integral against it is an average over the possible next poses (such an
+object is called a transition \emph{kernel}). All the identities remain
+true when read this way, and \cref{sec:shape} explains why the filters are
+not affected.
 
 \section{Why filter? Dead reckoning}
 \label{sec:deadreckoning}
