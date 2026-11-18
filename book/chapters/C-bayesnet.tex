@@ -14,7 +14,7 @@ It proceeds in four steps: what conditional independence means
 graph, each proved from the definition (\cref{sec:three}); and the
 general rule, called \emph{d-separation}, with a recipe to apply it
 (\cref{sec:dsep}). \Cref{sec:bayesnet-mower} then applies the recipe to
-the mower.
+the robot.
 
 \section{Conditional independence}
 \label{sec:condind}
@@ -98,7 +98,7 @@ $S$ have none. The descendants of $R$ are $W$ and $L$. The factorisation
 \label{fig:garden}
 \end{figure}
 
-For the mower (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
+For the robot (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
 $\x_t$ and $\uu_t$, and the measurement $\z_t$ from $\x_t$:
 $\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$.
 The factorisation \eqref{eq:bnfactor} is then \eqref{eq:joint}. The
@@ -303,7 +303,7 @@ In \cref{fig:garden}:
 \end{itemize}
 \end{example}
 
-\section{Reading the mower's network}
+\section{Reading the robot's network}
 \label{sec:bayesnet-mower}
 
 The recipe is now applied to the four statements that the book relies on.
@@ -456,13 +456,14 @@ does (\cref{sec:smoothing}).
 \subsection*{Complement: controls computed during the run}
 
 In the network of \cref{fig:bayesnet} no arrow enters a control: the
-controls are fixed in advance. A real mower computes them as it goes: it
+controls are fixed in advance. A real robot computes them as it goes: it
 looks at its current estimate of the pose and steers accordingly. That
 estimate is itself computed from the measurements received so far, so in
 the end $\uu_t$ is computed from $\z_{1:t}$. This is the first case
 below. The second case, a control computed from the \emph{true} pose,
-cannot occur on a real mower, which does not know its true pose; it occurs
-in the simulations of this book. In the two drawings the new arrows are
+cannot occur on a real robot, which does not know its true pose; it is
+an easy mistake to make in a simulation, where the true pose is at hand.
+In the two drawings the new arrows are
 blue. Statements (a) and (b) hold in both cases, by the argument of
 \cref{sec:assumptions}: each new noise is independent of everything that
 came before.
@@ -505,11 +506,16 @@ prediction step, as in the proof of \cref{thm:bayes}, leaves that
 information unused.
 
 \begin{mower}
-The simulations of this book are in the second case at some steps. The
-mower follows a path fixed in advance, but near the edge of the lawn the
-pilot of the simulation, which knows the true pose, adds a turn towards
-the centre. At those steps the commanded control says ``the mower is near
-the edge'', and the filters do not use this: there they are not exactly
-the Bayes filter of \cref{thm:bayes}, but a filter that ignores part of
-what it is told.
+In the simulations of this book the controls are always computed from
+measurements, never from the true pose. In the closed-loop experiment of
+\cref{sec:closedloop} the controller steers from the filter's own
+estimate: this is the first case, exactly. In the recorded runs of the
+other chapters a pilot follows a path fixed in advance and, near the edge
+of the lawn, adds a turn towards the centre computed from the latest GPS
+fix and compass reading. A filter that reads those two sensors is again in
+the first case. The filters of \cref{ch:ekf,ch:ukf,ch:particle} read the
+landmarks instead. For them the recorded commands depend on readings that
+they are not given, as happens whenever a filter replays the log of a
+robot that was driven by something else, and those commands carry a little
+information about the pose that the filter does not use.
 \end{mower}

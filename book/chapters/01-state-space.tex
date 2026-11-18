@@ -1,10 +1,12 @@
 \chapter{The state-space model}
 \label{ch:statespace}
 
-Every filter in this book answers the same question: given what the mower
+The robot of this book is a lawnmower that works on a square lawn. It is
+the running example; the lawn is simply the ground it moves on. Every
+filter in this book answers the same question: given what the robot
 was told to do and what its sensors reported, where is it now? Before any
 answer, the question must be stated precisely. This chapter defines the
-state of the mower, how it moves, what it measures, and the two
+state of the robot, how it moves, what it measures, and the two
 independence assumptions on which every recursive filter rests. It ends by
 showing why the obvious answer, integrating the commands
 (\emph{dead reckoning}), is not good enough.
@@ -13,8 +15,8 @@ showing why the obvious answer, integrating the commands
 \label{sec:motion}
 
 This section builds the motion model in four steps: what the state of the
-mower is and how one command moves it (\cref{sec:pose}); how the real
-mower deviates from the command (\cref{sec:noise}); how these deviations
+robot is and how one command moves it (\cref{sec:pose}); how the real
+robot deviates from the command (\cref{sec:noise}); how these deviations
 become errors on the pose, to first order (\cref{sec:errors}); and what
 the exact distribution of the next pose looks like (\cref{sec:shape}).
 The first three steps are elementary, the last one is more demanding. The
@@ -23,12 +25,12 @@ section ends with a summary of what to remember.
 \subsection{The pose and the control}
 \label{sec:pose}
 
-Two numbers say where the mower is on the lawn. To predict where it will
+Two numbers say where the robot is on the lawn. To predict where it will
 be after the next command, we also need to know which way it faces. These
 three numbers are its \emph{state}.
 
 \begin{definition}{Pose and control}{pose}
-The \emph{state} (or \emph{pose}) of the mower at step $t$ is
+The \emph{state} (or \emph{pose}) of the robot at step $t$ is
 \[
   \x_t=(p^x_t,\,p^y_t,\,\theta_t)\T\in\R^2\times[-\pi,\pi),
 \]
@@ -38,11 +40,11 @@ anticlockwise. The \emph{control} is $\uu_t=(s_t,\delta_t)\T$: first turn
 by the angle $\delta_t$, then drive a distance $s_t$ along the new heading.
 \end{definition}
 
-One command moves the mower in two stages (\cref{fig:pose}).
+One command moves the robot in two stages (\cref{fig:pose}).
 \begin{enumerate}[nosep]
   \item \emph{Turn.} The heading becomes $\theta'=\theta+\delta$. The
     position does not change.
-  \item \emph{Drive.} The mower advances by $s$ in the direction $\theta'$,
+  \item \emph{Drive.} The robot advances by $s$ in the direction $\theta'$,
     that is, along the unit vector $(\cos\theta',\sin\theta')$. Its
     position changes by $s\cos\theta'$ in $x$ and $s\sin\theta'$ in $y$.
 \end{enumerate}
@@ -63,10 +65,10 @@ multiple of $2\pi$; it changes the number that represents the heading, not
 the direction itself (\cref{sec:sensors} gives the details).
 
 \begin{example}{One step}{onestep}
-The mower is at $(2,1)$ with heading $\pi/6$ ($30^\circ$): $\x=(2,1,\pi/6)$.
+The robot is at $(2,1)$ with heading $\pi/6$ ($30^\circ$): $\x=(2,1,\pi/6)$.
 The command is ``turn by $\pi/3$ ($60^\circ$), then drive $4$'':
 $\uu=(4,\pi/3)$. After the turn the heading is $\theta'=\pi/6+\pi/3=\pi/2$:
-the mower faces north. Driving $4$ in that direction adds
+the robot faces north. Driving $4$ in that direction adds
 $4\cos(\pi/2)=0$ to $p^x$ and $4\sin(\pi/2)=4$ to $p^y$. So
 $f(\x,\uu)=(2,\,5,\,\pi/2)$.
 \end{example}
@@ -116,25 +118,25 @@ $f(\x,\uu)=(2,\,5,\,\pi/2)$.
   \node at ($(P)+(-0.2,-0.42)$) {$\x_t$};
   \node at ($(Q)+(-0.55,0.15)$) {$\x_{t+1}$};
 \end{tikzpicture}
-\caption{The pose $\x_t=(p^x_t,p^y_t,\theta_t)$: the mower's position on the
+\caption{The pose $\x_t=(p^x_t,p^y_t,\theta_t)$: the robot's position on the
 lawn and its heading, measured anticlockwise from the $x$-axis. The
-control $\uu_t=(s_t,\delta_t)$ first turns the mower by $\delta_t$, then
+control $\uu_t=(s_t,\delta_t)$ first turns the robot by $\delta_t$, then
 drives it a distance $s_t$ along the new heading, which gives
 $\x_{t+1}=f(\x_t,\uu_t)$ with $\theta_{t+1}=\theta_t+\delta_t$.}
 \label{fig:pose}
 \end{figure}
 
-\subsection{The real mower: noise in the control}
+\subsection{The real robot: noise in the control}
 \label{sec:noise}
 
-A real mower does not execute its commands exactly. Its wheels slip on the
+A real robot does not execute its commands exactly. Its wheels slip on the
 grass, so it drives a little more or a little less than commanded, and
 turns a little more or a little less. We model this by adding a random
 error to each of the two numbers of the command, \emph{before} applying
 the motion model.
 
 \begin{definition}{Noisy motion}{noise}
-The real mower executes a corrupted control:
+The real robot executes a corrupted control:
 \begin{equation}\label{eq:motionnoise}
   \x_{t+1}=f(\x_t,\uu_t+\bepsilon_t),\qquad
   \bepsilon_t=\begin{pmatrix}\varepsilon_{s,t}\\\varepsilon_{\delta,t}
@@ -145,14 +147,14 @@ with $\bepsilon_0,\bepsilon_1,\dots$ independent and independent of
 $\x_0$.
 \end{definition}
 
-In words, at step $t$ the mower turns by $\delta_t+\varepsilon_{\delta,t}$
+In words, at step $t$ the robot turns by $\delta_t+\varepsilon_{\delta,t}$
 instead of $\delta_t$, and then drives $s_t+\varepsilon_{s,t}$ instead of
 $s_t$. Each part of the definition says something concrete.
 \begin{itemize}[nosep]
   \item $\varepsilon_{s,t}$ is the error on the distance driven and
     $\varepsilon_{\delta,t}$ the error on the angle turned. Their standard
     deviations are $\sigma_s$ and $\sigma_\delta$.
-  \item Both have mean zero: the mower has no systematic bias, such as
+  \item Both have mean zero: the robot has no systematic bias, such as
     always pulling to the left.
   \item $M$ is diagonal and $\bepsilon_t$ is jointly Gaussian, so the two
     errors are independent: slipping while driving says nothing about
@@ -179,7 +181,7 @@ subsection shows how.
 Fix the pose $\x=(\p,\theta)$ and the control $\uu=(s,\delta)$, and take one
 step. Two sets of symbols are used from here to the end of the section.
 \begin{itemize}[nosep]
-  \item \emph{Without noise}, the mower turns to the heading
+  \item \emph{Without noise}, the robot turns to the heading
     $\theta'=\theta+\delta$ and drives $s$, ending at
     $\p'=\p+s\,(\cos\theta',\sin\theta')$. This is the \emph{intended} end
     pose $f(\x,\uu)=(\p',\theta')$.
@@ -194,14 +196,14 @@ step. Two sets of symbols are used from here to the end of the section.
 The pose error is the difference between the two. To see how it depends on
 $\varepsilon_s$ and $\varepsilon_\delta$, take one error at a time.
 
-\paragraph{A distance error moves the mower along its heading.} If
+\paragraph{A distance error moves the robot along its heading.} If
 $\varepsilon_\delta=0$, then $\varphi=\theta'$ and \eqref{eq:actual} gives
-$\q-\p'=\varepsilon_s\,(\cos\theta',\sin\theta')$: the mower ends ahead of
+$\q-\p'=\varepsilon_s\,(\cos\theta',\sin\theta')$: the robot ends ahead of
 the intended position if $\varepsilon_s>0$, behind it if
 $\varepsilon_s<0$, with the correct heading. This is exact.
 
-\paragraph{A turn error changes the heading and moves the mower sideways.}
-If $\varepsilon_s=0$, the mower drives the intended distance $s$ in the
+\paragraph{A turn error changes the heading and moves the robot sideways.}
+If $\varepsilon_s=0$, the robot drives the intended distance $s$ in the
 direction $\theta'+\varepsilon_\delta$. Whatever the direction, it ends at
 distance $s$ from $\p$: as the direction varies, the end point travels
 along the circle of radius $s$ centred at the start, and the heading points
@@ -305,7 +307,7 @@ the heading.}
 \end{figure}
 
 With $\Delta\theta=\varepsilon_\delta$: a turn error changes the heading by
-$\varepsilon_\delta$ and, to first order, moves the mower by
+$\varepsilon_\delta$ and, to first order, moves the robot by
 $s\,\varepsilon_\delta$ at a right angle to the intended heading. The
 error neglected is of second order: the end point also falls back along
 the heading, by $s(1-\cos\varepsilon_\delta)\approx
@@ -467,7 +469,7 @@ $\Cov(e_\perp,e_\theta)=\Cov(s\,\varepsilon_\delta,\varepsilon_\delta)
 =s\,\sigma_\delta^2$, and $e_\parallel$ is uncorrelated with the other
 two. The correlation of $e_\perp$ and $e_\theta$ is
 $s\sigma_\delta^2/\sqrt{s^2\sigma_\delta^2\cdot\sigma_\delta^2}=1$ for
-$s>0$ ($-1$ for $s<0$, a mower in reverse).
+$s>0$ ($-1$ for $s<0$, a robot in reverse).
 Exercise~\ref{ex:nullspace} computes the null space of $Q_t$ and
 interprets it. The same Jacobian $V$ is used by the extended Kalman filter
 (\cref{prop:jacobians}).
@@ -477,7 +479,7 @@ interprets it. The same Jacobian $V$ is used by the extended Kalman filter
 The control errors are independent, but the pose errors are not. A
 diagonal $M$ separates the error \emph{along the path} from the rest; it
 does not separate position from heading. Turning a bit too much both
-changes the heading and pushes the mower sideways: the sideways error and
+changes the heading and pushes the robot sideways: the sideways error and
 the heading error are two faces of the same random number. This is why a
 filter's covariance has large off-diagonal terms between $\theta$ and the
 position, and why a measurement of the heading also corrects the position.
@@ -517,6 +519,16 @@ closed curve contains $95\%$ of the positions; it is bent along the circle
 of radius $s$ around the start: the ``banana'' shape.}
 \label{fig:helicoid}
 \end{figure}
+
+\paragraph{Distribution and density.} The next statement needs two words
+that are easily confused. The \emph{distribution} of a random variable
+says how its probability is spread: it gives the probability of every
+region. It always exists. A \emph{density} is one way to write a
+distribution: a function whose integral over a region is the probability
+of that region. It exists only when the probability is spread over a
+volume. The result of a die has a distribution but no density, since all
+the probability sits on six points; the same happens when all the
+probability sits on a curve or on a surface.
 
 \begin{proposition}{The transition is degenerate and not Gaussian}{degenerate}
 Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
@@ -573,7 +585,7 @@ plane that touches it at the intended pose.
 
 \Cref{fig:onestepray} shows (iii) and (iv) on the lawn. One step is a
 single straight segment starting at $\p$, so the line from the start to the
-end position \emph{is} the path, and the mower, which has just driven
+end position \emph{is} the path, and the robot, which has just driven
 along it, faces along it. Panel~(a) of \cref{fig:coupling} shows the same
 thing with many sampled steps.
 
@@ -617,7 +629,7 @@ distance error and a turn error for each step. Look at the two turn
 errors, $\varepsilon_{\delta,1}$ before the first leg and
 $\varepsilon_{\delta,2}$ before the second (\cref{fig:twolegs}).
 \begin{itemize}[nosep]
-  \item \emph{Final heading.} The mower turns by $\varepsilon_{\delta,1}$,
+  \item \emph{Final heading.} The robot turns by $\varepsilon_{\delta,1}$,
     then by $\varepsilon_{\delta,2}$, so its final heading is off by
     $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. The two errors count
     equally: one degree too much at the first turn or at the second gives
@@ -625,10 +637,10 @@ $\varepsilon_{\delta,2}$ before the second (\cref{fig:twolegs}).
   \item \emph{Final sideways error.} Here they do not count equally.
     Recall that each step is a turn on the spot followed by a drive. The
     first error happens during the first turn: when that turn is over, the
-    mower has not moved yet, so its position is still correct, but it is
+    robot has not moved yet, so its position is still correct, but it is
     facing a slightly wrong direction. The position error appears as it
     drives. \emph{Both} legs are then driven in that wrong direction, and
-    the mower ends $2s\,\varepsilon_{\delta,1}$ to the side. The second
+    the robot ends $2s\,\varepsilon_{\delta,1}$ to the side. The second
     error happens during the second turn, after the first leg has been
     driven; it turns the second leg only, and moves the end point by a
     further $s\,\varepsilon_{\delta,2}$ to the side.
@@ -647,14 +659,14 @@ direction is $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}/2$, the average
 of the directions $\varepsilon_{\delta,1}$ and
 $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$ of the two legs: the sum of
 two vectors of the same length points along the bisector of the angle
-between them. The mower, however, faces
+between them. The robot, however, faces
 $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$, the direction of its last
 leg. The end position reveals the average direction of travel, not the
 final heading; the two differ by $\varepsilon_{\delta,2}/2$, because the
 last turn error has had only one leg to show up in the position.
 
 Together with the distance
-errors, which move the mower along the path, the errors displace the pose
+errors, which move the robot along the path, the errors displace the pose
 in three independent directions. From two steps on, the distribution of
 the pose has a genuine density on $\R^3$.
 
@@ -760,7 +772,7 @@ the pose has a genuine density on $\R^3$.
 \caption{Two steps straight ahead. Dashed: the intended path. Blue: the
 actual path. Red: the turn errors, at the places where they are made. Top:
 an error at the first turn only. Both legs are driven in the wrong
-direction, and the mower ends $2s\,\varepsilon_{\delta,1}$ to the side
+direction, and the robot ends $2s\,\varepsilon_{\delta,1}$ to the side
 (orange), with a heading error $\varepsilon_{\delta,1}$. Bottom: the
 second leg now starts from the end of the same first leg, with a further
 turn error $\varepsilon_{\delta,2}$. Compared with the top case (dotted),
@@ -806,7 +818,7 @@ of the pose error.
 \begin{figure}[ht]
 \centering
 \includegraphics{figures/ch01_transition.pdf}
-\caption{A thousand mowers start at the origin, heading east, and receive
+\caption{A thousand robots start at the origin, heading east, and receive
 the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
 15 and 25 steps. Only the positions are plotted: each cloud is the shadow
 on the lawn of a cloud in the three-dimensional pose space, which after
@@ -834,13 +846,13 @@ elongated cloud after 25 steps (correlation $0.87$).}
 \paragraph{What to remember from this section.}
 \begin{enumerate}[nosep]
   \item The state is the pose $(p^x,p^y,\theta)$. A control $(s,\delta)$
-    turns the mower by $\delta$, then drives it $s$ along the new heading:
+    turns the robot by $\delta$, then drives it $s$ along the new heading:
     this is the motion model $f$ of \eqref{eq:f}.
-  \item The noise is on the control: the mower really turns by
+  \item The noise is on the control: the robot really turns by
     $\delta+\varepsilon_\delta$ and drives $s+\varepsilon_s$, with two
     independent zero-mean Gaussian errors.
-  \item A distance error moves the mower along its heading. A turn error
-    changes the heading \emph{and} moves the mower sideways, by about
+  \item A distance error moves the robot along its heading. A turn error
+    changes the heading \emph{and} moves the robot sideways, by about
     $s\,\varepsilon_\delta$. To first order the pose error is
     $V\bepsilon_t$ \eqref{eq:firstorder}, with covariance $Q=VMV\T$.
   \item Exactly, the poses reachable in one step form a curved
@@ -857,7 +869,7 @@ elongated cloud after 25 steps (correlation $0.87$).}
 \section{Sensors}
 \label{sec:sensors}
 
-The motion model says where the mower goes. This section describes what it
+The motion model says where the robot goes. This section describes what it
 sees: the sensors, and how their readings depend on the pose. It starts
 with two functions needed to compute with angles, then defines the main sensor of the
 book, which measures the distance and the direction of beacons placed
@@ -1006,9 +1018,9 @@ applies $\wrap$ to the result, which settles it.
 \subsection{The range--bearing sensor}
 
 Beacons (\emph{landmarks}) stand at known places around the lawn. The
-mower carries a sensor that, for each landmark it sees, reports two
+robot carries a sensor that, for each landmark it sees, reports two
 numbers: how far the landmark is (the \emph{range}), and in which
-direction it appears relative to where the mower is facing (the
+direction it appears relative to where the robot is facing (the
 \emph{bearing}). \Cref{fig:sensor} shows both.
 
 \begin{definition}{Range--bearing sensor}{rb}
@@ -1027,13 +1039,13 @@ the heading}, so it carries information about $\theta$.
 \end{definition}
 
 The function $h_j$ is the noise-free reading. Its first component is the
-distance from the mower to the landmark. For the second,
+distance from the robot to the landmark. For the second,
 $\operatorname{atan2}(d_y,d_x)$ is the angle of the vector $\vect d$ from
 the $x$-axis (\cref{def:atan2}): the direction of the landmark on the
 lawn.
 Subtracting the heading $\theta$ gives the direction as seen from the
-mower, and $\wrap$ keeps the result in $[-\pi,\pi)$: a positive bearing
-means that the landmark is to the left of the mower, a negative one that
+robot, and $\wrap$ keeps the result in $[-\pi,\pi)$: a positive bearing
+means that the landmark is to the left of the robot, a negative one that
 it is to the right, and $0$ that it is straight ahead. A landmark is
 ``within range'' when it is closer than the maximum range of the sensor;
 by default the range is unlimited and every landmark is seen, and some
@@ -1057,7 +1069,7 @@ because $R_1$ is constant in the coordinates (range, bearing), not on the
 lawn. Seen from the distance $r$, a bearing error $\sigma_\phi$ is a
 sideways displacement of about $r\sigma_\phi$ (the length of the arc of
 radius $r$ and angle $\sigma_\phi$). So a reading locates the landmark
-relative to the mower with an error of about $\sigma_r$ along the line of
+relative to the robot with an error of about $\sigma_r$ along the line of
 sight and $r\sigma_\phi$ across it (\cref{fig:rbgeom}). With the simulation
 values, that is $5$ along and $20\times0.05=1$ across for a landmark at
 distance $20$, but $5$ along and $160\times0.05=8$ across for a landmark at
@@ -1100,7 +1112,7 @@ $h_j$ itself, not through $R_1$.
   \end{scope}
 \end{tikzpicture}
 \caption{The same $R_1$, two landmarks; distances and regions are drawn
-to scale with the simulation values (the mower is enlarged). Each orange region contains the positions at which the mower would
+to scale with the simulation values (the robot is enlarged). Each orange region contains the positions at which the robot would
 place the landmark for readings within two standard deviations of the
 exact one ($\pm2\sigma_r$ on the range, $\pm2\sigma_\phi$ on the bearing).
 Along the line of sight (dashed) the two regions have the same length.
@@ -1110,11 +1122,11 @@ for the far landmark $\bell_2$.}
 \end{figure}
 
 \begin{example}{One reading}{onereading}
-The mower is at $\p=(2,1)$ with heading $\theta=\pi/6$ ($30^\circ$), and a
+The robot is at $\p=(2,1)$ with heading $\theta=\pi/6$ ($30^\circ$), and a
 landmark stands at $\bell=(5,5)$. Then $\vect d=(3,4)$, so the range is
 $\norm{\vect d}=\sqrt{9+16}=5$. The landmark lies in the direction
 $\operatorname{atan2}(4,3)=0.927$\,rad ($53.1^\circ$) on the lawn, so its
-bearing is $0.927-0.524=0.404$\,rad ($23.1^\circ$): the mower sees it
+bearing is $0.927-0.524=0.404$\,rad ($23.1^\circ$): the robot sees it
 $23^\circ$ to its left. Without noise the sensor returns $(5,\,0.404)$.
 \end{example}
 
@@ -1147,8 +1159,8 @@ $23^\circ$ to its left. Without noise the sensor returns $(5,\,0.404)$.
   \node[above right] at (L) {landmark $\bell_j$};
 \end{tikzpicture}
 \caption{The range--bearing measurement of landmark $j$. The range $r$ is
-the distance from the mower to the landmark; the bearing $\phi$ is the
-angle from the mower's heading to the line of sight, so that the direction
+the distance from the robot to the landmark; the bearing $\phi$ is the
+angle from the robot's heading to the line of sight, so that the direction
 of the landmark in the lawn's frame is $\theta+\phi$.}
 \label{fig:sensor}
 \end{figure}
@@ -1178,10 +1190,15 @@ else.
 
 Some notation first. A range of indices denotes a sequence:
 $\x_{0:t}=(\x_0,\x_1,\dots,\x_t)$, and likewise $\uu_{0:t}$ and
-$\z_{1:t}$. The letter $p$ denotes a probability density, and
-$p(a\mid b)$ the density of $a$ given $b$; which density is meant is told
-by its arguments. The indices follow the code: the control $\uu_t$ moves
-the mower from $\x_t$ to $\x_{t+1}$, and the measurement $\z_{t+1}$ is
+$\z_{1:t}$. The letter $p$ denotes a probability distribution: $p(a)$
+that of $a$, and $p(a\mid b)$ that of $a$ given $b$; which one is meant is
+told by its arguments. As in most texts, it is written as a density, a
+function to integrate. When the distribution has a density, $p$ is that
+function. When it has none (\cref{sec:shape}), $p(a\mid b)$ still stands
+for the distribution of $a$ given $b$, and an integral
+$\int g(a)\,p(a\mid b)\,\mathrm da$ for the average of $g(a)$ under it. The
+indices follow the code: the control $\uu_t$ moves
+the robot from $\x_t$ to $\x_{t+1}$, and the measurement $\z_{t+1}$ is
 taken at $\x_{t+1}$. There is no measurement at the start pose $\x_0$.
 
 \begin{definition}{Markov state and conditionally independent measurements}{markov}
@@ -1219,7 +1236,7 @@ independence used in this chapter and the next, including
 \begin{figure}[ht]
 \centering
 \input{figures/tikz/bn_main}
-\caption{The mower model as a Bayesian network, for three steps. Circles
+\caption{The robot model as a Bayesian network, for three steps. Circles
 are random variables: the poses $\x_t$ (hidden) and the measurements
 $\z_t$ (observed, shaded). Squares are the controls $\uu_t$, known
 inputs. The joint distribution \eqref{eq:joint} has one factor per
@@ -1248,7 +1265,7 @@ the pose. But
   p(\x_t,\z_{t+1})=p(\z_{t+1}\mid\x_t)\,p(\x_t)
   =p(\x_t\mid\z_{t+1})\,p(\z_{t+1}),
 \]
-and since the measurement depends on where the mower was, the later
+and since the measurement depends on where the robot was, the later
 measurement tells something about the earlier pose:
 $p(\x_t\mid\z_{t+1})$ is not $p(\x_t)$ (\cref{fig:infoflow}). In the same
 way, a wet lawn in the morning tells that it probably rained during the
@@ -1323,7 +1340,7 @@ controls are removed in the same way, and what remains is
 $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
 \end{proof}
 
-The controls were assumed fixed in advance. A real mower computes them
+The controls were assumed fixed in advance. A real robot computes them
 during the run, from its current estimate of the pose, that is, from the
 measurements received so far. \Cref{sec:bayesnet-mower} ends with this
 case: the filter is unchanged.
@@ -1331,20 +1348,30 @@ case: the filter is unchanged.
 \begin{inwords}
 The whole story, every pose and every measurement, is a chain of small
 local pieces: a start, then alternately ``move'' and ``look''. The state
-is a sufficient summary of the past: once you know where the mower is,
+is a sufficient summary of the past: once you know where the robot is,
 how it got there is irrelevant to what happens next. That is exactly what
 makes a \emph{recursive} filter possible, one that keeps only a belief
 about the current state.
 \end{inwords}
 
-The densities in \eqref{eq:joint} are a convenient notation. By
-\cref{prop:degenerate} the transition has no density on $\R^3$. In the
-formulas of this book, $p(\x_{t+1}\mid\x_t,\uu_t)\,\mathrm d\x_{t+1}$
-stands for the distribution of the next pose given the current one, and an
-integral against it is an average over the possible next poses (such an
-object is called a transition \emph{kernel}). All the identities remain
-true when read this way, and \cref{sec:shape} explains why the filters are
-not affected.
+\paragraph{The factor without a density.} By \cref{prop:degenerate} one
+factor of \eqref{eq:joint}, the transition
+$p(\x_{t+1}\mid\x_t,\uu_t)$, is a distribution without a density: given
+$\x_t$ and $\uu_t$, the next pose lies on a surface. The factorisation is
+exact all the same. It describes how a run is produced: draw $\x_0$ from
+$p(\x_0)$, then $\x_1$ from the distribution of the next pose given $\x_0$
+and $\uu_0$, then $\z_1$ from its distribution given $\x_1$, and so on. A
+robot without any motion noise is the extreme case: its next pose is a
+single point, a distribution with no density either, and \eqref{eq:joint}
+describes its runs just as well.
+
+The same statement can be made with ordinary densities only. A run is
+computed from the start pose $\x_0$ and the noises
+$\bepsilon_0,\bepsilon_1,\dots$ and $\vv_1,\vv_2,\dots$, which are
+independent and have Gaussian densities; their joint density is a plain
+product, and \eqref{eq:joint} says the same thing in terms of the poses
+and the measurements. \Cref{sec:shape} explains why the filters are not
+affected by the missing density.
 
 \section{Why filter? Dead reckoning}
 \label{sec:deadreckoning}
@@ -1355,8 +1382,8 @@ reckoning}. Its error is driven by the control noise, and grows without
 bound.
 
 How fast? The answer can be computed on the simplest path, a straight
-line (\cref{fig:drsetup}). Dead reckoning believes the mower is at
-distance $st$ along the line after $t$ steps. The real mower is off to the
+line (\cref{fig:drsetup}). Dead reckoning believes the robot is at
+distance $st$ along the line after $t$ steps. The real robot is off to the
 side by some distance $e_t$, and has not come quite as far along the line,
 by some distance $a_t$.
 
@@ -1390,7 +1417,7 @@ by some distance $a_t$.
   \node[below,font=\small,black!60,align=center] at ($(D)+(0,-0.1)$)
     {dead reckoning:\\$(st,\,0)$};
   \node[above,font=\small,blue!70!black] at ($(Q5)+(0,0.05)$)
-    {real mower: $(p^x_t,\,p^y_t)$};
+    {real robot: $(p^x_t,\,p^y_t)$};
   \node[above left,font=\small,blue!70!black] at ($(Q2)!0.5!(Q3)$)
     {leg $k$, along $\theta_k$};
 \end{tikzpicture}
@@ -1398,13 +1425,13 @@ by some distance $a_t$.
 exaggerated). Dashed: the commanded path, which dead reckoning takes to
 be the real one. Blue: the real path, each leg driven along the heading
 reached after that step's turn. The lateral error $e_t$ is the distance of
-the real mower from the line; the forward shortfall $a_t$ is how far
+the real robot from the line; the forward shortfall $a_t$ is how far
 behind it is along the line.}
 \label{fig:drsetup}
 \end{figure}
 
 \begin{proposition}{Dead-reckoning error on a straight path}{deadreckoning}
-Let the mower start at a known pose heading along the $x$-axis and receive
+Let the robot start at a known pose heading along the $x$-axis and receive
 $t$ commands $\uu=(s,0)$. Number the steps $k=1,\dots,t$, with
 $\varepsilon_{s,k}$ and $\varepsilon_{\delta,k}$ the errors of step $k$ and
 $\theta_k$ the heading after its turn. Let $e_t=p^y_t$ be its lateral error and
@@ -1429,7 +1456,7 @@ $\theta_t$ is a sum of $t$ independent $\Normal(0,\sigma_\delta^2)$
 variables. The variance of a sum of independent terms is the sum of the
 variances, which gives \eqref{eq:drheading}.
 
-\emph{Lateral error.} At step $k$ the mower moves by
+\emph{Lateral error.} At step $k$ the robot moves by
 $(s+\varepsilon_{s,k})(\cos\theta_k,\sin\theta_k)$. Its lateral ($y$)
 component is $(s+\varepsilon_{s,k})\sin\theta_k=s\,\theta_k+O(\varepsilon^2)$,
 using $\sin\theta\approx\theta$ and neglecting the product
@@ -1441,7 +1468,7 @@ $\varepsilon_{s,k}\theta_k$ of two small terms. Summing over the steps,
 \]
 The last equality counts how many times each $\varepsilon_{\delta,j}$
 appears: it is part of $\theta_k$ for every $k\ge j$, that is, $t-j+1$
-times. In words, the turn error of step $j$ pushes the mower sideways over
+times. In words, the turn error of step $j$ pushes the robot sideways over
 every leg from the $j$-th on. For $t=2$ this is the
 $2s\,\varepsilon_{\delta,1}+s\,\varepsilon_{\delta,2}$ of
 \cref{fig:twolegs}. The terms are independent, so
@@ -1463,7 +1490,7 @@ $\E[a_t]\approx\tfrac s2\sigma_\delta^2\sum_{k=1}^tk
 For large $t$ the variance \eqref{eq:drlateral} is about
 $s^2\sigma_\delta^2\,t^3/3$, so the lateral error (its standard deviation)
 grows like $t^{3/2}$, not like $\sqrt t$ as a sum of independent errors
-would: each heading error is \emph{integrated} along the rest of the path. Worse, the mower is
+would: each heading error is \emph{integrated} along the rest of the path. Worse, the robot is
 \emph{on average} short of where dead reckoning puts it, because a wrong
 heading always shortens the forward progress. That bias, the
 $\E[\cos\theta]<1$ effect, is invisible to any method that linearises the
@@ -1473,10 +1500,10 @@ motion, and will reappear in Chapter~\ref{ch:ekf}.
 With the noise of the simulations ($s=4$, $\sigma_\delta=0.03$) and
 $t=100$, \eqref{eq:drlateral} predicts a lateral standard deviation of
 $69.8$ and \eqref{eq:drshort} a shortfall of $9.1$. A Monte Carlo run with
-20\,000 mowers gives $67.5$ and $8.9$. On the figure-eight path of the
+20\,000 robots gives $67.5$ and $8.9$. On the figure-eight path of the
 simulations the loops partly cancel the error (rotating a closed loop about
 its start leaves its end in place), and the median error after 100 steps is
-about 21; but it still grows without bound
+about 20; but it still grows without bound
 (\cref{fig:deadreckoning}).
 
 \begin{figure}[ht]
@@ -1501,10 +1528,12 @@ levels; \code{motion\_model} and \code{range\_bearing} are $f$ and $h$,
 vectorised over leading dimensions so that they also move whole clouds
 of particles or sigma points. \code{simulate} returns a \code{Run} with the
 true poses, the commanded controls and every sensor reading. The pilot of
-the simulation steers the mower back towards the centre near the edges of
-the lawn; that steering is part of the \emph{command}, so the filters know
-it (it is computed from the true pose; the end of
-\cref{sec:bayesnet-mower} says what this changes). The notebook draws \cref{fig:transition,fig:deadreckoning}.
+the simulation steers the robot back towards the centre near the edges of
+the lawn. It does not know the true pose: like a real robot it has only
+its sensors, here the latest GPS fix and compass reading. That steering is
+part of the \emph{command}, so the filters know it. In
+\cref{sec:closedloop} the pilot is replaced by a controller that steers
+from the filter's own estimate. The notebook draws \cref{fig:transition,fig:deadreckoning}.
 \end{practice}
 
 \begin{mower}
@@ -1525,7 +1554,7 @@ RTK-GNSS or a camera.
   \item The state is the pose $\x_t=(p^x_t,p^y_t,\theta_t)$. The motion
     model $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ turns, then drives, with
     Gaussian noise on the control (\cref{sec:motion}).
-  \item A turn error changes the heading and moves the mower sideways. One
+  \item A turn error changes the heading and moves the robot sideways. One
     step from a known pose is not Gaussian, and its first-order covariance
     $Q=VMV\T$ has rank $2$ (\cref{prop:firstorder,prop:degenerate}).
   \item The main sensor returns the range and the bearing of landmarks,
@@ -1606,7 +1635,7 @@ $s(1-e^{-\sigma^2/2})\approx s\sigma^2/2$ is exactly the per-step term in
 \textbf{1.3.} Integrating \eqref{eq:joint} over $\x_{0:T}$ gives
 $p(\z_{1:T}\mid\uu)$, which does not factorise: two measurements both
 depend on the trajectory, which is random (two GPS fixes taken one step
-apart are strongly correlated because the mower was nearly in the same
+apart are strongly correlated because the robot was nearly in the same
 place). Dividing \eqref{eq:joint} by $p(\x_{0:T}\mid\uu)=p(\x_0)\prod_t
 p(\x_{t+1}\mid\x_t,\uu_t)$, which is the marginal of \eqref{eq:joint}
 obtained by integrating out every $\z_t$ (each likelihood integrates to
@@ -1636,6 +1665,6 @@ Hence $\rho_t^2=\frac{t^2(t+1)^2/4}{t\cdot t(t+1)(2t+1)/6}=
 Monte Carlo run with the noise of the simulations gives $0.903$ and $0.874$
 after 5 and 25 steps, against $0.905$ and $0.875$. The coupling never
 vanishes because every turn error that contributes to the final heading
-error also pushed the mower sideways for the rest of the path; old turn
+error also pushed the robot sideways for the rest of the path; old turn
 errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
 which mixes the two sums without decorrelating them.

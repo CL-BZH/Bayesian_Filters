@@ -18,8 +18,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from bayesian_filters import (EKF, UKF, CompassGpsKF, GridFilter, ParticleFilter, World,
-                              merwe_weights, motion_jacobians, motion_model, multinomial_resample,
+from bayesian_filters import (EKF, UKF, CompassGpsKF, DeadReckoning, GridFilter, ParticleFilter,
+                              PathFollower, World, distance_to_path, simulate_closed_loop,
+                              stripes_path, position_rmse, merwe_weights, motion_jacobians, motion_model, multinomial_resample,
                               nees, nees_bounds, position_error, run_filter, sigma_points, simulate,
                               systematic_resample, unscented_transform, viz)
 from bayesian_filters.ukf import pose_mean, pose_residual
@@ -749,7 +750,66 @@ def fig_coupling():
     save(fig, "ch01_coupling")
     print("coupling corr", round(c1, 3), round(c25, 3))
 
+# ---------------------------------------------------------------- chapter 7
+def closed_loop_experiment(n_seeds=10, n_steps=700):
+    """Each filter in the loop, steering the robot along the mowing stripes.
+    Returns {name: (cross-track RMS, estimation RMSE, runs that left the lawn)}."""
+    world = World.default()
+    wp = stripes_path(world)
+    x0 = (wp[0, 0], wp[0, 1], 0.0)
+    P0 = np.diag([1.0, 1.0, 0.01])
+    make = {
+        "dead reckoning": lambda s: DeadReckoning.from_world(world, x0, P0),
+        "KF": lambda s: CompassGpsKF.from_world(world, x0, P0),
+        "EKF": lambda s: EKF.from_world(world, x0, P0),
+        "UKF": lambda s: UKF.from_world(world, x0, P0),
+        "PF": lambda s: ParticleFilter(world, 1000, init=(np.array(x0), P0), seed=s),
+    }
+    out = {}
+    for name, mk in make.items():
+        xt, est, left = [], [], 0
+        for seed in range(n_seeds):
+            run, res = simulate_closed_loop(world, mk(seed), PathFollower(wp), n_steps, x0=x0, seed=seed)
+            xt.append(distance_to_path(run.truth, wp) ** 2)
+            est.append(position_error(res.means, run.truth) ** 2)
+            left += int(not world.inside(run.truth[:, :2]).all())
+        out[name] = (np.sqrt(np.mean(np.concatenate(xt))), np.sqrt(np.mean(np.concatenate(est))), left)
+    return out
+
+
+def fig_closed_loop():
+    """The filter in the loop on a mowing pattern: dead reckoning against the EKF."""
+    world = World.default()
+    wp = stripes_path(world)
+    x0 = (wp[0, 0], wp[0, 1], 0.0)
+    P0 = np.diag([1.0, 1.0, 0.01])
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.60), sharey=True)
+    handles = {}
+    cases = [("dead reckoning in the loop", DeadReckoning.from_world(world, x0, P0), viz.COLORS["UKF"]),
+             ("EKF in the loop", EKF.from_world(world, x0, P0), viz.COLORS["EKF"])]
+    for ax, (title, flt, col) in zip(axes, cases):
+        run, res = simulate_closed_loop(world, flt, PathFollower(wp), 700, x0=x0, seed=1)
+        viz.plot_world(ax, world, label_landmarks=False)
+        handles["planned path"], = ax.plot(wp[:, 0], wp[:, 1], color=viz.MUTED, lw=3.0, alpha=0.45, solid_capstyle="round")
+        handles["believed position (%s)" % flt.name], = ax.plot(res.means[:, 0], res.means[:, 1], color=col, lw=1.0)
+        handles["true position"], = ax.plot(run.truth[:, 0], run.truth[:, 1], color=viz.INK, lw=1.0)
+        xt = distance_to_path(run.truth, wp)
+        ax.set_title(title, fontsize=8.5)
+        ax.set_xlabel("$x$")
+        print("closed loop, seed 1, %s: cross-track RMS %.2f max %.1f, estimation RMSE %.2f, steps %d"
+              % (title, np.sqrt(np.mean(xt**2)), xt.max(), position_rmse(res.means, run.truth), run.n_steps))
+    axes[0].set_ylabel("$y$"); axes[1].set_ylabel("")
+    axes[0].set_ylim(-world.half_height - 12, world.half_height + 60)
+    order = ["planned path", "true position", "believed position (dead reckoning)", "believed position (EKF)"]
+    fig.legend([handles[k] for k in order], order, fontsize=7, loc="lower center", ncol=2)
+    plt.tight_layout(rect=(0, 0.11, 1, 1))
+    save(fig, "ch07_closed_loop")
+    for name, (xt, est, left) in closed_loop_experiment().items():
+        print("closed loop, 10 runs, %-15s cross-track RMS %6.2f  estimation RMSE %6.2f  left the lawn %d/10" % (name, xt, est, left))
+
+
 if __name__ == "__main__":
+    fig_closed_loop()
     fig_transition()
     fig_helicoid()
     fig_coupling()

@@ -26,7 +26,7 @@ The EKF needs three Jacobians: $F$ and $V$ say how an error on the current
 pose and an error on the control change the next pose, and $H$ says how an
 error on the pose changes the measurement.
 
-\begin{proposition}{Jacobians of the mower's models}{jacobians}
+\begin{proposition}{Jacobians of the robot's models}{jacobians}
 With $\theta'=\theta+\delta$, the motion model \eqref{eq:f} has
 \[
   F=\frac{\partial f}{\partial\x}=\begin{pmatrix}1&0&-s\sin\theta'\\
@@ -57,7 +57,7 @@ Each entry can be read geometrically. The matrix $V$ is that of
 \eqref{eq:firstorder}. The first two columns of $F$ say that a position
 error is carried over unchanged. Its third column is the second column of
 $V$: an error on the current heading acts exactly like a turn error, it
-changes the new heading by the same amount and moves the mower sideways by
+changes the new heading by the same amount and moves the robot sideways by
 $s$ per radian (\cref{fig:tangent}). In $H$, the first row says that moving
 towards the landmark shortens the range by the same amount, and that the
 range does not depend on the heading. The second row says that moving
@@ -88,7 +88,7 @@ changes the bearing by the opposite angle (\cref{fig:hgeom}).
     font=\small,red!70!black] {line of sight turned by $\approx a/r$};
   \fill (P) circle (1.6pt) node[below left,font=\small] {$\p$};
 \end{tikzpicture}
-\caption{Reading the rows of $H$. Moving the mower towards the landmark
+\caption{Reading the rows of $H$. Moving the robot towards the landmark
 (blue) shortens the range by the distance moved and leaves the direction
 of the line of sight unchanged. Moving it by $a$ across the line of sight
 (red) leaves the range unchanged to first order and turns the line of
@@ -140,7 +140,7 @@ two (\cref{prop:firstorder}); $\bar P$ stays positive definite because
 $FPF\T$ is ($F$ is invertible, its determinant being $1$).
 
 \begin{inwords}
-The EKF pretends that, over the region where the mower probably is, the
+The EKF pretends that, over the region where the robot probably is, the
 world is flat: $f$ and $h$ are well approximated by their tangent planes.
 It then applies the exact Kalman update to that flat world. When the
 uncertainty is small compared with the curvature of $f$ and $h$, this is
@@ -151,15 +151,16 @@ goes wrong.
 \paragraph{Angles.} Forgetting to wrap the bearing innovation is the most
 common EKF bug in localisation. If the predicted bearing is $3.10$ and the
 measured one is $-3.12$, the raw innovation is $-6.22$ instead of $+0.063$
-(\cref{lem:wrap}), and the update throws the mower across the lawn.
+(\cref{lem:wrap}), and the update throws the robot across the lawn.
 
 \Cref{fig:ekftrack} shows the filter on the standard run, with four
-landmarks always in view. The EKF's position RMSE is $1.13$, well below the
+landmarks always in view. The EKF's position RMSE is $1.01$, well below the
 range noise $\sigma_r=5$ and the $\approx5$ units of position uncertainty
 that a bearing error of $0.05$\,rad produces at 100 units: combining four
 landmarks and the motion model over time pays off. Each error component
-stays inside its own $\pm2\sigma$ band about $95\%$ of the time, as it
-should for a Gaussian: the filter is accurate and honest.
+stays inside its own $\pm2\sigma$ band $96\%$ to $99\%$ of the time, where
+a Gaussian gives $95\%$: the filter is accurate and its covariance is
+honest.
 
 \begin{figure}[ht]
 \centering
@@ -168,7 +169,8 @@ should for a Gaussian: the filter is accurate and honest.
 Left: the true path, the estimate (dashed, almost on top of it) and the
 four landmarks. Right: the error on $p^x$, and the band of plus or minus
 two standard deviations taken from the filter's own covariance. The error
-stays inside the band about $95\%$ of the time.}
+stays inside the band almost all the time ($99\%$ of the steps of this
+run).}
 \label{fig:ekftrack}
 \end{figure}
 
@@ -225,7 +227,7 @@ is too high by $0.24$.}
 
 On the lawn, the curved function is the motion model. \Cref{fig:ekfbanana}
 takes up the single step of \cref{fig:helicoid}, seen from above. The
-positions the mower can reach fill a region bent along the circle of
+positions the robot can reach fill a region bent along the circle of
 radius $s$, the banana. The EKF describes them by a Gaussian, whose
 regions of high probability are ellipses: its mean is the intended end
 position $f(\x,\uu)$, and its covariance is $VMV\T$, long across the
@@ -251,7 +253,7 @@ position.}
 With the real noise ($\sigma_\delta=0.03$) the bend of one step is
 invisible and the ellipse is an excellent description. The difference
 grows with the uncertainty on the heading. \Cref{fig:arc} shows an extreme
-case. A mower known to within $1$ unit but
+case. A robot known to within $1$ unit but
 with a heading uncertainty of $\sigma_\theta=0.8$\,rad (about $45^\circ$)
 drives 10 steps of 4 units straight ahead. The true distribution is an
 arc. The EKF puts its mean at the tip of the arc, $11.05$ units ahead of
@@ -383,7 +385,7 @@ even the best Mahalanobis distance exceeds a high quantile of $\chi^2_2$:
 such a measurement is too surprising to come from any known landmark.
 
 This works as long as the estimate is good (\cref{fig:nnfail}). A
-measurement says where a landmark is \emph{relative to the mower}. The
+measurement says where a landmark is \emph{relative to the robot}. The
 filter attaches this relative position to its \emph{estimated} pose to
 find where the landmark should be on the lawn, and picks the known
 landmark closest to that point. If the estimate is off, that point is off
@@ -420,7 +422,7 @@ landmarks, the nearest landmark is the wrong one.
     node[pos=0.5,below,font=\small] {error of the estimate};
 \end{tikzpicture}
 \caption{Why nearest-neighbour association fails when the estimate is far
-off. The mower sees landmark 1 (green arrow). The filter attaches the same
+off. The robot sees landmark 1 (green arrow). The filter attaches the same
 relative measurement to its estimated position (blue arrow) and lands at
 the blue circle, which is closer to landmark 2. It concludes that it has
 seen landmark 2.}
@@ -430,8 +432,8 @@ seen landmark 2.}
 direction and shrinks its covariance, which makes the next wrong
 association even more likely. In the showdown of
 Chapter~\ref{ch:choosing}, an EKF with nearest-neighbour association loses
-the mower in half of the uncertain starts and in six kidnappings out of
-eight.
+the robot in four uncertain starts out of eight and in three kidnappings
+out of eight.
 
 \begin{practice}[\nb{03\_extended\_kalman\_filter.ipynb}, \code{ekf.py}]
 \code{motion\_jacobians} and \code{range\_bearing\_jacobian} implement
@@ -468,7 +470,7 @@ more robust estimator, for instance a particle filter or a GNSS fix.
     iterating it (the iterated EKF) gets closer to the posterior mode.
   \item With unidentified landmarks the EKF must choose one association
     per measurement. A wrong choice is reinforced by the update, and the
-    filter can lose the mower for good.
+    filter can lose the robot for good.
 \end{enumerate}
 
 \FloatBarrier

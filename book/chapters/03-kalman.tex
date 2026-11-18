@@ -5,7 +5,7 @@ If the motion and sensor models are linear and every noise is Gaussian,
 the Bayes filter has an exact, closed-form solution: a Gaussian belief
 stays Gaussian, and only its mean and covariance need to be carried
 forward. That solution is the Kalman filter. This chapter derives it from
-two facts about Gaussians, applies it to a mower made linear by a compass,
+two facts about Gaussians, applies it to a robot made linear by a compass,
 and introduces the tool used throughout the rest of the book to decide
 whether a filter is \emph{honest}: the NEES test.
 
@@ -350,12 +350,12 @@ why the code uses it. It also gives the true error covariance when the
 gain is wrong, for instance because the filter was given the wrong $R$
 (Exercise~\ref{ex:wrongR}).
 
-\section{A linear mower}
+\section{A linear robot}
 \label{sec:linmower}
 
 The pose model of Chapter~\ref{ch:statespace} is not linear: the heading
 enters through $\cos$ and $\sin$. We make it linear honestly, with the
-compass. The mower drives from $\p_t$ to $\p_{t+1}$ along the heading
+compass. The robot drives from $\p_t$ to $\p_{t+1}$ along the heading
 $\theta_{t+1}$ that it has after its turn. Let
 $c_{t+1}=\wrap(\theta_{t+1}+\nu_{t+1})$ be the compass reading of that
 heading (\cref{sec:sensors}). With the heading read off the compass, the
@@ -374,17 +374,17 @@ $\theta_{t+1}=c_{t+1}-\nu_{t+1}$, and to first order in the noises
   Q_t=G_t\diag(\sigma_s^2,\sigma_c^2)\,G_t\T .
 \]
 This is the computation of \cref{sec:errors} again: an error on the
-distance moves the mower along its heading, and an error on the heading,
+distance moves the robot along its heading, and an error on the heading,
 here the compass error, moves it sideways by $s_t$ per radian. $G_t$ is
 the upper $2\times2$ block of the matrix $V$ of \eqref{eq:firstorder}.
 $Q_t$ is long along the heading (step noise) and thin across it (compass
-noise), and it turns with the mower. A time-varying $Q_t$ is no problem:
+noise), and it turns with the robot. A time-varying $Q_t$ is no problem:
 nothing in \cref{thm:kf} needs it to be constant.
 
 \Cref{fig:kftrack} shows the filter on the standard run. Once it has
-settled (after the first 20 steps), its RMS position error is $2.14$,
+settled (after the first 20 steps), its RMS position error is $1.99$,
 against $11.3$ for the raw GPS fixes: filtering divides the error by
-about five.
+more than five.
 
 \begin{figure}[ht]
 \centering
@@ -444,8 +444,8 @@ across it, $q=s^2\sigma_c^2=0.0064$ gives $P_\infty=0.64$. If the heading
 were constant, the RMS error would therefore settle at
 $\sqrt{3.12+0.64}=1.94$. Because the heading turns, the long axis of $Q_t$
 rotates and the two directions mix; the filter's own covariance settles
-around $\operatorname{tr}P\approx4.4$, i.e.\ an RMS of $2.1$, and the
-measured RMS error over 20 runs is $2.10$. The filter's covariance is
+around $\operatorname{tr}P\approx4.5$, i.e.\ an RMS of $2.1$, and the
+measured RMS error over 20 runs is $2.11$. The filter's covariance is
 telling the truth, which is the subject of the next section.
 
 \section{Is the filter honest? NEES}
@@ -574,7 +574,7 @@ is a cheap and effective guard.
   when $r_2\to\infty$?
 \item\label{ex:steadynum} Use \cref{prop:steady} to compute the
   steady-state gain $K_\infty=\bar P_\infty/(\bar P_\infty+r)$ along the
-  heading for the mower ($q=0.16$, $r=64$). How many past GPS fixes does
+  heading for the robot ($q=0.16$, $r=64$). How many past GPS fixes does
   the filter effectively average?
 \item\label{ex:wrongR} A Kalman filter is run with a wrong measurement
   covariance $R'$ while the true one is $R$. Show that the covariance it

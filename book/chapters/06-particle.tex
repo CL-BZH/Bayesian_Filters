@@ -333,8 +333,8 @@ because each measurement is very informative compared with one step of
 motion noise.
 
 On the standard run, with a good initial estimate and identified
-landmarks, the particle filter with $N=1000$ has an RMSE of $1.18$,
-against $1.13$ for the EKF, at about eight times the cost per step. When
+landmarks, the particle filter with $N=1000$ has an RMSE of $1.02$,
+against $1.01$ for the EKF, at about eight times the cost per step. When
 the belief is close to a Gaussian, the particle filter has nothing to add.
 
 \section{Global localisation and sample impoverishment}
@@ -345,10 +345,10 @@ A Kalman filter needs an initial guess. A particle filter can start from a
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch06_global.pdf}
-\caption{Global localisation with $N=5000$ (green dot: the mower). One
+\caption{Global localisation with $N=5000$ (green dot: the robot). One
 measurement leaves essentially one compatible particle. After
 resampling, all 5\,000 particles are its copies, and the motion noise
-slowly spreads them onto the mower.}
+slowly spreads them onto the robot.}
 \label{fig:global}
 \end{figure}
 
@@ -453,16 +453,16 @@ mean is meaningless here; a multimodal belief should be reported by its
 modes.
 \end{inwords}
 
-\section{The kidnapped mower}
+\section{The kidnapped robot}
 \label{sec:amcl}
 
 \emph{Kidnapped} is the standard name in robotics (the \emph{kidnapped
 robot problem}) for a robot that is picked up and moved somewhere else
-without being told: someone lifts the mower and puts it down on another
+without being told: someone lifts the robot and puts it down on another
 part of the lawn. The filter keeps receiving ordinary commands and
-measurements, and nothing tells it that the mower has moved. This is
+measurements, and nothing tells it that the robot has moved. This is
 harder than global localisation: there the filter \emph{knows} that it does
-not know where the mower is; here it is \emph{confidently wrong}, and must
+not know where the robot is; here it is \emph{confidently wrong}, and must
 first discover that its belief is wrong. A converged particle filter has
 no particles near the new pose, so it can only crawl there through the
 motion noise, if at all.
@@ -539,16 +539,16 @@ changes.
 \centering
 \includegraphics[width=0.75\linewidth]{figures/ch06_kidnap.pdf}
 \caption{Kidnapped at step 200 (dotted line), unknown landmark identities,
-$N=3000$, seed 7. Without injection, the filter happens to find the
-mower again quickly, but loses it later for good; with augmented MCL it
-recovers within a few dozen steps and stays locked.}
+$N=3000$, seed 7. Without injection the filter does not find the robot
+again: its error dips briefly around step 350 and grows back. With
+augmented MCL it recovers within about 25 steps and stays locked.}
 \label{fig:kidnap}
 \end{figure}
 
 Over eight kidnappings (unknown identities, $N=3000$), the number of steps
-until the error stays below 10 is $8$ to $39$ with augmented MCL, and
-$15$ to $152$ without it, with one run that never recovered within 200
-steps (\cref{fig:kidnap}).
+until the error stays below 10 is $20$ to $41$ with augmented MCL.
+Without it, four of the eight runs never recovered within 200 steps, and
+the other four took $51$ to $113$ steps (\cref{fig:kidnap}).
 
 \begin{practice}[\nb{05\_particle\_filter.ipynb}, \code{pf.py}]
 \code{ParticleFilter} stores the particles as an $(N,3)$ array and the
@@ -590,7 +590,7 @@ slope.
   \item Its weaknesses are sample impoverishment (a sharp likelihood that
     no particle hits), the random loss of modes, and a cost that grows
     quickly with the dimension of the state.
-  \item A kidnapped mower is detected by the collapse of the measurement
+  \item A kidnapped robot is detected by the collapse of the measurement
     likelihood; augmented MCL then injects random particles.
 \end{enumerate}
 

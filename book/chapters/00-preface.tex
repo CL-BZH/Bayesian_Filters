@@ -4,7 +4,7 @@
 
 \section*{What this book is about}
 
-A robot lawnmower drives around a square lawn. We tell it how far to drive
+A robot drives around on the ground. We tell it how far to drive
 and how much to turn, but it never does exactly that: wheels slip on wet
 grass, the ground is uneven, the motors are imprecise. Its sensors are
 noisy too. So where is it? This book answers that question in several ways,
@@ -13,7 +13,13 @@ filter, the extended and the unscented Kalman filters, and the particle
 filter. All of them are derived from one recursion, the Bayes filter, and
 differ only in how they approximate it.
 
-Every filter is also implemented and tested on the same simulated mower,
+The robot of this book is a lawnmower, and its ground a square lawn. This
+is only the running example: it fixes the pictures and the numbers. The
+model itself, a vehicle that turns and drives and that measures distances
+and directions to known landmarks, is that of most wheeled robots, and the
+filters do not depend on it.
+
+Every filter is also implemented and tested on the same simulated robot,
 with the same data. This makes the comparisons honest. When a filter is
 faster, more accurate or more honest about its own uncertainty than
 another, the difference comes from the algorithm and not from the
@@ -52,7 +58,8 @@ Chapter & Notebook (in \code{notebooks/}) & Code\\
 5 The unscented Kalman filter & \code{04\_unscented\_kalman\_filter} &
   \code{ukf.py}\\
 6 The particle filter & \code{05\_particle\_filter} & \code{pf.py}\\
-7 Choosing a filter & \code{06\_showdown} & all of them\\
+7 Choosing a filter & \code{06\_showdown},
+  \code{07\_closing\_the\_loop} & all of them, \code{control.py}\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -101,4 +108,4 @@ mapping (SLAM) systems instead estimate a whole trajectory at once, by
 nonlinear least squares over a factor graph. Chapter~\ref{ch:choosing}
 ends with a short bridge to that point of view, and the companion course
 \url{https://github.com/CL-BZH/vslam-course} develops it in full for
-visual SLAM on the same robot mower.
+visual SLAM on the same robot lawnmower.

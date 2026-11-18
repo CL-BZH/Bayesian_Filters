@@ -157,7 +157,7 @@ motion model $f$ for the prediction, and through the sensor model $h$ for
 the update.
 
 \paragraph{Non-additive noise.} The control noise acts inside the motion
-model, $f(\x,\uu+\bepsilon)$: the turn error is applied before the mower
+model, $f(\x,\uu+\bepsilon)$: the turn error is applied before the robot
 drives. It enters $f$ non-linearly and cannot simply be added as a $Q$.
 The standard remedy is to \emph{augment} the state with the noise,
 \[
@@ -317,7 +317,7 @@ natural ``squared distance'' on the circle.
 \section{Where the UKF earns its keep}
 
 With four landmarks in view and a good start, the UKF and the EKF are
-indistinguishable on the standard run (RMSE $1.126$ against $1.130$): the
+indistinguishable on the standard run (RMSE $0.99$ against $1.01$): the
 models are nearly linear over the small uncertainty. The UKF costs about
 50\% more per step here ($0.15$ against $0.10$\,ms, vectorised), for
 $11+7$ model evaluations and two Cholesky factorisations instead of two

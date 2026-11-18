@@ -10,7 +10,7 @@ we cannot afford a grid in general.
 
 \section{Belief}
 
-The mower never knows its pose exactly. What it knows is described by a
+The robot never knows its pose exactly. What it knows is described by a
 probability distribution over the possible poses: sharp when it is sure,
 spread out when it is not, with several bumps when several places fit what
 it has seen. This distribution is what a filter computes.
@@ -35,7 +35,7 @@ after the next control but before the next measurement,
 \]
 \end{definition}
 
-The belief is the complete answer to ``where is the mower?''. A filter
+The belief is the complete answer to ``where is the robot?''. A filter
 may summarise it (by its mean and covariance, say), but every summary
 loses information, and some summaries can be badly misleading
 (\cref{sec:twobumps}). Before any measurement, the belief is the
@@ -78,13 +78,13 @@ measurement and its likelihood.}
 When the state takes only a few values, a cycle can be done by hand.
 
 \begin{example}{A two-state filter}{grassgravel}
-The mower is either on the grass ($G$) or on the gravel path ($P$). At
+The robot is either on the grass ($G$) or on the gravel path ($P$). At
 each step it stays on the same surface with probability $0.9$. A vibration
 sensor says ``rough'' with probability $0.8$ on gravel and $0.3$ on grass.
-The current belief is $\bel=(0.8,\,0.2)$ for $(G,P)$: the mower is
+The current belief is $\bel=(0.8,\,0.2)$ for $(G,P)$: the robot is
 probably on the grass.
 
-\emph{Predict.} The mower is on the grass at the next step if it was on
+\emph{Predict.} The robot is on the grass at the next step if it was on
 the grass and stayed, or on the path and left it:
 $\belbar(G)=0.9\times0.8+0.1\times0.2=0.74$, and
 $\belbar(P)=0.1\times0.8+0.9\times0.2=0.26$. The belief has moved towards
@@ -201,14 +201,14 @@ factor $t$ only depends on the controls up to $\uu_{t-1}$.
 A filter can tell how surprised it is: a small $\eta^{-1}$ means that
 the measurement was unlikely under the current belief. A sudden run of
 surprising measurements is the signature of a model failure, for example a
-mower that has been picked up and moved.
+robot that has been picked up and moved.
 \end{inwords}
 
 \section{The grid filter}
 
 Neither integral of \cref{thm:bayes} has a closed form in general. The
 most direct approximation replaces the state space by a finite grid. To
-keep the grid two-dimensional, the mower is given a compass
+keep the grid two-dimensional, the robot is given a compass
 (\cref{sec:sensors}). The compass is accurate ($\sigma_c=0.02$\,rad, about
 $1^\circ$), so the heading is taken from its reading and treated as known,
 and only the position is uncertain. The state is then the position
@@ -268,9 +268,9 @@ $b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
 \section{Two bumps}
 \label{sec:twobumps}
 
-We make the problem hard on purpose: the mower measures only
+We make the problem hard on purpose: the robot measures only
 \emph{ranges}, and only to two landmarks. A range to a landmark places
-the mower on a circle around it; two ranges place it on two circles, which
+the robot on a circle around it; two ranges place it on two circles, which
 meet in two points (\cref{fig:mirror}). The two points are mirror images
 of each other across the line through the landmarks, and no range
 measurement can tell them apart.
@@ -328,9 +328,9 @@ known, so the filter moves both hypotheses by the same displacement
 $\vect{d}$. But the mirror image of the true trajectory moves by the
 mirrored displacement $\sigma(\vect{d})$. Unless $\vect{d}$ is parallel to
 the axis, in which case $\sigma(\vect{d})=\vect{d}$, the wrong hypothesis
-drifts away from the mirror image of the mower and stops agreeing with
+drifts away from the mirror image of the robot and stops agreeing with
 the ranges. So only one of the two tracks remains consistent with the
-measurements as the mower drives.
+measurements as the robot drives.
 \Cref{fig:gridbimodal} shows how this plays out on the standard run.
 
 \begin{figure}[ht]
@@ -340,10 +340,10 @@ measurements as the mower drives.
 makes small masses visible) with range-only sensing to two landmarks
 (stars); the red circle surrounds the true position. The first measurement gives a
 belief symmetric about the line through the landmarks: two bumps, which
-overlap here because the mower starts close to that line. After five
+overlap here because the robot starts close to that line. After five
 measurements, the filter puts almost all its mass on the \emph{wrong}
 bump. Because it kept a little mass on the right
-one, the mower's turn breaks the symmetry and by measurement 10 the belief
+one, the robot's turn breaks the symmetry and by measurement 10 the belief
 is on the right bump for good.}
 \label{fig:gridbimodal}
 \end{figure}
@@ -354,7 +354,7 @@ need not be the biggest one for a while. A filter that represents only
 one bump, or that commits to the most probable one, would have locked on
 to the mirror image at measurement 5 and never come back. A Gaussian
 belief is worse still: its mean would sit \emph{between} the two bumps,
-where the mower certainly is not.
+where the robot certainly is not.
 \end{inwords}
 
 \section{The cost of a grid}
@@ -381,7 +381,7 @@ ways out, and the rest of the book follows both:
 cells, with \code{sensor="range"} or \code{"range\_bearing"}. The notebook
 reproduces \cref{fig:gridbimodal} and compares the grid filter with dead
 reckoning: with two noisy ranges per step, its median error after step 20
-is $2.5$, half the range noise $\sigma_r=5$, although the cells are
+is $2.3$, less than half the range noise $\sigma_r=5$, although the cells are
 4~units wide. Things to try:
 switch to range--bearing (a bearing tells the side of the axis and the
 ambiguity disappears), use all four landmarks, or enlarge the cells.
@@ -402,7 +402,7 @@ carry several hypotheses until the motion resolves them.
 \begin{enumerate}[nosep]
   \item The belief $\bel(\x_t)$ is the distribution of the current pose
     given all controls and measurements so far. It is the complete answer
-    to ``where is the mower?''.
+    to ``where is the robot?''.
   \item The Bayes filter updates it in two steps. \emph{Predict}
     \eqref{eq:predict}: push the belief through the motion model; it
     blurs. \emph{Update} \eqref{eq:update}: multiply by the likelihood of
@@ -429,11 +429,11 @@ carry several hypotheses until the motion resolves them.
   then with $\Normal(\vect0,\Sigma_2)$ is the same as blurring once with
   $\Normal(\vect0,\Sigma_1+\Sigma_2)$. What does it say about the width of
   a grid belief after $t$ predictions without updates?
-\item\label{ex:nomotion} Suppose the mower is parked (so the prediction is
+\item\label{ex:nomotion} Suppose the robot is parked (so the prediction is
   the identity) and keeps receiving range-only readings from the same two
   landmarks. Show that the belief stays bimodal forever, and that each bump
   keeps probability $1/2$ if the prior was symmetric.
-\item\label{ex:gridcost} A mower localises on a $30\times30$\,m lawn with a
+\item\label{ex:gridcost} A robot localises on a $30\times30$\,m lawn with a
   pose grid of $5$\,cm and $1^\circ$. How many cells is that, and how many
   bytes in single precision? How many floating-point operations does one
   prediction cost if it is done as a full sum over pairs of cells?
@@ -449,7 +449,7 @@ $(0.9\cdot0.273+0.1\cdot0.727,\ 0.1\cdot0.273+0.9\cdot0.727)=
 (0.318,0.682)$. Update with ``rough'': $(0.0955,0.5455)$, normalise:
 $(0.149,0.851)$. The second reading counts less than the first would have
 alone, because the prediction pulled the belief back towards $1/2$: the
-mower might have left the path in between.
+robot might have left the path in between.
 
 \textbf{2.2.} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
 $X_2\sim\Normal(\vect0,\Sigma_2)$ are independent, the density of
