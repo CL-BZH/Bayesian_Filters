@@ -15,6 +15,13 @@ probability distribution over the possible poses: sharp when it is sure,
 spread out when it is not, with several bumps when several places fit what
 it has seen. This distribution is what a filter computes.
 
+Three words come back all the time. A distribution of the state held
+\emph{before} a measurement is taken into account is called a
+\emph{prior}; the distribution \emph{after} it is the \emph{posterior}.
+And $p(\z\mid\x)$, read as a function of the state $\x$ for the
+measurement $\z$ actually received, is the \emph{likelihood}: it says how
+well each possible state explains that measurement.
+
 \begin{definition}{Belief and predicted belief}{belief}
 The \emph{belief} at step $t$ is the posterior distribution of the
 current state given everything observed so far,
@@ -31,14 +38,71 @@ after the next control but before the next measurement,
 The belief is the complete answer to ``where is the mower?''. A filter
 may summarise it (by its mean and covariance, say), but every summary
 loses information, and some summaries can be badly misleading
-(\cref{sec:twobumps}).
+(\cref{sec:twobumps}). Before any measurement, the belief is the
+distribution of the start pose, $\bel(\x_0)=p(\x_0)$: a single point if
+the start is known, a wide distribution if it is not.
 
 \section{The recursion}
 
 The belief can be computed step by step: the belief at step $t+1$ is
 obtained from the belief at step $t$, the control $\uu_t$ and the
-measurement $\z_{t+1}$, with no need to go back to older data. The
-derivation uses two rules of probability, recalled here for densities.
+measurement $\z_{t+1}$, with no need to go back to older data
+(\cref{fig:bayesflow}). Each cycle has two stages: \emph{predict}, which
+accounts for the motion, and \emph{update}, which accounts for the
+measurement.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[>=Stealth,
+  box/.style={draw,thick,rounded corners=2pt,minimum height=9mm,
+    minimum width=21mm,font=\small,fill=defblue!8},
+  lab/.style={font=\small,align=center}]
+  \node[box] (b0) at (0,0) {$\bel(\x_t)$};
+  \node[box] (bb) at (6.1,0) {$\belbar(\x_{t+1})$};
+  \node[box] (b1) at (12.2,0) {$\bel(\x_{t+1})$};
+  \draw[->,thick] (b0) -- (bb) node[pos=0.5,above,lab] {predict}
+    node[pos=0.5,below,lab] {control $\uu_t$\\motion model};
+  \draw[->,thick] (bb) -- (b1) node[pos=0.5,above,lab] {update}
+    node[pos=0.5,below,lab] {measurement $\z_{t+1}$\\likelihood};
+  \draw[->,thick,black!50,rounded corners=4pt] (b1.north) -- ++(0,0.7)
+    -| (b0.north) node[pos=0.25,above,font=\small,black!60]
+    {next cycle: $t\leftarrow t+1$};
+\end{tikzpicture}
+\caption{One cycle of the Bayes filter. The predict step turns the belief
+into the predicted belief, using the control and the motion model. The
+update step turns the predicted belief into the new belief, using the
+measurement and its likelihood.}
+\label{fig:bayesflow}
+\end{figure}
+
+When the state takes only a few values, a cycle can be done by hand.
+
+\begin{example}{A two-state filter}{grassgravel}
+The mower is either on the grass ($G$) or on the gravel path ($P$). At
+each step it stays on the same surface with probability $0.9$. A vibration
+sensor says ``rough'' with probability $0.8$ on gravel and $0.3$ on grass.
+The current belief is $\bel=(0.8,\,0.2)$ for $(G,P)$: the mower is
+probably on the grass.
+
+\emph{Predict.} The mower is on the grass at the next step if it was on
+the grass and stayed, or on the path and left it:
+$\belbar(G)=0.9\times0.8+0.1\times0.2=0.74$, and
+$\belbar(P)=0.1\times0.8+0.9\times0.2=0.26$. The belief has moved towards
+$(0.5,0.5)$: it is less sure than before.
+
+\emph{Update.} The sensor says ``rough''. Multiply each state by the
+probability that it gives this reading: $0.3\times0.74=0.222$ for $G$ and
+$0.8\times0.26=0.208$ for $P$. The sum is $\eta^{-1}=0.43$, and dividing by
+it gives $\bel=(0.516,\,0.484)$. One rough reading has almost cancelled
+the initial confidence in the grass.
+
+The number $0.43$ is the probability that the filter gave to the reading
+``rough'' before seeing it.
+\end{example}
+
+The general recursion is the same computation, with integrals over the
+state in place of the sums over two values. Its derivation uses two rules
+of probability, recalled here for densities.
 \begin{itemize}[nosep]
   \item \emph{Total probability}: $p(a)=\int p(a\mid b)\,p(b)\,\mathrm db$.
     To find how likely $a$ is, go through every possible $b$.
@@ -71,7 +135,7 @@ $\x_t$,
 In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$.
 In the second, the control $\uu_t$ is applied after $\x_t$ and carries no
 information about it, so it can be dropped, which leaves $\bel(\x_t)$
-(\cref{sec:bayesnet-mower}, panel~(c), checks this independence on the
+(\cref{sec:bayesnet-mower}, statement~(c), checks this independence on the
 graph of the model).
 
 \emph{Update.} Bayes' rule with everything conditioned on
@@ -111,31 +175,8 @@ disappears.}
 \end{figure}
 
 \Cref{fig:bayescycle} shows one cycle on a one-dimensional example, where
-everything can be computed exactly. When the state takes finitely many
-values the integrals become sums, and a cycle can be done by hand.
+everything can be computed exactly.
 
-\begin{example}{A two-state filter}{grassgravel}
-The mower is either on the grass ($G$) or on the gravel path ($P$). At
-each step it stays on the same surface with probability $0.9$. A vibration
-sensor says ``rough'' with probability $0.8$ on gravel and $0.3$ on grass.
-The current belief is $\bel=(0.8,\,0.2)$ for $(G,P)$: the mower is
-probably on the grass.
-
-\emph{Predict.} The mower is on the grass at the next step if it was on
-the grass and stayed, or on the path and left it:
-$\belbar(G)=0.9\times0.8+0.1\times0.2=0.74$, and
-$\belbar(P)=0.1\times0.8+0.9\times0.2=0.26$. The belief has moved towards
-$(0.5,0.5)$: it is less sure than before.
-
-\emph{Update.} The sensor says ``rough''. Multiply each state by the
-probability that it gives this reading: $0.3\times0.74=0.222$ for $G$ and
-$0.8\times0.26=0.208$ for $P$. The sum is $\eta^{-1}=0.43$, and dividing by
-it gives $\bel=(0.516,\,0.484)$. One rough reading has almost cancelled
-the initial confidence in the grass.
-
-The number $0.43$ is the probability that the filter gave to the reading
-``rough'' before seeing it.
-\end{example}
 
 The normaliser has a meaning of its own, which the particle filter will
 use in \cref{sec:amcl}.
@@ -166,8 +207,11 @@ mower that has been picked up and moved.
 
 Neither integral of \cref{thm:bayes} has a closed form in general. The
 most direct approximation replaces the state space by a finite grid. To
-keep the grid two-dimensional, the mower is given a compass: the heading
-is (almost) known, and only the position is uncertain.
+keep the grid two-dimensional, the mower is given a compass
+(\cref{sec:sensors}). The compass is accurate ($\sigma_c=0.02$\,rad, about
+$1^\circ$), so the heading is taken from its reading and treated as known,
+and only the position is uncertain. The state is then the position
+$\p_t$ alone.
 
 \begin{definition}{Grid belief}{grid}
 Partition the lawn into square cells $C_1,\dots,C_n$ of side $c$ and
@@ -182,10 +226,11 @@ blurred copy of $a$: each value is replaced by a weighted average of the
 values around it.
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}
-Suppose the heading $\psi_t$ during the drive is known and the position
-moves by $\p_{t+1}=\p_t+\vect{d}_t+\w_t$ with
-$\vect{d}_t=s_t(\cos\psi_t,\sin\psi_t)$
-and $\w_t\sim\Normal(\vect0,\Sigma_t)$ independent of $\p_t$. Then
+Suppose the heading $\psi_t$ during the drive is known (in the grid
+filter, it is the compass reading) and the position moves by
+$\p_{t+1}=\p_t+\vect{d}_t+\w_t$, with the displacement
+$\vect{d}_t=s_t(\cos\psi_t,\sin\psi_t)$ and a noise
+$\w_t\sim\Normal(\vect0,\Sigma_t)$ independent of $\p_t$. Then
 \[
   \belbar(\p)=\bigl(\bel(\,\cdot-\vect{d}_t)\ast\Normal(\vect0,\Sigma_t)
   \bigr)(\p),
@@ -198,10 +243,17 @@ Here $p(\p_{t+1}\mid\p_t)=\Normal(\p_{t+1};\p_t+\vect{d}_t,\Sigma_t)
 =g(\p_{t+1}-\p_t-\vect{d}_t)$ with $g$ the centred Gaussian density.
 Then \eqref{eq:predict} reads
 $\belbar(\p)=\int g(\p-\vect{d}_t-\vect{q})\,\bel(\vect{q})\,
-\mathrm d\vect{q}$, which is the convolution of $g$ with
-$\vect{q}\mapsto\bel(\vect{q}-\vect{d}_t)$, after the change of variable
-$\vect{q}\mapsto\vect{q}-\vect{d}_t$.
+\mathrm d\vect{q}$. With the change of variable
+$\vect{q}'=\vect{q}+\vect{d}_t$ this becomes
+$\int g(\p-\vect{q}')\,\bel(\vect{q}'-\vect{d}_t)\,\mathrm d\vect{q}'$,
+the convolution of the shifted belief
+$\vect{q}'\mapsto\bel(\vect{q}'-\vect{d}_t)$ with $g$ (a convolution does
+not depend on the order of its two functions).
 \end{proof}
+
+The same position-only model, with its noise covariance $\Sigma_t$
+worked out, is the one the Kalman filter will use in
+\cref{sec:linmower}.
 
 On the grid, the shift is done by linear interpolation
 (\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
@@ -216,7 +268,11 @@ $b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
 \label{sec:twobumps}
 
 We make the problem hard on purpose: the mower measures only
-\emph{ranges}, and only to two landmarks.
+\emph{ranges}, and only to two landmarks. A range to a landmark places
+the mower on a circle around it; two ranges place it on two circles, which
+meet in two points (\cref{fig:mirror}). The two points are mirror images
+of each other across the line through the landmarks, and no range
+measurement can tell them apart.
 
 \begin{proposition}{Mirror ambiguity}{mirror}
 Let $\sigma$ be the reflection across the line through $\bell_1$ and
@@ -266,14 +322,14 @@ through the landmarks. The two points have exactly the same ranges.}
 \label{fig:mirror}
 \end{figure}
 
-\Cref{fig:mirror} shows the geometry.
-
-Two circles meet in two points, mirror images of each other, and the
-ranges cannot tell them apart. What can is the \emph{motion}: with the
-heading known, the displacement $\vect{d}$ is the same vector for both
-hypotheses, whereas a mirror-image trajectory would need the displacement
-$\sigma(\vect{d})$. So only one of the two tracks remains consistent with
-the ranges as the mower drives, unless it drives parallel to the axis.
+What can tell the two points apart is the \emph{motion}. The heading is
+known, so the filter moves both hypotheses by the same displacement
+$\vect{d}$. But the mirror image of the true trajectory moves by the
+mirrored displacement $\sigma(\vect{d})$. Unless $\vect{d}$ is parallel to
+the axis, in which case $\sigma(\vect{d})=\vect{d}$, the wrong hypothesis
+drifts away from the mirror image of the mower and stops agreeing with
+the ranges. So only one of the two tracks remains consistent with the
+measurements as the mower drives.
 \Cref{fig:gridbimodal} shows how this plays out on the standard run.
 
 \begin{figure}[ht]
@@ -307,7 +363,8 @@ cost is the number of cells, $n^d$ for $n$ bins per dimension in
 dimension $d$, and every step touches every cell. With 80 bins per
 dimension: $6\,400$ cells for the position, about half a million for the
 pose $(x,y,\theta)$ (the classic \emph{Markov localisation} of the 1990s,
-feasible), $2.6\times10^{11}$ for a pose with velocities. And at any
+feasible), $2.6\times10^{11}$ for a pose with its three velocities (six
+dimensions). And at any
 time, almost all of those cells have negligible probability. There are two
 ways out, and the rest of the book follows both:
 \begin{enumerate}[nosep]
