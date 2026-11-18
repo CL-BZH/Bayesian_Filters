@@ -44,8 +44,8 @@ $\mathrm d\pi/\mathrm dq$ is simply the ratio $\pi(x)/q(x)$.
 Let $\pi$ be a target distribution and $q$ a \emph{proposal} with
 $\pi\ll q$ (every set of $q$-probability zero has $\pi$-probability
 zero), and let $\tilde w=\mathrm d\pi/\mathrm dq$ be known up to a
-constant: $\tilde w\propto w$. With $X^{(1)},\dots,X^{(N)}$ i.i.d.\ from
-$q$, the \emph{self-normalised} importance-sampling estimate of
+constant: $\tilde w\propto w$. With $X^{(1)},\dots,X^{(N)}$ drawn
+independently from $q$, the \emph{self-normalised} importance-sampling estimate of
 $\E_\pi[\varphi]$ is
 \[
   \hat\varphi_N=\sum_{i=1}^Nw^{(i)}\varphi(X^{(i)}),\qquad
@@ -103,7 +103,43 @@ grows.
 
 \section{From the Bayes filter to particles}
 
-Take the target to be the posterior over the whole path,
+The two steps of the Bayes filter translate directly into operations on a
+cloud of particles. Suppose the particles $\x_t^{(i)}$, with weights
+$w_t^{(i)}$, represent the belief $\bel(\x_t)$.
+\begin{itemize}[nosep]
+  \item \emph{Predict.} The predicted belief is the distribution of the
+    next pose when the current pose is drawn from the belief and one noisy
+    step is taken. So take one noisy step from each particle: draw a
+    control noise and apply the motion model. The moved particles, with
+    the same weights, represent $\belbar(\x_{t+1})$.
+  \item \emph{Update.} The new belief is the predicted belief multiplied
+    by the likelihood, $\bel\propto p(\z_{t+1}\mid\x)\,\belbar$. This is
+    importance sampling with the predicted belief as proposal and the new
+    belief as target: the weight of a sample is the ratio of the two,
+    which is the likelihood. So multiply the weight of each particle by
+    the likelihood of the measurement at that particle, and normalise.
+\end{itemize}
+\Cref{fig:pfcycle} shows one such cycle on the one-dimensional example of
+\cref{fig:bayescycle}, with a third operation, resampling, that is
+explained below. The rest of this section makes the argument precise and
+states the algorithm.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch06_pf_cycle.pdf}
+\caption{One cycle of a particle filter with $60$ particles, on the
+example of \cref{fig:bayescycle}; the curves are the exact densities
+computed there. Left: each particle (grey dots) is moved by the
+commanded displacement plus its own random noise (blue dots). Middle:
+each moved particle is weighted by the likelihood of the measurement
+(dashed); the area of a dot shows its weight. Right: resampling keeps
+$60$ particles of equal weight, by copying the heavy ones (copies are
+stacked) and dropping the light ones.}
+\label{fig:pfcycle}
+\end{figure}
+
+For the precise argument, take the target to be the posterior over the
+whole path,
 $\pi_t(\x_{0:t})=p(\x_{0:t}\mid\z_{1:t},\uu_{0:t-1})$. It is proportional
 to the joint density of \cref{prop:joint}, and going from $t$ to $t+1$
 multiplies that joint density by one motion factor and one measurement
@@ -167,11 +203,13 @@ For normalised weights, $\ESS=1/\sum_i(w^{(i)})^2\in[1,N]$.
 
 $\ESS=N$ when all the weights are equal and $\ESS=1$ when one particle
 carries all the weight (Exercise~\ref{ex:ess}). It approximates the number
-of i.i.d.\ samples from the target that would give the same variance:
+of independent samples drawn directly from the target that would give the
+same variance:
 a first-order expansion of the ratio that defines $\hat\varphi_N$ (the
 delta method) gives $\Var(\hat\varphi_N)\approx\Var_\pi(
 \varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
-variation of the unnormalised weights, and $N/(1+\mathrm{cv}^2)$ is
+variation of the unnormalised weights (their standard deviation divided
+by their mean), and $N/(1+\mathrm{cv}^2)$ is
 estimated by the ESS.
 
 Run without resampling, sequential importance sampling degenerates
@@ -194,10 +232,22 @@ errors.}
 
 \section{Resampling}
 
+Resampling replaces the weighted cloud by an unweighted one that
+represents the same belief: it draws $N$ new particles from the old ones,
+each old particle being chosen with a probability equal to its weight.
+Heavy particles are copied several times, light ones tend to disappear,
+and all the new particles get the weight $1/N$ (\cref{fig:pfcycle},
+right). The computation is then spent on the particles that matter. The
+price is some extra randomness, since the number of copies of each
+particle is random, and the way the draw is made decides how much.
+\Cref{fig:systematic} shows the method used in this book.
+
 Let $N_i$ be the number of copies of particle $i$ after resampling.
+Ideally $N_i$ would be $Nw^{(i)}$, but that is rarely a whole number.
 
 \begin{proposition}{Multinomial and systematic resampling}{resampling}
-\emph{Multinomial} resampling draws $N$ indices i.i.d.\ from the weights.
+\emph{Multinomial} resampling draws $N$ indices independently from the
+weights.
 \emph{Systematic} resampling draws one $U\sim\mathcal U[0,1)$ and selects
 the particles whose cumulative-weight intervals contain the $N$ points
 $(U+k)/N$, $k=0,\dots,N-1$. Both are unbiased, $\E[N_i]=Nw^{(i)}$, and
@@ -258,8 +308,6 @@ particle 2 gets two copies, particles 1, 4, 5 and 6 one each, and particle
 expected numbers are $0.48$, $1.8$, $0.3$, $0.72$, $1.5$, $1.2$).}
 \label{fig:systematic}
 \end{figure}
-
-\Cref{fig:systematic} shows the pointers of systematic resampling.
 
 \begin{figure}[ht]
 \centering
@@ -432,6 +480,15 @@ This is \cref{prop:isconsistent} with $\varphi(\x)=p(\z_{t+1}\mid\x)$,
 which is bounded, and the target $\belbar$; the identification of the
 limit is \cref{prop:evidence}.
 \end{proof}
+
+The idea of \emph{augmented} Monte Carlo localisation is to watch this
+number over time. While the filter is tracking, the measurements are
+explained about as well as usual. After a kidnapping they are suddenly
+explained much worse than usual. ``Usual'' is measured by a long-term
+average of $\hat\ell_t$, and ``now'' by a short-term one. Both are
+\emph{exponential averages}: at each step the average moves a fraction
+$\alpha$ of the way towards the new value, so that a small $\alpha$ gives
+a long memory and a large $\alpha$ a short one.
 
 \begin{definition}{Augmented MCL}{amcl}
 Maintain two exponential averages of $\hat\ell_t$, a slow one and a fast

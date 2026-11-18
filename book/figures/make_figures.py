@@ -451,6 +451,56 @@ def fig_bayes_cycle():
     save(fig, "ch02_bayes_cycle")
 
 
+def fig_pf_cycle():
+    """The cycle of fig_bayes_cycle done with 60 particles: move, weight, resample."""
+    x = np.linspace(-10, 20, 3001)
+    dx = x[1] - x[0]
+    d, q = 5.0, 1.5
+    bel = 0.6 * _gauss(x, 0.0, 1.0) + 0.4 * _gauss(x, 4.0, 0.6)
+    kern = _gauss(np.arange(-10, 10 + dx, dx), 0.0, q) * dx
+    pred = np.convolve(np.interp(x - d, x, bel, left=0, right=0), kern, mode="same")
+    lik = _gauss(x, 9.6, 0.8)
+    post = pred * lik
+    post /= post.sum() * dx
+    rng = np.random.default_rng(3)
+    N = 60
+    comp = rng.random(N) < 0.6
+    p0 = np.where(comp, rng.normal(0.0, 1.0, N), rng.normal(4.0, 0.6, N))
+    p1 = p0 + d + rng.normal(0.0, q, N)                    # predict: move every particle
+    w = _gauss(p1, 9.6, 0.8)
+    w /= w.sum()                                            # weight by the likelihood
+    idx = systematic_resample(w, rng)                       # resample
+    p2 = p1[idx]
+    ess = 1.0 / np.sum(w**2)
+    print("pf cycle: ESS %.1f of %d, distinct survivors %d" % (ess, N, len(np.unique(idx))))
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.3), sharey=True)
+    a1, a2, a3 = axes
+    y0, y1 = -0.035, -0.085
+    a1.plot(x, bel, color=viz.INK_2, lw=1.0, alpha=0.7)
+    a1.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8)
+    a1.scatter(p0, np.full(N, y0), s=9, color=viz.INK_2, lw=0, label="particles at $t$")
+    a1.scatter(p1, np.full(N, y1), s=9, color=viz.COLORS["EKF"], lw=0, label="after the move")
+    a1.set_title("predict: move every particle", fontsize=8.5)
+    a2.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8)
+    a2.plot(x, lik / lik.max() * 0.3, color=viz.COLORS["UKF"], lw=1.2, ls="--")
+    a2.scatter(p1, np.full(N, y1), s=4 + 900 * w, color=viz.COLORS["EKF"], lw=0, alpha=0.75,
+               label="area = weight")
+    a2.set_title("weight by the likelihood", fontsize=8.5)
+    a3.plot(x, post, color=viz.COLORS["PF"], lw=1.4)
+    jitter = np.zeros(N)                                    # stack the copies of one particle
+    for v in np.unique(p2):
+        m = np.flatnonzero(p2 == v)
+        jitter[m] = -0.016 * np.arange(len(m))
+    a3.scatter(p2, y0 + jitter, s=9, color=viz.COLORS["PF"], lw=0, label="after resampling")
+    a3.set_title("resample: copy the heavy ones", fontsize=8.5)
+    for a in axes:
+        a.axhline(0, color=viz.INK_2, lw=0.4)
+        a.set_xlim(-4, 14); a.set_xlabel("$x$"); a.set_yticks([]); a.set_ylim(-0.26, 0.62)
+        a.legend(fontsize=6.8, loc="upper left")
+    plt.tight_layout()
+    save(fig, "ch06_pf_cycle")
+
+
 def fig_gaussian():
     """Conditioning a joint Gaussian, and the scalar Kalman update."""
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(W, W * 0.36), gridspec_kw=dict(width_ratios=[1, 1.15]))
@@ -714,6 +764,7 @@ if __name__ == "__main__":
     fig_arc(True, "ch05_arc")
     fig_transient(["EKF"], "ch04_transient")
     fig_transient(["EKF", "UKF"], "ch05_transient")
+    fig_pf_cycle()
     fig_ess()
     fig_resampling()
     fig_global()
