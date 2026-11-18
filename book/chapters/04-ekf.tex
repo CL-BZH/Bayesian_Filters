@@ -374,9 +374,20 @@ maximum-likelihood choice of \cref{ch:bayes} does not have.
     positive quantity $X$ and its logarithm $Z=\ln X$, two ways of writing
     the same unknown. If $Z\sim\Normal(\mu,\sigma^2)$, the mode of $Z$ is
     $\mu$, but the density of $X$ is highest at $e^{\mu-\sigma^2}$, not at
-    $e^\mu$. Balls of equal volume in $Z$ are not of equal volume in $X$,
-    so ``highest probability per unit volume'' does not designate the same
-    point.
+    $e^\mu$. Here is why. A small interval of length $\mathrm dx$ at $x$
+    corresponds to an interval of length $\mathrm dx/x$ in $z=\ln x$,
+    since the derivative of $\ln x$ is $1/x$. The two intervals have the
+    same probability, so the densities are related by
+    \[
+      p_X(x)\,\mathrm dx=p_Z(\ln x)\,\frac{\mathrm dx}{x},
+      \qquad\text{that is,}\qquad p_X(x)=\frac{p_Z(\ln x)}{x}.
+    \]
+    The factor $1/x$ favours the small values of $x$ and pulls the maximum
+    below $e^\mu$. Precisely, with $z=\ln x$,
+    $\ln p_X=-\frac{(z-\mu)^2}{2\sigma^2}-z+\text{const}$, whose derivative
+    $-\frac{z-\mu}{\sigma^2}-1$ vanishes at $z=\mu-\sigma^2$. So intervals
+    of equal length in $Z$ are not of equal length in $X$, and ``highest
+    probability per unit volume'' does not designate the same point.
   \item \emph{The maximum of a likelihood does not.} A likelihood is not a
     density in the state, no volume of the state space enters it, and its
     maximum is the same point however the state is written.
