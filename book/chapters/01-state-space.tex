@@ -1043,6 +1043,72 @@ $\sigma_\phi$ on the bearing; the subscript of $R_1$ recalls that it is the
 covariance of the reading of \emph{one} landmark. In the simulations
 $\sigma_r=5$ and $\sigma_\phi=0.05$\,rad (about $3^\circ$).
 
+\paragraph{The same $R_1$ for every landmark.} The covariance $R_1$ depends
+neither on the landmark nor on the pose: every range is read with the same
+standard deviation $\sigma_r$ and every bearing with the same
+$\sigma_\phi$, whatever the distance. This is a choice of the model, made
+to keep it simple. It is close to a lidar, which times a light pulse and
+whose range error changes little with the distance. For other sensors (a
+stereo camera, for example) the range error grows with the distance, and
+$R_1$ would become a function of the pose.
+
+A constant $R_1$ does not mean that all landmarks are equally informative,
+because $R_1$ is constant in the coordinates (range, bearing), not on the
+lawn. Seen from the distance $r$, a bearing error $\sigma_\phi$ is a
+sideways displacement of about $r\sigma_\phi$ (the length of the arc of
+radius $r$ and angle $\sigma_\phi$). So a reading locates the landmark
+relative to the mower with an error of about $\sigma_r$ along the line of
+sight and $r\sigma_\phi$ across it (\cref{fig:rbgeom}). With the simulation
+values, that is $5$ along and $20\times0.05=1$ across for a landmark at
+distance $20$, but $5$ along and $160\times0.05=8$ across for a landmark at
+distance $160$. The filters take this into account through the function
+$h_j$ itself, not through $R_1$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.06,>=Stealth,
+    mower/.style={draw=black!80,fill=green!35,line width=0.5pt}]
+  \def\da{5.73}% 2 sigma_phi = 0.1 rad, in degrees
+  % far landmark: distance 160, direction 10 degrees
+  \fill[orange!30,draw=orange!85!black]
+    ({10-\da}:150) arc[start angle={10-\da},end angle={10+\da},radius=150]
+    -- ({10+\da}:170) arc[start angle={10+\da},end angle={10-\da},
+    radius=170] -- cycle;
+  \draw[dashed,black!45] (0,0) -- (10:160)
+    node[pos=0.55,sloped,below,font=\small,black!70] {$r=160$};
+  \fill (10:160) circle (0.9) node[below right=1pt,font=\small] {$\bell_2$};
+  \draw[<->,black!70] ({10+\da+1.5}:150) -- ({10+\da+1.5}:170)
+    node[midway,above=2pt,font=\small] {$\pm2\sigma_r=\pm10$};
+  \draw[<->,black!70] ({10-\da}:175) arc[start angle={10-\da},
+    end angle={10+\da},radius=175];
+  \node[font=\small,black!70,anchor=north] at ({10-\da-1}:168)
+    {$\pm2r\sigma_\phi=\pm16$};
+  % near landmark: distance 20, direction 110 degrees
+  \fill[orange!30,draw=orange!85!black]
+    ({110-\da}:10) arc[start angle={110-\da},end angle={110+\da},radius=10]
+    -- ({110+\da}:30) arc[start angle={110+\da},end angle={110-\da},
+    radius=30] -- cycle;
+  \draw[dashed,black!45] (0,0) -- (110:20);
+  \fill (110:20) circle (0.9) node[left=5pt,font=\small] {$\bell_1$};
+  \node[font=\small,black!70,anchor=south west,align=left] at (2,17)
+    {$r=20$\\$\pm2\sigma_r=\pm10$\\$\pm2r\sigma_\phi=\pm2$};
+  % mower (not to scale)
+  \begin{scope}[scale=16]
+    \draw[mower] (-0.32,-0.2) -- (0.2,-0.2) -- (0.32,-0.08) -- (0.32,0.08)
+      -- (0.2,0.2) -- (-0.32,0.2) -- cycle;
+    \fill[black!80] (0,0) circle (0.035);
+  \end{scope}
+\end{tikzpicture}
+\caption{The same $R_1$, two landmarks; distances and regions are drawn
+to scale with the simulation values (the mower is enlarged). Each orange region contains the positions at which the mower would
+place the landmark for readings within two standard deviations of the
+exact one ($\pm2\sigma_r$ on the range, $\pm2\sigma_\phi$ on the bearing).
+Along the line of sight (dashed) the two regions have the same length.
+Across it, the region is narrow for the near landmark $\bell_1$ and wide
+for the far landmark $\bell_2$.}
+\label{fig:rbgeom}
+\end{figure}
+
 \begin{example}{One reading}{onereading}
 The mower is at $\p=(2,1)$ with heading $\theta=\pi/6$ ($30^\circ$), and a
 landmark stands at $\bell=(5,5)$. Then $\vect d=(3,4)$, so the range is
