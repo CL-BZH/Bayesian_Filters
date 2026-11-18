@@ -396,12 +396,31 @@ $V_{ij}=\partial f_i/\partial u_j(\x_t,\uu_t)$, $u_1=s$, $u_2=\delta$. The
 error $V\bepsilon_t$ is a linear map of the Gaussian
 $\bepsilon_t$, whose covariance is
 $\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
-(\cref{lem:affine}). The two columns of $V$ are independent when $s\neq0$
-(the first has a zero third entry, the second does not), so $V$ has rank
-2, and so has $VMV\T$ since $M$ is positive definite. Its null space is
-spanned by the cross product of the columns, computed in
-Exercise~\ref{ex:nullspace}. The same Jacobian is used by the extended
-Kalman filter (\cref{prop:jacobians}).
+(\cref{lem:affine}). It remains to show that $Q_t=VMV\T$ has rank $2$, in
+three steps.
+
+\emph{The columns of $V$ are linearly independent.} Call them
+$\vect c_1=(\cos\theta',\sin\theta',0)\T$ and
+$\vect c_2=(-s\sin\theta',s\cos\theta',1)\T$, and suppose
+$a\,\vect c_1+b\,\vect c_2=\vect0$. The third entry reads $b=0$. Then
+$a\,\vect c_1=\vect0$, and $\vect c_1$ is a unit vector, so $a=0$. Hence
+$V$ has rank $2$ (for every $s$).
+
+\emph{$Q_t$ and $V\T$ have the same null space.} If $V\T\vect n=\vect0$
+then $Q_t\vect n=VM(V\T\vect n)=\vect0$. Conversely, if
+$Q_t\vect n=\vect0$ then
+$0=\vect n\T VMV\T\vect n=(V\T\vect n)\T M\,(V\T\vect n)$, and since $M$ is
+positive definite this forces $V\T\vect n=\vect0$.
+
+\emph{The null space is a line.} $V\T\vect n=\vect0$ says that $\vect n$
+is orthogonal to $\vect c_1$ and to $\vect c_2$. The vectors orthogonal to
+two independent vectors of $\R^3$ form a line, spanned by their cross
+product $\vect c_1\times\vect c_2$, which is non-zero because they are
+independent. So the null space of $Q_t$ has dimension $1$, and by the
+rank--nullity theorem $Q_t$ has rank $3-1=2$.
+Exercise~\ref{ex:nullspace} computes $\vect c_1\times\vect c_2$ and
+interprets it. The same Jacobian is used by the extended Kalman filter
+(\cref{prop:jacobians}).
 \end{proof}
 
 \begin{inwords}
@@ -922,7 +941,8 @@ RTK-GNSS or a camera.
 \subsection*{Solutions}
 
 \textbf{1.1.} The null space of $VMV\T$ equals the null space of $V\T$
-because $M$ is positive definite. A vector $\vect{n}$ with $V\T\vect{n}=
+because $M$ is positive definite (proof of \cref{prop:degenerate}(iii)). A
+vector $\vect{n}$ with $V\T\vect{n}=
 \vect0$ is orthogonal to both columns of $V$, so it is their cross
 product:
 \[
