@@ -2,18 +2,20 @@
   var/.style={circle,draw,thick,minimum size=9.5mm,inner sep=0pt,fill=white,font=\small},
   ctl/.style={rectangle,draw,minimum size=6.5mm,inner sep=1.5pt,fill=white,font=\small},
   giv/.style={fill=defblue!22},
-  qry/.style={draw=orange!85!black,line width=1.6pt}]
-  \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] (0.000,0.000) -- (1.650,0.000) -- (3.300,0.000);
+  qry/.style={draw=orange!85!black,line width=1.6pt},
+  drp/.style={draw=violet!80!black,line width=1.6pt}]
+  \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] (0.000,-1.250) -- (0.000,0.000) -- (1.650,0.000) -- (3.300,0.000);
   \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] (1.650,-1.250) -- (1.650,0.000) -- (3.300,0.000);
-  \node[var,giv] (x0) at (0.000,0.000) {$\x_{t-1}$};
+  \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] (0.825,1.050) -- (1.650,0.000) -- (3.300,0.000);
+  \node[var,drp] (x0) at (0.000,0.000) {$\x_{t-1}$};
   \node[var,giv] (x1) at (1.650,0.000) {$\x_{t}$};
   \node[var,qry] (x2) at (3.300,0.000) {$\x_{t+1}$};
   \node[var] (x3) at (4.950,0.000) {$\x_{t+2}$};
-  \node[var,giv] (z0) at (0.000,-1.250) {$\z_{t-1}$};
-  \node[var,giv] (z1) at (1.650,-1.250) {$\z_{t}$};
+  \node[var,drp] (z0) at (0.000,-1.250) {$\z_{t-1}$};
+  \node[var,drp] (z1) at (1.650,-1.250) {$\z_{t}$};
   \node[var] (z2) at (3.300,-1.250) {$\z_{t+1}$};
   \node[var] (z3) at (4.950,-1.250) {$\z_{t+2}$};
-  \node[ctl,giv] (u0) at (0.825,1.050) {$\uu_{t-1}$};
+  \node[ctl,drp] (u0) at (0.825,1.050) {$\uu_{t-1}$};
   \node[ctl,giv] (u1) at (2.475,1.050) {$\uu_{t}$};
   \node[ctl] (u2) at (4.125,1.050) {$\uu_{t+1}$};
   \draw[->,thick] (x0) -- (x1);

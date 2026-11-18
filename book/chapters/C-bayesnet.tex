@@ -33,6 +33,12 @@ known}, knowing $B$ says nothing more about $A$:
 We write $A\indep B\mid C$. This is exactly what allows a variable to be
 dropped from a conditioning.
 
+Independence is symmetric: the second form of the definition treats $A$
+and $B$ alike, so $A\indep B\mid C$ and $B\indep A\mid C$ are the same
+statement. It is a statement about \emph{information}, what one variable
+tells about another, and not about which variable acts on which
+(\cref{sec:assumptions}, ``Information, not influence'').
+
 The two notions are different, and neither implies the other. Two
 variables can be dependent and become independent once a third is known;
 two variables can be independent and become dependent once a third is
@@ -96,8 +102,9 @@ For the mower (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
 $\x_t$ and $\uu_t$, and the measurement $\z_t$ from $\x_t$:
 $\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$.
 The factorisation \eqref{eq:bnfactor} is then \eqref{eq:joint}. The
-controls are known inputs rather than random variables; they are drawn as
-nodes that are always given, and nothing below changes.
+controls are inputs fixed in advance. They are drawn as nodes without
+parents and handled like the other variables; the end of
+\cref{sec:bayesnet-mower} looks at controls computed during the run.
 
 \section{The three building blocks}
 \label{sec:three}
@@ -234,7 +241,9 @@ made of chains, forks and colliders. The rule of d-separation (``d'' for
 
 A \emph{path} between two nodes is a sequence of nodes in which each one is
 joined to the next by an arrow, \emph{whatever the direction of the
-arrows}. In \cref{fig:garden}, $R\rightarrow W\leftarrow S$ is a path from
+arrows}. The direction is ignored because an arrow shows influence, which
+goes one way, whereas information can travel along an arrow both ways. In
+\cref{fig:garden}, $R\rightarrow W\leftarrow S$ is a path from
 $R$ to $S$, although no arrow leads from $R$ to $S$. Each intermediate node
 of a path is a chain, a fork or a collider \emph{on that path}, according
 to the two arrows of the path that meet at it.
@@ -298,12 +307,28 @@ In \cref{fig:garden}:
 \label{sec:bayesnet-mower}
 
 The recipe is now applied to the four statements that the book relies on.
-Each is drawn on four consecutive steps of the network of
-\cref{fig:bayesnet}; the rest of the chain, to the left and to the right,
-only adds paths that pass through the same nodes. In each drawing the
-shaded nodes are given, the nodes with an orange ring are the two whose
-independence is in question, and a coloured band marks a path between
-them: red if it is blocked, green if it is open.
+The first three have the same form: some variables are removed from behind
+the bar,
+\[
+  p(X\mid Y,\mathcal S)=p(X\mid\mathcal S),\qquad\text{that is,}\qquad
+  X\indep Y\mid\mathcal S .
+\]
+$X$ is the variable in front of the bar, $Y$ the variables to remove, and
+$\mathcal S$ the variables that stay. The fourth statement is a case where
+the removal is not allowed.
+
+Each statement is drawn on four consecutive steps of the network of
+\cref{fig:bayesnet}. In every drawing:
+\begin{itemize}[nosep]
+  \item the shaded nodes are the given ones, $\mathcal S$;
+  \item the node with an orange ring is $X$;
+  \item the nodes with a violet ring are the variables $Y$ to remove
+    (those that fit in the drawing);
+  \item a coloured band marks a path between $X$ and a variable of $Y$:
+    red if it is blocked, green if it is open.
+\end{itemize}
+The check follows the recipe: for each variable of $Y$, write the path
+that leads to $X$ and look for a blocking node on it.
 
 Two features of this network do most of the work. First, a measurement
 $\z_t$ has a single neighbour, its parent $\x_t$. Second, the poses form a
@@ -313,90 +338,134 @@ current pose.
 \subsection*{(a) Assumption \ref{A2}: the measurement depends only on the
 current pose}
 
-\emph{Claim.} $p(\z_t\mid\x_{0:t},\uu_{0:t-1},\z_{1:t-1})=p(\z_t\mid\x_t)$:
-given $\x_t$, the measurement $\z_t$ is independent of all the earlier
-poses, controls and measurements.
+\emph{Statement.}
+$p(\z_t\mid\x_{0:t},\uu_{0:t-1},\z_{1:t-1})=p(\z_t\mid\x_t)$. Here
+$X=\z_t$, the only variable that stays is $\x_t$, and $Y$ contains all the
+earlier poses, controls and measurements.
 
 \begin{center}
 \input{figures/tikz/bn_A2}
 \end{center}
 
-\emph{Check.} Every path that reaches $\z_t$ ends with the arrow
-$\x_t\rightarrow\z_t$, because $\x_t$ is its only neighbour. On such a
-path $\x_t$ is an intermediate node with an arrow leaving towards $\z_t$,
-so it is a chain node (if the path arrives from $\x_{t-1}$ or
-$\uu_{t-1}$) or a fork node (if it arrives from $\x_{t+1}$), never a
-collider. It is given, so every path is blocked. The drawing shows two of
-them, from $\z_{t-1}$ and from $\uu_{t-1}$.
+\emph{Check.} The drawing shows three variables of $Y$.
+\begin{itemize}[nosep]
+  \item From $\x_{t-1}$: the path is $\x_{t-1}\rightarrow\x_t\rightarrow
+    \z_t$. Its only intermediate node, $\x_t$, is a chain node and it is
+    given: blocked.
+  \item From $\uu_{t-1}$: the path is $\uu_{t-1}\rightarrow\x_t\rightarrow
+    \z_t$. Again $\x_t$ is a chain node and it is given: blocked.
+  \item From $\z_{t-1}$: the path is $\z_{t-1}\leftarrow\x_{t-1}
+    \rightarrow\x_t\rightarrow\z_t$. It has two intermediate nodes.
+    $\x_{t-1}$ is a fork node that is not given, so it does not block.
+    $\x_t$ is a chain node and it is given: blocked.
+\end{itemize}
+The variables further in the past give longer paths of the same kind.
+They all end with $\x_t\rightarrow\z_t$, because $\x_t$ is the only
+neighbour of $\z_t$, and they are all blocked at $\x_t$.
 
 \subsection*{(b) Assumption \ref{A1}: the next pose depends only on the
 current pose and control}
 
-\emph{Claim.} $p(\x_{t+1}\mid\x_{0:t},\uu_{0:t},\z_{1:t})=
-p(\x_{t+1}\mid\x_t,\uu_t)$: given $\x_t$ and $\uu_t$, the next pose is
-independent of the earlier poses $\x_{0:t-1}$, the earlier controls
+\emph{Statement.}
+$p(\x_{t+1}\mid\x_{0:t},\uu_{0:t},\z_{1:t})=p(\x_{t+1}\mid\x_t,\uu_t)$.
+Here $X=\x_{t+1}$, the variables that stay are $\x_t$ and $\uu_t$, and $Y$
+contains the earlier poses $\x_{0:t-1}$, the earlier controls
 $\uu_{0:t-1}$ and the measurements $\z_{1:t}$.
 
 \begin{center}
 \input{figures/tikz/bn_A1}
 \end{center}
 
-\emph{Check.} Each of the variables to drop is joined to the rest of the
-graph only through $\x_t$. So every path from one of them to $\x_{t+1}$
-passes through $\x_t$ and leaves it by the arrow
-$\x_t\rightarrow\x_{t+1}$: there $\x_t$ is a chain node
-($\x_{t-1}\rightarrow\x_t\rightarrow\x_{t+1}$) or a fork node
-($\z_t\leftarrow\x_t\rightarrow\x_{t+1}$). It is given, so every path is
+\emph{Check.} The drawing shows four variables of $Y$.
+\begin{itemize}[nosep]
+  \item From $\z_t$: the path is $\z_t\leftarrow\x_t\rightarrow\x_{t+1}$.
+    Its intermediate node $\x_t$ is a fork node and it is given: blocked.
+  \item From $\x_{t-1}$: the path is $\x_{t-1}\rightarrow\x_t\rightarrow
+    \x_{t+1}$, where $\x_t$ is a chain node and it is given: blocked.
+  \item From $\uu_{t-1}$: the path is $\uu_{t-1}\rightarrow\x_t\rightarrow
+    \x_{t+1}$, blocked at $\x_t$ in the same way.
+  \item From $\z_{t-1}$: the path is $\z_{t-1}\leftarrow\x_{t-1}
+    \rightarrow\x_t\rightarrow\x_{t+1}$. The fork node $\x_{t-1}$ is not
+    given and does not block; the chain node $\x_t$ is given: blocked.
+\end{itemize}
+Every path from the past to $\x_{t+1}$ passes through $\x_t$ in this way.
+The control $\uu_t$, on the other hand, cannot be removed: an arrow joins
+it to $\x_{t+1}$, and a path without an intermediate node cannot be
 blocked.
 
 \subsection*{(c) Prediction: the next control says nothing about the
 current pose}
 
-\emph{Claim.} $p(\x_t\mid\z_{1:t},\uu_{0:t})=p(\x_t\mid\z_{1:t},
-\uu_{0:t-1})$: given the measurements and the earlier controls, $\x_t$ is
-independent of $\uu_t$. This is the step of the proof of \cref{thm:bayes}
-that turns the second factor into $\bel(\x_t)$.
+\emph{Statement.}
+$p(\x_t\mid\z_{1:t},\uu_{0:t})=p(\x_t\mid\z_{1:t},\uu_{0:t-1})$. Here
+$X=\x_t$, the variable to remove is $\uu_t$, and the measurements
+$\z_{1:t}$ and the earlier controls $\uu_{0:t-1}$ stay. This is the step
+of the proof of \cref{thm:bayes} that turns the second factor into
+$\bel(\x_t)$.
 
 \begin{center}
 \input{figures/tikz/bn_pred}
 \end{center}
 
 \emph{Check.} The only arrow at $\uu_t$ is $\uu_t\rightarrow\x_{t+1}$, so
-every path from $\uu_t$ starts with it. To reach $\x_t$, the path must
-then come back along $\x_{t+1}\leftarrow\x_t$: the two arrows point into
-$\x_{t+1}$, which is a collider. Neither $\x_{t+1}$ nor any of its
-descendants ($\z_{t+1}$, $\x_{t+2}$, \dots) is given, since only
-measurements up to time $t$ are. The path is blocked. A path that
-continues from $\x_{t+1}$ into the future cannot return to $\x_t$ without
-passing through $\x_{t+1}$ a second time, so there is no other path.
+the path from $\uu_t$ to $\x_t$ is
+$\uu_t\rightarrow\x_{t+1}\leftarrow\x_t$. Its intermediate node
+$\x_{t+1}$ is a collider: the two arrows point into it. A collider blocks
+the path unless it, or one of its descendants, is given. The descendants
+of $\x_{t+1}$ are $\z_{t+1}$, $\x_{t+2}$ and everything after them, and
+none is given, since the given variables stop at time $t$. The path is
+blocked. There is no other path: one that continued from $\x_{t+1}$ into
+the future could not come back to $\x_t$ without passing through
+$\x_{t+1}$ a second time.
 
-The same argument shows that all the future controls are independent of
-the past poses, which is used in the proof of \cref{prop:joint}.
+The path is blocked only because nothing after time $t$ is given. If
+$\z_{t+1}$ were given too, the collider $\x_{t+1}$ would have a given
+descendant, the path would be open, and $\uu_t$ could not be removed.
+Whether a variable can be removed depends on what else is given, not on
+its place in time.
+
+\emph{Later controls.} The same check, one step later, shows that
+$\x_{t+1}$ is independent of $\uu_{t+1}$ given $\x_{0:t}$, $\z_{1:t}$ and
+$\uu_{0:t}$: the only path is
+$\uu_{t+1}\rightarrow\x_{t+2}\leftarrow\x_{t+1}$, and the collider
+$\x_{t+2}$ is not given, nor is any of its descendants. It is the same
+for the controls after $\uu_{t+1}$. This is the step used in the proof of
+\cref{prop:joint}.
 
 \subsection*{(d) Smoothing: a later measurement does say something about
 an earlier pose}
 
-\emph{Question.} Given the measurements up to time $t$, is $\x_t$
-independent of the next measurement $\z_{t+1}$?
+\emph{Question.} Given the measurements up to time $t$, can the next
+measurement $\z_{t+1}$ be removed from $p(\x_t\mid\z_{1:t+1},\uu)$? Here
+$X=\x_t$, the variable to remove is $\z_{t+1}$, and the measurements
+$\z_{1:t}$ and the controls stay.
 
 \begin{center}
 \input{figures/tikz/bn_smooth}
 \end{center}
 
-\emph{Check.} The path $\x_t\rightarrow\x_{t+1}\rightarrow\z_{t+1}$ is a
-chain whose middle node $\x_{t+1}$ is not given. Nothing blocks it: the
-path is open, and the graph does not give independence. Indeed $\z_{t+1}$
-is a measurement of $\x_{t+1}$, which is one step away from $\x_t$. A
-filter ignores this information about the past; a smoother uses it
-(\cref{sec:smoothing}).
+\emph{Check.} The path is $\x_t\rightarrow\x_{t+1}\rightarrow\z_{t+1}$.
+Its intermediate node $\x_{t+1}$ is a chain node and it is not given, so
+it does not block: the path is open, and $\z_{t+1}$ cannot be removed.
+This is the example of \cref{sec:assumptions}: $\z_{t+1}$ is taken after
+$\x_t$ and cannot influence it, but it is a measurement of $\x_{t+1}$,
+which is one step away from $\x_t$, and so it carries information about
+$\x_t$. A filter does not use this information about the past; a smoother
+does (\cref{sec:smoothing}).
 
 \subsection*{Complement: controls computed during the run}
 
 In the network of \cref{fig:bayesnet} no arrow enters a control: the
-controls are fixed in advance. A mower can also compute them as it goes,
-for instance to steer back towards its planned path. What this changes
-depends on what the controls are computed from. In the two drawings below
-the new arrows are blue.
+controls are fixed in advance. A real mower computes them as it goes: it
+looks at its current estimate of the pose and steers accordingly. That
+estimate is itself computed from the measurements received so far, so in
+the end $\uu_t$ is computed from $\z_{1:t}$. This is the first case
+below. The second case, a control computed from the \emph{true} pose,
+cannot occur on a real mower, which does not know its true pose; it occurs
+in the simulations of this book. In the two drawings the new arrows are
+blue. Statements (a) and (b) hold in both cases, by the argument of
+\cref{sec:assumptions}: each new noise is independent of everything that
+came before.
 
 \emph{From the past measurements.} If $\uu_t$ is computed from
 $\z_{1:t}$, arrows go from the measurements to the controls (only the
@@ -433,9 +502,7 @@ This arrow is a path between $\x_t$ and $\uu_t$ with no node in between,
 so nothing can block it: statement (c) fails. The control is then a kind
 of measurement of the pose, and a filter that drops $\uu_t$ in its
 prediction step, as in the proof of \cref{thm:bayes}, leaves that
-information unused. Assumptions \ref{A1} and \ref{A2} themselves still
-hold, because the noises $\bepsilon_t$ and $\vv_t$ remain independent of
-everything that came before.
+information unused.
 
 \begin{mower}
 The simulations of this book are in the second case at some steps. The
