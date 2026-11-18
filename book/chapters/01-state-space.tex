@@ -219,8 +219,10 @@ isosceles, so its two other angles are equal, each
 $(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
 \begin{itemize}
   \item \emph{Direction.} The displacement $\p''-\p'$ makes the angle
-    $\pi/2-\Delta\theta/2$ with the old heading: it is almost at a right
-    angle to it, and the smaller $\Delta\theta$, the closer to a right angle.
+    $\pi/2-\Delta\theta/2$ with the radius from $\p'$ back to $\p$, hence
+    the angle $\pi/2+\Delta\theta/2$ with the old heading, which points the
+    other way along that radius. It is almost at a right angle to the
+    heading, and the smaller $\Delta\theta$, the closer to a right angle.
   \item \emph{Length.} The displacement is the base of the triangle, a chord
     of the circle. The line from $\p$ to the midpoint $\bm{m}$ of the chord
     (dashed in \cref{fig:tangent}) bisects the isosceles triangle: it halves
@@ -582,7 +584,8 @@ not concentrated at a point. \Cref{prop:coupling}(ii) makes this exact.
 Write $\delta_{\mathrm D}$ for the Dirac distribution (to avoid a clash with
 the turn $\delta$), and, for a position $\p'\ne\p$, let
 $d(\p')=\norm{\p'-\p}$ and $\varphi(\p')$ be the direction of $\p'-\p$.
-Then, for $\sigma_\delta$ small enough that wrapping can be ignored,
+Then, for $\sigma_\delta$ small enough that wrapping can be ignored and
+$\sigma_s$ small enough compared with $s$ that $d>0$ in practice,
 \begin{equation}\label{eq:diracform}
   p(\p',\theta'\mid\x,\uu)=g(\p')\;\delta_{\mathrm D}\bigl(\theta'-
   \varphi(\p')\bigr),\qquad
@@ -881,7 +884,9 @@ bound.
 
 \begin{proposition}{Dead-reckoning error on a straight path}{deadreckoning}
 Let the mower start at a known pose heading along the $x$-axis and receive
-$t$ commands $\uu=(s,0)$. Let $e_t=p^y_t$ be its lateral error and
+$t$ commands $\uu=(s,0)$. Number the steps $k=1,\dots,t$, with
+$\varepsilon_{s,k}$ and $\varepsilon_{\delta,k}$ the errors of step $k$ and
+$\theta_k$ the heading after its turn. Let $e_t=p^y_t$ be its lateral error and
 $a_t=st-p^x_t$ its forward shortfall with respect to dead reckoning. Then
 \begin{align}
   \theta_t&=\textstyle\sum_{k=1}^t\varepsilon_{\delta,k},

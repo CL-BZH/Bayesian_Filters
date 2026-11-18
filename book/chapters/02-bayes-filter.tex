@@ -182,8 +182,9 @@ blurred copy of $a$: each value is replaced by a weighted average of the
 values around it.
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}
-Suppose the heading $h_t$ is known and the position moves by
-$\p_{t+1}=\p_t+\vect{d}_t+\w_t$ with $\vect{d}_t=s_t(\cos h_t,\sin h_t)$
+Suppose the heading $\psi_t$ during the drive is known and the position
+moves by $\p_{t+1}=\p_t+\vect{d}_t+\w_t$ with
+$\vect{d}_t=s_t(\cos\psi_t,\sin\psi_t)$
 and $\w_t\sim\Normal(\vect0,\Sigma_t)$ independent of $\p_t$. Then
 \[
   \belbar(\p)=\bigl(\bel(\,\cdot-\vect{d}_t)\ast\Normal(\vect0,\Sigma_t)
@@ -205,7 +206,7 @@ $\vect{q}\mapsto\vect{q}-\vect{d}_t$.
 On the grid, the shift is done by linear interpolation
 (\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
 The step noise acts along the heading and the compass noise across it
-(\cref{prop:degenerate}); the code uses an isotropic kernel of standard
+(\cref{sec:errors}); the code uses an isotropic kernel of standard
 deviation $\sqrt{\sigma_s^2+s^2\sigma_c^2}$, a slight over-approximation.
 Probability that leaves the lawn is lost, and the table is renormalised.
 The update is the cell-wise product

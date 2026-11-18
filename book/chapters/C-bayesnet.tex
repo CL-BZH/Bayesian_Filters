@@ -141,13 +141,14 @@ green band: an active path. (a)--(c) are independences, (d) is not.}
     $\x_{t-1}$ or $\uu_{t-1}$) or a fork (coming from $\x_{t+1}$), and
     $\x_t$ is given: every path is blocked.
   \item \emph{Assumption \ref{A1}}: $p(\x_{t+1}\mid\x_{0:t},\uu_{0:t},
-    \z_{1:t})=p(\x_{t+1}\mid\x_t,\uu_t)$. A path from the past to
-    $\x_{t+1}$ arrives either through $\uu_t$, which is a parent kept in
-    the conditioning, or through $\x_t$, as a chain
+    \z_{1:t})=p(\x_{t+1}\mid\x_t,\uu_t)$. The variables to
+    drop are $\x_{0:t-1}$, $\uu_{0:t-1}$ and $\z_{1:t}$. Each of them is
+    joined to the rest of the graph only through $\x_t$, so every path from
+    one of them to $\x_{t+1}$ passes through $\x_t$, as a chain
     ($\x_{t-1}\rightarrow\x_t\rightarrow\x_{t+1}$) or a fork
     ($\z_t\leftarrow\x_t\rightarrow\x_{t+1}$). Since $\x_t$ is given, all
-    are blocked. (The past is joined to the rest of the graph only through
-    $\x_t$ and $\uu_t$, so there are no other paths.)
+    these paths are blocked. The other parent of $\x_{t+1}$, the control
+    $\uu_t$, stays in the conditioning.
   \item \emph{The prediction step} (proof of \cref{thm:bayes}) drops
     $\uu_t$ from $p(\x_t\mid\z_{1:t},\uu_{0:t})$. Every path from $\uu_t$
     to $\x_t$ starts with $\uu_t\rightarrow\x_{t+1}$, and continues either

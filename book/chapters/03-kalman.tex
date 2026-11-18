@@ -270,8 +270,12 @@ S^{-1}=K$.
 Information (inverse covariance) adds: what we knew, plus what the
 measurement tells, and the measurement's contribution $H\T R^{-1}H$ does
 not depend on what we knew. It also shows that an update can only reduce
-the uncertainty, in every direction, and that a direction the sensor does
-not see (in the null space of $H$) keeps its prior uncertainty.
+the uncertainty, in every direction. A direction $\vect n$ that the sensor
+does not see ($H\vect n=\vect0$) receives no information from the
+measurement itself: $\vect n\T P^{-1}\vect n=\vect n\T\bar P^{-1}\vect n$.
+Its variance can still decrease, but only through its correlation with the
+directions that the sensor does see; this is how a position fix can
+correct a heading.
 \end{inwords}
 
 \begin{proposition}{Joseph form}{joseph}
@@ -304,20 +308,22 @@ gain is wrong, for instance because the filter was given the wrong $R$
 
 The pose model of Chapter~\ref{ch:statespace} is not linear: the heading
 enters through $\cos$ and $\sin$. We make it linear honestly, with the
-compass. Let $h_t$ be the compass reading taken after the turn. With the
-heading read off the compass, the displacement is a \emph{known input},
-and the position obeys
+compass. The mower drives from $\p_t$ to $\p_{t+1}$ along the heading
+$\theta_{t+1}$ that it has after its turn. Let
+$c_{t+1}=\wrap(\theta_{t+1}+\nu_{t+1})$ be the compass reading of that
+heading (\cref{sec:sensors}). With the heading read off the compass, the
+displacement is a \emph{known input}, and the position obeys
 \begin{equation}\label{eq:linmower}
-  \p_{t+1}=\p_t+s_t\begin{pmatrix}\cos h_t\\\sin h_t\end{pmatrix}+\w_t,
-  \qquad\z_{t+1}=\p_{t+1}+\vv_{t+1},
+  \p_{t+1}=\p_t+s_t\begin{pmatrix}\cos c_{t+1}\\\sin c_{t+1}\end{pmatrix}
+  +\w_t,\qquad\z_{t+1}=\p_{t+1}+\vv_{t+1},
 \end{equation}
 so $F=B=H=I$ and $R=\sigma_{\mathrm{gps}}^2I$. The true displacement is
-$(s_t+\varepsilon_s)(\cos\theta_t,\sin\theta_t)$ with
-$\theta_t=h_t-\nu_t$, and to first order in the noises
+$(s_t+\varepsilon_s)(\cos\theta_{t+1},\sin\theta_{t+1})$ with
+$\theta_{t+1}=c_{t+1}-\nu_{t+1}$, and to first order in the noises
 \[
-  \w_t\approx G_t\begin{pmatrix}\varepsilon_s\\-\nu_t\end{pmatrix},\quad
-  G_t=\begin{pmatrix}\cos h_t&-s_t\sin h_t\\\sin h_t&s_t\cos h_t
-  \end{pmatrix},\qquad
+  \w_t\approx G_t\begin{pmatrix}\varepsilon_s\\-\nu_{t+1}\end{pmatrix},\quad
+  G_t=\begin{pmatrix}\cos c_{t+1}&-s_t\sin c_{t+1}\\
+  \sin c_{t+1}&s_t\cos c_{t+1}\end{pmatrix},\qquad
   Q_t=G_t\diag(\sigma_s^2,\sigma_c^2)\,G_t\T .
 \]
 $Q_t$ is long along the heading (step noise) and thin across it (compass
@@ -484,7 +490,7 @@ is a cheap and effective guard.
 \begin{enumerate}[label=\textbf{3.\arabic*},ref=3.\arabic*]
 \item\label{ex:innov} Show that, for the Kalman filter, the innovation
   $\y=\z-H\bx$ has mean zero and covariance $S$, and that it is
-  uncorrelated with the predicted error $\x-\bx$ \emph{after} the update,
+  uncorrelated with the error of the estimate \emph{after} the update,
   i.e.\ $\Cov(\x-\hx,\y)=0$.
 \item\label{ex:fusion} Two independent sensors measure the same scalar,
   with variances $r_1$ and $r_2$, and there is no prior ($\bar P=\infty$).

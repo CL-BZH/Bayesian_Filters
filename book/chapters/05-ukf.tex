@@ -330,8 +330,11 @@ the models; for the few-dimensional state of a mower this is negligible.
     and an inflated noise $R+\Omega$: what a straight line cannot explain
     is counted as noise. This keeps the UKF consistent where the EKF is
     over-confident.
-  \item Angles need care: circular means, wrapped residuals, and
-    non-negative covariance weights.
+  \item Angles need care: headings and bearings are averaged with the
+    circular mean, and every residual is wrapped.
+  \item The covariance weights must be non-negative, or the computed
+    covariances may fail to be positive semi-definite; the parameters
+    $\alpha=1$, $\beta=2$, $\kappa=0$ guarantee it.
 \end{enumerate}
 
 \FloatBarrier
