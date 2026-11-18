@@ -31,7 +31,8 @@ $h_j$, $H$ & range--bearing model and its Jacobian &
 $R_1=\diag(\sigma_r^2,\sigma_\phi^2)$ & noise of one range--bearing pair &
   \code{world.range\_bearing\_cov}\\
 $\z_t$ & measurement taken at $\x_t$ & \code{run.z\_rb[t-1]}\\
-$p(a\mid b)$ & density of $a$ given $b$ & \\
+$p(a)$, $p(a\mid b)$ & distribution of $a$ (given $b$), written as a
+  density (\cref{sec:assumptions}) & \\
 $\Cov(X,Y)$, $\Cov(X)$ & cross-covariance and covariance matrices & \\
 $\norm{\vect e}_A^2=\vect e\T A^{-1}\vect e$ & squared Mahalanobis norm & \\
 $A\succ0$, $A\succeq0$ & positive definite, positive semi-definite & \\

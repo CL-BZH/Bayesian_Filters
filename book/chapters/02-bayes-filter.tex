@@ -155,6 +155,29 @@ integral of the numerator over $\x_{t+1}$, which is the integral in
 \eqref{eq:update}.
 \end{proof}
 
+\paragraph{What is a density in these formulas, and what is not.} The
+beliefs $\bel$ and $\belbar$ and the likelihood $p(\z\mid\x)$ are
+densities: functions that can be evaluated and integrated (the initial
+belief $p(\x_0)$ is assumed to have one). The transition
+$p(\x_{t+1}\mid\x_t,\uu_t)$ is a distribution \emph{without} a density
+(\cref{prop:degenerate}), so \eqref{eq:predict} cannot be read as the
+integral of a product of two functions. It is read as follows: $\belbar$
+is the distribution of the next pose $f(\x_t,\uu_t+\bepsilon_t)$ when the
+current pose $\x_t$ is drawn from $\bel$ and the noise $\bepsilon_t$ from
+$\Normal(\vect0,M)$, independently. Written with ordinary densities only,
+this says that for every function $g$ of the pose,
+\begin{equation}\label{eq:predictnoise}
+  \int g(\x)\,\belbar(\x)\,\mathrm d\x
+  =\iint g\bigl(f(\x,\uu_t+\bepsilon)\bigr)\,\bel(\x)\,\rho(\bepsilon)\,
+  \mathrm d\x\,\mathrm d\bepsilon ,
+\end{equation}
+where $\rho$ is the Gaussian density of the noise $\bepsilon_t$. This is
+\eqref{eq:predict} with nothing left to interpret. It is also the form in
+which the filters of the next chapters compute the prediction: they push
+poses and noise through $f$, and never evaluate the transition.
+\Cref{sec:shape} explains why $\belbar$ has a density when $\bel$ has
+one. The update \eqref{eq:update} involves densities only.
+
 \begin{inwords}
 \emph{Predict}: push the belief through the motion model. Every possible
 current pose spreads into the poses it could move to, weighted by how

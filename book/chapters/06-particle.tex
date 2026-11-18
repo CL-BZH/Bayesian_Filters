@@ -144,8 +144,8 @@ stacked) and dropping the light ones.}
 For the precise argument, take the target to be the posterior over the
 whole path,
 $\pi_t(\x_{0:t})=p(\x_{0:t}\mid\z_{1:t},\uu_{0:t-1})$. It is proportional
-to the joint density of \cref{prop:joint}, and going from $t$ to $t+1$
-multiplies that joint density by one motion factor and one measurement
+to the joint distribution of \cref{prop:joint}, and going from $t$ to
+$t+1$ multiplies it by one motion factor and one measurement
 factor. So
 $\pi_{t+1}(\x_{0:t+1})\propto\pi_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)\,
 p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous weighted
@@ -161,10 +161,26 @@ With this proposal, the weights obey
 \end{proposition}
 
 \begin{proof}
-$\tilde w_{t+1}=\pi_{t+1}/q_{t+1}$, and the factor
+Formally $\tilde w_{t+1}=\pi_{t+1}/q_{t+1}$, and the factor
 $p(\x_{t+1}\mid\x_t,\uu_t)$ appears in both and cancels:
-$\tilde w_{t+1}\propto\frac{\pi_t}{q_t}\,p(\z_{t+1}\mid\x_{t+1})$. The
-motion density never has to be evaluated, only sampled.
+$\tilde w_{t+1}\propto\frac{\pi_t}{q_t}\,p(\z_{t+1}\mid\x_{t+1})$.
+
+This factor is the transition, a distribution without a density
+(\cref{prop:degenerate}), so the cancellation is not a division of two
+functions and deserves a word. A path is drawn from $q_{t+1}$ by drawing
+$\x_{0:t}$ from $q_t$ and then $\x_{t+1}$ from the transition. An average
+under $\pi_{t+1}$ is obtained, up to a constant, by drawing $\x_{0:t}$ from
+$\pi_t$, then $\x_{t+1}$ from the \emph{same} transition, and weighting by
+$p(\z_{t+1}\mid\x_{t+1})$. Replacing the draw from $\pi_t$ by a draw from
+$q_t$ weighted by $\tilde w_t$, for every function $g$ of the path,
+\[
+  \E_{\pi_{t+1}}[g]\;\propto\;\E_{q_{t+1}}\bigl[g\;\tilde w_t(\x_{0:t})\,
+  p(\z_{t+1}\mid\x_{t+1})\bigr].
+\]
+This is the statement
+$\mathrm d\pi_{t+1}/\mathrm dq_{t+1}\propto\tilde w_t\,
+p(\z_{t+1}\mid\x_{t+1})$ of \cref{def:is}. The transition is sampled,
+never evaluated.
 \end{proof}
 
 \begin{definition}{Particle filter (sequential importance resampling)}{pf}
