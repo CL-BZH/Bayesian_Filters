@@ -1266,8 +1266,13 @@ that of $a$, and $p(a\mid b)$ that of $a$ given $b$; which one is meant is
 told by its arguments. As in most texts, it is written as a density, a
 function to integrate. When the distribution has a density, $p$ is that
 function. When it has none (\cref{sec:shape}), $p(a\mid b)$ still stands
-for the distribution of $a$ given $b$, and an integral
-$\int g(a)\,p(a\mid b)\,\mathrm da$ for the average of $g(a)$ under it. The
+for the distribution of $a$ given $b$, and integrals are read as averages:
+for any function $g$ of $a$, the integral
+$\int g(a)\,p(a\mid b)\,\mathrm da$ stands for the average value of $g(a)$
+when $a$ follows that distribution. Two choices of $g$ give the usual
+quantities: $g(a)=a$ gives the mean of $a$, and the function equal to $1$
+on a region and $0$ outside gives the probability that $a$ falls in that
+region. The
 indices follow the code: the control $\uu_t$ moves
 the robot from $\x_t$ to $\x_{t+1}$, and the measurement $\z_{t+1}$ is
 taken at $\x_{t+1}$. There is no measurement at the start pose $\x_0$.

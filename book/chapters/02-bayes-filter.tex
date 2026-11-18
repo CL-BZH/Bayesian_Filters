@@ -165,7 +165,9 @@ integral of a product of two functions. It is read as follows: $\belbar$
 is the distribution of the next pose $f(\x_t,\uu_t+\bepsilon_t)$ when the
 current pose $\x_t$ is drawn from $\bel$ and the noise $\bepsilon_t$ from
 $\Normal(\vect0,M)$, independently. Written with ordinary densities only,
-this says that for every function $g$ of the pose,
+this says that for every function $g$ of the pose (as in
+\cref{sec:assumptions}: $g(\x)=\x$ for the mean, the indicator of a region
+for its probability),
 \begin{equation}\label{eq:predictnoise}
   \int g(\x)\,\belbar(\x)\,\mathrm d\x
   =\iint g\bigl(f(\x,\uu_t+\bepsilon)\bigr)\,\bel(\x)\,\rho(\bepsilon)\,
