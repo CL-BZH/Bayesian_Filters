@@ -1350,9 +1350,10 @@ variable, given its parents.}
 \label{fig:bayesnet}
 \end{figure}
 
-\paragraph{Information, not influence.} The arrows of
-\cref{fig:bayesnet} show \emph{influence}: what each variable is computed
-from. They all point forwards in time. A conditional density is about
+\paragraph{Information, not influence.} The network of
+\cref{fig:bayesnet} was drawn by following the model, so its arrows show
+\emph{influence}: what each variable is computed from (\cref{sec:bn} says
+what an arrow means in general). They all point forwards in time. A conditional density is about
 something else. $p(a\mid b)$ describes what is known about $a$ once $b$ is
 known: it is about \emph{information}, and information has no direction.
 The product rule shows it:

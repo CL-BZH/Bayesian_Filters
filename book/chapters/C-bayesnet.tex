@@ -98,6 +98,89 @@ $S$ have none. The descendants of $R$ are $W$ and $L$. The factorisation
 \label{fig:garden}
 \end{figure}
 
+\paragraph{What an arrow means, and what it does not.} Mathematically a
+Bayesian network says one thing only: the joint distribution factorises as
+\eqref{eq:bnfactor}. An arrow $A\rightarrow B$ says that $A$ stands behind
+the bar in the factor of $B$. By itself it says nothing about causes.
+
+The same joint distribution has several networks. The chain rule
+\[
+  p(v_1,\dots,v_n)=p(v_1)\,p(v_2\mid v_1)\,p(v_3\mid v_1,v_2)\cdots
+  p(v_n\mid v_1,\dots,v_{n-1})
+\]
+holds for the variables taken in \emph{any} order. Each order gives a
+network: in each factor, keep behind the bar only the variables that
+cannot be removed, and draw an arrow from each of them. Two examples
+(\cref{fig:orders}).
+\begin{itemize}[nosep]
+  \item A pose $\x$ and a measurement $\z$ of it. The product rule gives
+    $p(\x,\z)=p(\x)\,p(\z\mid\x)$, the network $\x\rightarrow\z$, and also
+    $p(\x,\z)=p(\z)\,p(\x\mid\z)$, the network $\z\rightarrow\x$. Same
+    distribution, opposite arrows.
+  \item The garden without $L$, in the order $W$, $R$, $S$:
+    $p(w,r,s)=p(w)\,p(r\mid w)\,p(s\mid r,w)$. Nothing can be removed from
+    the last factor: once the state of the grass is known, rain and
+    sprinkler are no longer independent (\cref{ex:explain}). This network
+    has three arrows, $W\rightarrow R$, $W\rightarrow S$ and
+    $R\rightarrow S$. It is a correct description of the same
+    distribution, but it has one arrow more, and the independence of rain
+    and sprinkler can no longer be read off it.
+\end{itemize}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[>=Stealth,
+  var/.style={circle,draw,thick,minimum size=8mm,inner sep=0pt,font=\small}]
+  % pose and measurement, two orders
+  \node[var] (x1) at (0,1.2) {$\x$};
+  \node[var] (z1) at (0,-0.4) {$\z$};
+  \draw[->,thick] (x1) -- (z1);
+  \node[font=\small,align=center] at (0,-1.45) {$p(\x)\,p(\z\mid\x)$};
+  \node[var] (x2) at (2.6,1.2) {$\x$};
+  \node[var] (z2) at (2.6,-0.4) {$\z$};
+  \draw[->,thick] (z2) -- (x2);
+  \node[font=\small,align=center] at (2.6,-1.45) {$p(\z)\,p(\x\mid\z)$};
+  % garden, two orders
+  \begin{scope}[shift={(6.2,0)}]
+    \node[var] (R) at (0,1.2) {$R$};
+    \node[var] (S) at (2,1.2) {$S$};
+    \node[var] (W) at (1,-0.4) {$W$};
+    \draw[->,thick] (R) -- (W);
+    \draw[->,thick] (S) -- (W);
+    \node[font=\small] at (1,-1.45) {$p(r)\,p(s)\,p(w\mid r,s)$};
+  \end{scope}
+  \begin{scope}[shift={(10.4,0)}]
+    \node[var] (R) at (0,1.2) {$R$};
+    \node[var] (S) at (2,1.2) {$S$};
+    \node[var] (W) at (1,-0.4) {$W$};
+    \draw[->,thick] (W) -- (R);
+    \draw[->,thick] (W) -- (S);
+    \draw[->,thick] (R) -- (S);
+    \node[font=\small] at (1,-1.45) {$p(w)\,p(r\mid w)\,p(s\mid r,w)$};
+  \end{scope}
+  \draw[black!30] (4.4,-1.8) -- (4.4,1.8);
+\end{tikzpicture}
+\caption{One distribution, several networks. Left: a pose and its
+measurement, factorised in the two possible orders. Right: rain,
+sprinkler and wet grass, in the order in which things happen ($R$, $S$,
+$W$) and in the order $W$, $R$, $S$, which needs a third arrow.}
+\label{fig:orders}
+\end{figure}
+
+Where does the idea of influence come from, then? From the way the
+network is built. In this book the variables are always taken in the
+order in which the model produces them: each variable is computed from
+earlier ones and from a fresh noise, independent of everything before it.
+In that order the parents of a variable are exactly the variables it is
+computed from, so the arrows show the influences as well, and the network
+is usually the one with the fewest arrows. This is a choice made by the
+person who draws the network. It is not a property of the distribution,
+which cannot tell $\x\rightarrow\z$ from $\z\rightarrow\x$.
+
+The rules of the next sections use the factorisation and nothing else.
+They are valid for any network of the distribution, whatever its arrows
+are taken to mean.
+
 For the robot (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
 $\x_t$ and $\uu_t$, and the measurement $\z_t$ from $\x_t$:
 $\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$.
@@ -241,8 +324,9 @@ made of chains, forks and colliders. The rule of d-separation (``d'' for
 
 A \emph{path} between two nodes is a sequence of nodes in which each one is
 joined to the next by an arrow, \emph{whatever the direction of the
-arrows}. The direction is ignored because an arrow shows influence, which
-goes one way, whereas information can travel along an arrow both ways. In
+arrows}. The direction is ignored because dependence has no direction: if
+$A$ tells something about $B$, then $B$ tells something about $A$
+(\cref{sec:condind}), so information travels along an arrow both ways. In
 \cref{fig:garden}, $R\rightarrow W\leftarrow S$ is a path from
 $R$ to $S$, although no arrow leads from $R$ to $S$. Each intermediate node
 of a path is a chain, a fork or a collider \emph{on that path}, according
