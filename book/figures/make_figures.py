@@ -131,6 +131,56 @@ def fig_kf_nees():
     save(fig, "ch03_kf_nees")
 
 
+def fig_kf_track():
+    """The compass-GPS Kalman filter on the standard run: path and error."""
+    world = World.default()
+    run = simulate(world, seed=1)
+    f = CompassGpsKF(run.truth[0], np.diag([10.0, 10.0, 0.05]), world.sigma_step, world.sigma_compass,
+                     world.sigma_gps)
+    rr = run_filter(f, run)
+    T = run.n_steps
+    e_gps = np.linalg.norm(run.z_gps[:T] - run.truth[1:, :2], axis=1)
+    e_kf = np.linalg.norm(rr.means[1:, :2] - run.truth[1:, :2], axis=1)
+    print("kf track: RMS gps %.2f  RMS kf %.2f" % (np.sqrt(np.mean(e_gps**2)), np.sqrt(np.mean(e_kf**2))))
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(W, W * 0.42), gridspec_kw=dict(width_ratios=[1, 1.25]))
+    n = 120                                   # first part of the run, for legibility
+    a1.scatter(run.z_gps[:n, 0], run.z_gps[:n, 1], s=5, color=viz.MUTED, alpha=0.7, lw=0, label="GPS fixes")
+    a1.plot(run.truth[: n + 1, 0], run.truth[: n + 1, 1], color=viz.INK, lw=1.2, label="true path")
+    a1.plot(rr.means[: n + 1, 0], rr.means[: n + 1, 1], color=viz.COLORS["KF"], lw=1.3, label="Kalman filter")
+    a1.set_aspect("equal"); a1.set_xlabel("$x$"); a1.set_ylabel("$y$")
+    a1.set_title("first %d steps" % n, fontsize=8.5)
+    a1.legend(fontsize=7, loc="best")
+    steps = np.arange(1, T + 1)
+    a2.plot(steps, e_gps, color=viz.MUTED, lw=0.7, label="GPS fix alone")
+    a2.plot(steps, e_kf, color=viz.COLORS["KF"], lw=1.2, label="Kalman filter")
+    a2.set_xlabel("step"); a2.set_ylabel("position error")
+    a2.set_title("whole run", fontsize=8.5)
+    a2.legend(fontsize=7, loc="upper right")
+    plt.tight_layout()
+    save(fig, "ch03_kf_track")
+
+
+def fig_riccati():
+    """The scalar variance recursion converges to its fixed point from any start."""
+    q, r = 0.16, 64.0
+    P_inf = (q + np.sqrt(q * q + 4 * q * r)) / 2 - q
+    fig, ax = plt.subplots(figsize=(W * 0.62, W * 0.34))
+    for P0, ls in ((40.0, "-"), (0.0, "--")):
+        P, seq = P0, [P0]
+        for _ in range(60):
+            Pb = P + q
+            P = Pb * r / (Pb + r)
+            seq.append(P)
+        ax.plot(seq, color=viz.COLORS["KF"], lw=1.3, ls=ls, label="$P_0=%g$" % P0)
+    ax.axhline(P_inf, color=viz.INK_2, lw=0.8, ls=":")
+    ax.text(60, P_inf + 0.8, r"$P_\infty=%.2f$" % P_inf, fontsize=7.5, ha="right", color=viz.INK_2)
+    ax.set_xlabel("step"); ax.set_ylabel("updated variance $P_t$")
+    ax.set_ylim(-1, 20)
+    ax.legend(fontsize=7.5)
+    plt.tight_layout()
+    save(fig, "ch03_riccati")
+
+
 # ---------------------------------------------------------------- chapters 4-5
 def arc_experiment():
     rng = np.random.default_rng(0)
@@ -621,6 +671,8 @@ if __name__ == "__main__":
     fig_coupling()
     fig_dead_reckoning()
     fig_grid()
+    fig_kf_track()
+    fig_riccati()
     fig_kf_nees()
     fig_ekf_banana()
     fig_arc(False, "ch04_arc")

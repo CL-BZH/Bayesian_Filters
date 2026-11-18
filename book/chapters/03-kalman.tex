@@ -22,7 +22,14 @@ Notation: for random vectors $X$ and $Y$ with means $\bmu_x$ and $\bmu_y$,
 $\Cov(X,Y)=\E[(X-\bmu_x)(Y-\bmu_y)\T]$ is their \emph{cross-covariance}
 matrix, and $\Cov(X)=\Cov(X,X)$. For matrices $A$ and $B$,
 $\Cov(AX,BY)=A\Cov(X,Y)B\T$. Two vectors are \emph{uncorrelated} if
-$\Cov(X,Y)=0$.
+$\Cov(X,Y)=0$. A symmetric matrix $\Sigma$ is \emph{positive
+semi-definite}, written $\Sigma\succeq0$, if
+$\vect a\T\Sigma\vect a\ge0$ for every vector $\vect a$, and
+\emph{positive definite}, $\Sigma\succ0$, if moreover
+$\vect a\T\Sigma\vect a>0$ for every $\vect a\neq\vect0$. Every covariance
+matrix is positive semi-definite, because $\vect a\T\Cov(X)\,\vect a$ is
+the variance of the number $\vect a\T X$. It is positive definite when no
+combination of the coordinates of $X$ is known exactly.
 
 \begin{definition}{Multivariate Gaussian}{gaussian}
 A random vector $X\in\R^n$ is Gaussian, $X\sim\Normal(\bmu,\Sigma)$ with
@@ -35,6 +42,14 @@ positive definite it has the density
   \exp\bigl(-\tfrac12(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)\bigr).
 \]
 \end{definition}
+
+The level sets of this density are ellipsoids centred at $\bmu$
+(ellipses in the plane, \cref{fig:gaussian}, left). Their axes point along
+the eigenvectors of $\Sigma$, and the half-length of each axis is
+proportional to the standard deviation in its direction, the square root
+of the eigenvalue. The figures of this book draw a planar Gaussian as its
+``$2\sigma$ ellipse'', the level set whose half-axes are twice these
+standard deviations; it contains $86\%$ of the probability.
 
 \begin{lemma}{Affine maps and sums}{affine}
 If $X\sim\Normal(\bmu,\Sigma)$, then $AX+\vect{b}\sim\Normal(A\bmu+\vect{b},
@@ -157,7 +172,8 @@ and leaves the distribution of $E$ unchanged.
 \begin{inwords}
 Knowing $Y$ shifts our guess of $X$ by ``gain $\times$ surprise'': the
 surprise is how far $\y$ is from what we expected, and the gain
-$\Sigma_{xy}\Sigma_{yy}^{-1}$ is the regression coefficient of $X$ on $Y$.
+$\Sigma_{xy}\Sigma_{yy}^{-1}$ is the regression coefficient of $X$ on $Y$,
+the slope of the best straight-line prediction of $X$ from $Y$.
 The uncertainty shrinks by the part of $X$ that $Y$ explains, and does not
 depend on the value $\y$ at all.
 \end{inwords}
@@ -195,6 +211,47 @@ Two symbols are used throughout the book: a bar marks a \emph{predicted}
 quantity (before the measurement), $\bx$ and $\bar P$; a hat marks an
 \emph{updated} estimate (after it), $\hx$, with covariance $P$.
 
+\paragraph{The update in one dimension.} The heart of the filter is
+visible when the state is a single number $x$. Before the measurement,
+the filter believes $x\sim\Normal(\bar x,\bar P)$. A sensor reads
+$z=x+v$, with a noise $v\sim\Normal(0,R)$ independent of $x$. These are two
+noisy pieces of information about the same number: the prediction
+$\bar x$, of variance $\bar P$, and the reading $z$, of variance $R$. The
+pair $(x,z)$ is jointly Gaussian with $\Cov(x,z)=\bar P$ and
+$\Var(z)=\bar P+R$, so \cref{thm:conditioning} gives the belief after the
+measurement, $x\mid z\sim\Normal(\hat x,P)$ with
+\begin{equation}\label{eq:scalarkf}
+  \hat x=\bar x+K\,(z-\bar x),\qquad K=\frac{\bar P}{\bar P+R},\qquad
+  P=(1-K)\,\bar P=\frac{\bar PR}{\bar P+R}.
+\end{equation}
+Three things can be read from these formulas.
+\begin{itemize}[nosep]
+  \item \emph{A weighted average.} $\hat x=(1-K)\,\bar x+K\,z$, with a
+    weight $K$ between $0$ and $1$, the \emph{gain}. If the prediction is
+    poor compared with the sensor ($\bar P\gg R$), $K$ is close to $1$ and
+    the estimate follows the reading. If the sensor is poor, $K$ is close
+    to $0$ and the reading is almost ignored.
+  \item \emph{Precisions add.} $1/P=1/\bar P+1/R$, where the inverse of a
+    variance is called a \emph{precision}. The result is more precise than
+    either source.
+  \item \emph{The new variance does not depend on the reading.} $P$ is
+    known before $z$ arrives.
+\end{itemize}
+
+\begin{example}{One update in one dimension}{scalarkf}
+The prediction is $\Normal(0,4)$: the filter expects $x$ near $0$, give or
+take $2$. The sensor has noise variance $R=1$ and reads $z=2$. Then
+$K=4/(4+1)=0.8$: the sensor is four times more
+precise than the prediction, so the estimate moves four fifths of the way
+towards the reading, $\hat x=0+0.8\times2=1.6$. Its variance is
+$P=(1-0.8)\times4=0.8$, smaller than both $4$ and $1$; in precisions,
+$1/0.8=1/4+1/1$. This is the example drawn in \cref{fig:gaussian}, right.
+\end{example}
+
+The general filter is the same computation with matrices. It adds the
+prediction step, and a matrix $H$ for sensors that measure a combination
+of the coordinates of the state instead of the state itself.
+
 \begin{theorem}{Kalman filter}{kf}
 Under \cref{def:lgmodel}, every belief is Gaussian,
 $\bel(\x_t)=\Normal(\hx_t,P_t)$, and $\belbar(\x_{t+1})=
@@ -228,22 +285,11 @@ the covariance $\bar P-\bar PH\T S^{-1}H\bar P=(I-KH)\bar P$.
 \end{proof}
 
 The quantity $\y$ is the \emph{innovation}: what the measurement says that
-the prediction did not. Its covariance is $S$ (Exercise~\ref{ex:innov}).
-In one dimension with $H=1$, the gain is $K=\bar P/(\bar P+R)$: the
-update is a weighted average of prediction and measurement, with weights
-inversely proportional to their variances, and the posterior precision is
-the sum of the two precisions, $1/P=1/\bar P+1/R$
-(\cref{fig:gaussian}, right). That last fact holds in any dimension.
+the prediction did not. Its covariance is $S$ (Exercise~\ref{ex:innov}),
+and $K$ is the \emph{Kalman gain}. In one dimension with $H=1$ these are
+the formulas \eqref{eq:scalarkf}. The addition of precisions also holds in
+any dimension.
 
-\begin{example}{One update in one dimension}{scalarkf}
-The prediction is $\Normal(0,4)$: the filter expects $x$ near $0$, give or
-take $2$. A sensor with $H=1$ and noise variance $R=1$ reads $z=2$. Then
-$\y=2-0=2$, $S=4+1=5$ and $K=4/5=0.8$: the sensor is four times more
-precise than the prediction, so the estimate moves four fifths of the way
-towards the reading, $\hat x=0+0.8\times2=1.6$. Its variance is
-$P=(1-0.8)\times4=0.8$, smaller than both $4$ and $1$; in precisions,
-$1/0.8=1/4+1/1$. This is the example drawn in \cref{fig:gaussian}, right.
-\end{example}
 
 \begin{proposition}{Information form}{information}
 If $\bar P$ and $R$ are invertible, then
@@ -327,12 +373,27 @@ $\theta_{t+1}=c_{t+1}-\nu_{t+1}$, and to first order in the noises
   \sin c_{t+1}&s_t\cos c_{t+1}\end{pmatrix},\qquad
   Q_t=G_t\diag(\sigma_s^2,\sigma_c^2)\,G_t\T .
 \]
+This is the computation of \cref{sec:errors} again: an error on the
+distance moves the mower along its heading, and an error on the heading,
+here the compass error, moves it sideways by $s_t$ per radian. $G_t$ is
+the upper $2\times2$ block of the matrix $V$ of \eqref{eq:firstorder}.
 $Q_t$ is long along the heading (step noise) and thin across it (compass
 noise), and it turns with the mower. A time-varying $Q_t$ is no problem:
 nothing in \cref{thm:kf} needs it to be constant.
 
-On the standard run, the filter's RMS error is $2.14$, against $11.3$ for
-the raw GPS fixes: filtering divides the error by about five.
+\Cref{fig:kftrack} shows the filter on the standard run. Once it has
+settled (after the first 20 steps), its RMS position error is $2.14$,
+against $11.3$ for the raw GPS fixes: filtering divides the error by
+about five.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch03_kf_track.pdf}
+\caption{The compass--GPS Kalman filter on the standard run (seed 1).
+Left: the true path, the GPS fixes and the filter's estimate. Right: the
+position error of each GPS fix and of the filter.}
+\label{fig:kftrack}
+\end{figure}
 
 \section{The gain settles}
 
@@ -343,7 +404,8 @@ $P_0$. For a time-invariant model the predicted covariance obeys the
 unique fixed point. (The conditions are called detectability and
 stabilisability. Roughly: the sensor sees every direction of the state in
 which the error would otherwise grow, and the noise $Q$ excites every such
-direction.) The scalar case can be solved by hand.
+direction.) The scalar case can be solved by hand, and
+\cref{fig:riccati} shows the convergence.
 
 \begin{proposition}{Steady state of a random walk observed in noise}{steady}
 For the scalar model $x_{t+1}=x_t+w_t$, $z_t=x_t+v_t$ with variances $q>0$
@@ -366,6 +428,16 @@ theorem $\abs{g(a)-g(b)}\le c\,\abs{a-b}$ there, so the distance to the
 fixed point is multiplied by at most $c$ at each cycle: the recursion
 converges to $\bar P_\infty$ from any start.
 \end{proof}
+
+\begin{figure}[ht]
+\centering
+\includegraphics{figures/ch03_riccati.pdf}
+\caption{The updated variance $P_t$ of the scalar model with $q=0.16$ and
+$r=64$, from a very uncertain start (solid) and from an exactly known
+start (dashed). Both converge to the same $P_\infty$: the filter forgets
+its initial uncertainty.}
+\label{fig:riccati}
+\end{figure}
 
 Along the heading, $q=\sigma_s^2=0.16$ and $r=64$ give $P_\infty=3.12$;
 across it, $q=s^2\sigma_c^2=0.0064$ gives $P_\infty=0.64$. If the heading
@@ -391,7 +463,9 @@ The \emph{normalised estimation error squared} at time $t$ is
 
 The NEES is the squared error measured in units of the covariance the
 filter claims: in one dimension it is $(x-\hat x)^2/P$, which is $1$ on
-average when the claim is right. Recall that $\chi^2_n$ (chi-squared with
+average when the claim is right. An error of $3$ with a claimed standard
+deviation of $1$ gives a NEES of $9$: a ``three-sigma'' error, which
+should be rare. Recall that $\chi^2_n$ (chi-squared with
 $n$ degrees of freedom) is the distribution of the sum of the squares of
 $n$ independent standard normal variables; its mean is $n$.
 
