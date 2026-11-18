@@ -637,6 +637,14 @@ transition causes no difficulty in the filters.
 \section{Sensors}
 \label{sec:sensors}
 
+The motion model says where the mower goes. This section describes what it
+sees: the sensors, and how their readings depend on the pose. It starts
+with a piece of notation for angles, then defines the main sensor of the
+book, which measures the distance and the direction of beacons placed
+around the lawn.
+
+\subsection{Angles and the function wrap}
+
 Angles need one piece of notation. All headings and bearings are kept in
 $[-\pi,\pi)$ by
 \[
@@ -674,6 +682,14 @@ so is their difference, which $\wrap$ removes. For the last claim take
 $a=3.10$ and $b=-3.12$: $a-b=6.22$, whereas $\wrap(a-b)=-0.063$.
 \end{proof}
 
+\subsection{The range--bearing sensor}
+
+Beacons (\emph{landmarks}) stand at known places around the lawn. The
+mower carries a sensor that, for each landmark it sees, reports two
+numbers: how far the landmark is (the \emph{range}), and in which
+direction it appears relative to where the mower is facing (the
+\emph{bearing}). \Cref{fig:sensor} shows both.
+
 \begin{definition}{Range--bearing sensor}{rb}
 The lawn holds $M$ landmarks (beacons) at known positions
 $\bell_1,\dots,\bell_M$. For landmark $j$ let $\vect{d}=\bell_j-\p$, where
@@ -688,6 +704,26 @@ $R_1=\diag(\sigma_r^2,\sigma_\phi^2)$, for the landmarks within range,
 with all $\vv_{t,j}$ independent. The bearing is measured \emph{relative to
 the heading}, so it carries information about $\theta$.
 \end{definition}
+
+The function $h_j$ is the noise-free reading. Its first component is the
+distance from the mower to the landmark. For the second,
+$\operatorname{atan2}(d_y,d_x)$ is the angle of the vector $\vect d$ from
+the $x$-axis, in $(-\pi,\pi]$: the direction of the landmark on the lawn.
+Subtracting the heading $\theta$ gives the direction as seen from the
+mower, and $\wrap$ keeps the result in $[-\pi,\pi)$. The real reading adds
+a noise $\vv_{t,j}$ with standard deviations $\sigma_r$ on the range and
+$\sigma_\phi$ on the bearing; the subscript of $R_1$ recalls that it is the
+covariance of the reading of \emph{one} landmark. In the simulations
+$\sigma_r=5$ and $\sigma_\phi=0.05$\,rad (about $3^\circ$).
+
+\begin{example}{One reading}{onereading}
+The mower is at $\p=(2,1)$ with heading $\theta=\pi/6$ ($30^\circ$), and a
+landmark stands at $\bell=(5,5)$. Then $\vect d=(3,4)$, so the range is
+$\norm{\vect d}=\sqrt{9+16}=5$. The landmark lies in the direction
+$\operatorname{atan2}(4,3)=0.927$\,rad ($53.1^\circ$) on the lawn, so its
+bearing is $0.927-0.524=0.404$\,rad ($23.1^\circ$): the mower sees it
+$23^\circ$ to its left. Without noise the sensor returns $(5,\,0.404)$.
+\end{example}
 
 \begin{figure}[ht]
 \centering
@@ -724,7 +760,7 @@ of the landmark in the lawn's frame is $\theta+\phi$.}
 \label{fig:sensor}
 \end{figure}
 
-\Cref{fig:sensor} shows the two components of $h_j$.
+\subsection{Other sensors, and which landmark is which}
 
 Two simpler sensors are used in Chapters~\ref{ch:bayes}
 and~\ref{ch:kalman}: a \emph{GPS-like position fix}
@@ -739,6 +775,19 @@ $(r,\phi)$ pairs, and the filter must work out the correspondence itself
 (\cref{sec:ekf-association,sec:pf-association}).
 
 \section{The two assumptions}
+\label{sec:assumptions}
+
+A filter runs for thousands of steps. It cannot keep every past pose,
+command and measurement, and it should not need to. What allows it to
+forget the past is a pair of independence properties of the model, stated
+here as assumptions because the filters of the next chapters need nothing
+else.
+
+Some notation first. A range of indices denotes a sequence:
+$\x_{0:t}=(\x_0,\x_1,\dots,\x_t)$, and likewise $\uu_{0:t}$ and
+$\z_{1:t}$. The letter $p$ denotes a probability density, and
+$p(a\mid b)$ the density of $a$ given $b$; which density is meant is told
+by its arguments.
 
 \begin{definition}{Markov state and conditionally independent measurements}{markov}
 \begin{enumerate}[label=(A\arabic*),nosep]
@@ -753,9 +802,17 @@ $(r,\phi)$ pairs, and the filter must work out the correspondence itself
 \end{definition}
 
 Indices follow the code: control $\uu_t$ moves the mower from $\x_t$ to
-$\x_{t+1}$, and $\z_{t+1}$ is measured at $\x_{t+1}$. Both assumptions
-hold for the model above by construction, since the noises
-$\bepsilon_t$ and $\vv_t$ are independent of everything else.
+$\x_{t+1}$, and $\z_{t+1}$ is measured at $\x_{t+1}$.
+
+Both assumptions hold for the model of this chapter, by construction. The
+past $(\x_{0:t},\z_{1:t})$ is computed from the start pose $\x_0$, the
+motion noises $\bepsilon_0,\dots,\bepsilon_{t-1}$ and the sensor noises
+$\vv_1,\dots,\vv_t$. The next pose is $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$,
+and the new noise $\bepsilon_t$ is independent of all of these. So once
+$\x_t$ and $\uu_t$ are fixed, the distribution of $\x_{t+1}$ is that of
+$f(\x_t,\uu_t+\bepsilon_t)$ whatever the rest of the past was: this is
+\ref{A1}. In the same way $\z_t=h(\x_t)+\vv_t$ with $\vv_t$ independent of
+everything else, which gives \ref{A2}.
 
 \Cref{fig:bayesnet} draws the model as a \emph{Bayesian network}: one node
 per variable, and an arrow into each variable from the variables it is
@@ -815,6 +872,7 @@ particle filter (\cref{ch:particle}) never needs the density at all: it
 only \emph{samples} the motion.
 
 \section{Why filter? Dead reckoning}
+\label{sec:deadreckoning}
 
 The simplest estimator ignores the sensors and integrates the commands:
 $\hx_{t+1}=f(\hx_t,\uu_t)$ from the known start. This is \emph{dead
@@ -839,24 +897,44 @@ deviations.
 \end{proposition}
 
 \begin{proof}
-Heading errors simply add up, so $\theta_t$ is a sum of $t$ independent
-$\Normal(0,\sigma_\delta^2)$ variables, which gives \eqref{eq:drheading}.
-At step $k$ the mower moves by $(s+\varepsilon_{s,k})(\cos\theta_k,
-\sin\theta_k)$. Its lateral component is $(s+\varepsilon_{s,k})
-\sin\theta_k=s\theta_k+O(\varepsilon^2)$, so
-$e_t\approx s\sum_k\theta_k=s\sum_{k=1}^t\sum_{j=1}^k\varepsilon_{\delta,j}
-=s\sum_{j=1}^t(t-j+1)\varepsilon_{\delta,j}$. The variance of a sum of
-independent terms is the sum of the variances:
-$s^2\sigma_\delta^2\sum_{m=1}^t m^2$, which is \eqref{eq:drlateral}.
-The forward displacement at step $k$ is
+\emph{Heading.} The commanded turn is zero, so at each step the heading
+changes by the turn error alone: heading errors simply add up, and
+$\theta_t$ is a sum of $t$ independent $\Normal(0,\sigma_\delta^2)$
+variables. The variance of a sum of independent terms is the sum of the
+variances, which gives \eqref{eq:drheading}.
+
+\emph{Lateral error.} At step $k$ the mower moves by
+$(s+\varepsilon_{s,k})(\cos\theta_k,\sin\theta_k)$. Its lateral ($y$)
+component is $(s+\varepsilon_{s,k})\sin\theta_k=s\,\theta_k+O(\varepsilon^2)$,
+using $\sin\theta\approx\theta$ and neglecting the product
+$\varepsilon_{s,k}\theta_k$ of two small terms. Summing over the steps,
+\[
+  e_t\approx s\sum_{k=1}^t\theta_k
+  =s\sum_{k=1}^t\sum_{j=1}^k\varepsilon_{\delta,j}
+  =s\sum_{j=1}^t(t-j+1)\,\varepsilon_{\delta,j}.
+\]
+The last equality counts how many times each $\varepsilon_{\delta,j}$
+appears: it is part of $\theta_k$ for every $k\ge j$, that is, $t-j+1$
+times. The terms are independent, so
+$\Var(e_t)\approx s^2\sigma_\delta^2\sum_{j=1}^t(t-j+1)^2
+=s^2\sigma_\delta^2\sum_{m=1}^t m^2$, and
+$\sum_{m=1}^tm^2=t(t+1)(2t+1)/6$ gives \eqref{eq:drlateral}.
+
+\emph{Forward shortfall.} The forward ($x$) displacement at step $k$ is
 $(s+\varepsilon_{s,k})\cos\theta_k=s+\varepsilon_{s,k}-\tfrac s2\theta_k^2
-+O(\varepsilon^3)$, so $\E[a_t]\approx\tfrac s2\sum_k\E[\theta_k^2]=
-\tfrac s2\sigma_\delta^2\sum_k k$.
++O(\varepsilon^3)$, using $\cos\theta\approx1-\theta^2/2$. Dead reckoning
+counts $s$ per step, so the shortfall of step $k$ is
+$-\varepsilon_{s,k}+\tfrac s2\theta_k^2$. The first term has mean zero and
+$\E[\theta_k^2]=\Var(\theta_k)=k\,\sigma_\delta^2$, so
+$\E[a_t]\approx\tfrac s2\sigma_\delta^2\sum_{k=1}^tk
+=\tfrac s2\sigma_\delta^2\,\tfrac{t(t+1)}2$, which is \eqref{eq:drshort}.
 \end{proof}
 
 \begin{inwords}
-The lateral error grows like $t^{3/2}$, not like $\sqrt t$: each heading
-error is \emph{integrated} along the rest of the path. Worse, the mower is
+For large $t$ the variance \eqref{eq:drlateral} is about
+$s^2\sigma_\delta^2\,t^3/3$, so the lateral error (its standard deviation)
+grows like $t^{3/2}$, not like $\sqrt t$ as a sum of independent errors
+would: each heading error is \emph{integrated} along the rest of the path. Worse, the mower is
 \emph{on average} short of where dead reckoning puts it, because a wrong
 heading always shortens the forward progress. That bias, the
 $\E[\cos\theta]<1$ effect, is invisible to any method that linearises the
@@ -882,8 +960,9 @@ walk, and nothing pulls it back.}
 \end{figure}
 
 A single GPS fix has the opposite problem: its error never grows, but it
-never shrinks either (an RMS of $\sigma_{\mathrm{gps}}\sqrt2\approx11$ with
-$\sigma_{\mathrm{gps}}=8$). A \emph{filter} combines the two: it uses the
+never shrinks either (an RMS position error of
+$\sigma_{\mathrm{gps}}\sqrt2\approx11$ with $\sigma_{\mathrm{gps}}=8$,
+the $\sqrt2$ because the error has two coordinates). A \emph{filter} combines the two: it uses the
 motion model to carry information forward in time, and each new
 measurement to correct the drift.
 
@@ -908,6 +987,29 @@ alone would drift off its stripes within a few metres. This is why every
 commercial one has a second source of position: a boundary wire, beacons,
 RTK-GNSS or a camera.
 \end{mower}
+
+\section*{What to remember from this chapter}
+\addcontentsline{toc}{section}{What to remember}
+
+\begin{enumerate}[nosep]
+  \item The state is the pose $\x_t=(p^x_t,p^y_t,\theta_t)$. The motion
+    model $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ turns, then drives, with
+    Gaussian noise on the control (\cref{sec:motion}).
+  \item A turn error changes the heading and moves the mower sideways. One
+    step from a known pose is not Gaussian, and its first-order covariance
+    $Q=VMV\T$ has rank $2$.
+  \item The main sensor returns the range and the bearing of landmarks,
+    $\z_{t,j}=h_j(\x_t)+\vv_{t,j}$. Angles are always compared through
+    $\wrap$ (\cref{sec:sensors}).
+  \item Two assumptions make recursive filtering possible: given the
+    current pose, the next pose does not depend on the past \ref{A1}, and
+    neither does the current measurement \ref{A2}. They give the
+    factorisation \eqref{eq:joint}, drawn as the network of
+    \cref{fig:bayesnet}.
+  \item Integrating the commands alone (dead reckoning) drifts without
+    bound, the sideways error growing like $t^{3/2}$; a position sensor
+    alone never drifts but never improves. A filter combines the two.
+\end{enumerate}
 
 \FloatBarrier
 \section*{Exercises}
