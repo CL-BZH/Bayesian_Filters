@@ -180,7 +180,35 @@ is too high by $0.24$.}
 \label{fig:linearisation}
 \end{figure}
 
-\Cref{fig:arc} shows the consequence. A mower known to within $1$ unit but
+On the lawn, the curved function is the motion model. \Cref{fig:ekfbanana}
+takes up the single step of \cref{fig:helicoid}, seen from above. The
+positions the mower can reach fill a region bent along the circle of
+radius $s$, the banana. The EKF describes them by a Gaussian, whose
+regions of high probability are ellipses: its mean is the intended end
+position $f(\x,\uu)$, and its covariance is $VMV\T$, long across the
+heading and short along it. An ellipse is straight where the banana is
+bent. It covers the middle of the banana well and misses its two tips,
+which curl back towards the start; and its centre lies ahead of the true
+mean, because every turn error, to the left or to the right, shortens the
+forward progress. The true mean is at $s\,e^{-\sigma_\delta^2/2}$ along
+the heading (Exercise~\ref{ex:ecos}), here $3.76$ instead of $4$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics{figures/ch04_banana.pdf}
+\caption{One step seen from above, with the exaggerated noise of
+\cref{fig:helicoid} ($s=4$, $\sigma_s=0.6$, $\sigma_\delta=0.35$\,rad).
+Grey: sampled end positions. Dashed: the region containing $95\%$ of
+them, bent along the circle of radius $s$ (dotted). Blue: the EKF's
+Gaussian, drawn as its $95\%$ ellipse, with its mean at the intended end
+position.}
+\label{fig:ekfbanana}
+\end{figure}
+
+With the real noise ($\sigma_\delta=0.03$) the bend of one step is
+invisible and the ellipse is an excellent description. The difference
+grows with the uncertainty on the heading. \Cref{fig:arc} shows an extreme
+case. A mower known to within $1$ unit but
 with a heading uncertainty of $\sigma_\theta=0.8$\,rad (about $45^\circ$)
 drives 10 steps of 4 units straight ahead. The true distribution is an
 arc. The EKF puts its mean at the tip of the arc, $11.05$ units ahead of

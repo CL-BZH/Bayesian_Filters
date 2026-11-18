@@ -171,6 +171,37 @@ def fig_arc(with_ut, name):
     save(fig, name)
 
 
+def fig_ekf_banana():
+    """One step with the exaggerated noise of the helicoid figure: true 95% region and the EKF's ellipse."""
+    s0, sig_s, sig_d = 4.0, 0.6, 0.35
+    rng = np.random.default_rng(1)
+    eps = rng.normal(0, [sig_s, sig_d], size=(1500, 2))
+    dist, phi = s0 + eps[:, 0], eps[:, 1]
+    px, py = dist * np.cos(phi), dist * np.sin(phi)
+    k = np.sqrt(5.991)                       # 95% quantile of chi-squared with 2 d.o.f.
+    tt = np.linspace(0, 2 * np.pi, 200)
+    bd, bphi = s0 + k * sig_s * np.cos(tt), k * sig_d * np.sin(tt)
+    m_e = np.array([s0, 0.0])                # EKF: mean through f, covariance V M V^T
+    V = np.array([[1.0, 0.0], [0.0, s0]])    # position rows of V at heading 0
+    P_e = V @ np.diag([sig_s**2, sig_d**2]) @ V.T
+    m_true = np.array([s0 * np.exp(-sig_d**2 / 2), 0.0])
+    print("banana: true mean", m_true, "sample mean", px.mean(), py.mean())
+    fig, ax = plt.subplots(figsize=(W * 0.7, W * 0.52))
+    arc = np.linspace(-1.25, 1.25, 100)
+    ax.plot(s0 * np.cos(arc), s0 * np.sin(arc), color=viz.INK_2, lw=0.6, ls=":")
+    ax.scatter(px, py, s=2.5, color=viz.MUTED, alpha=0.55, lw=0, label="samples")
+    ax.plot(bd * np.cos(bphi), bd * np.sin(bphi), color=viz.INK, lw=1.2, ls="--", label="true 95% region")
+    ax.scatter(*m_true, s=28, c=viz.INK, zorder=6, label="true mean")
+    viz.cov_ellipse(ax, m_e, P_e, n_sigma=k, name="EKF", lw=1.6, label="EKF 95% ellipse")
+    ax.scatter(*m_e, marker="P", s=45, c=viz.COLORS["EKF"], zorder=6, label="EKF mean")
+    ax.scatter([0], [0], s=28, color=viz.INK, zorder=6)
+    ax.text(0, -0.5, "start", fontsize=7.5, color=viz.INK, ha="center")
+    ax.set_aspect("equal"); ax.set_xlim(-1.0, 6.6); ax.set_ylim(-4.6, 4.6)
+    ax.set_xlabel("$p^x$"); ax.set_ylabel("$p^y$")
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=7.5)
+    save(fig, "ch04_banana")
+
+
 def transient_experiment():
     world_lr = World.default(max_range=110)
     P0 = np.diag([30.0**2, 30.0**2, 0.8**2])
@@ -591,6 +622,7 @@ if __name__ == "__main__":
     fig_dead_reckoning()
     fig_grid()
     fig_kf_nees()
+    fig_ekf_banana()
     fig_arc(False, "ch04_arc")
     fig_arc(True, "ch05_arc")
     fig_transient(["EKF"], "ch04_transient")
