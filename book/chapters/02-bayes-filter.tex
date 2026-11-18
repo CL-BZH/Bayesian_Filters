@@ -133,8 +133,9 @@ $\x_t$,
   \uu_{0:t})\,p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t .
 \]
 In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$.
-In the second, the control $\uu_t$ is applied after $\x_t$ and carries no
-information about it, so it can be dropped, which leaves $\bel(\x_t)$
+In the second, the control $\uu_t$ carries no information about $\x_t$
+beyond what is already given (it is fixed in advance, or computed from the
+measurements $\z_{1:t}$), so it can be dropped, which leaves $\bel(\x_t)$
 (\cref{sec:bayesnet-mower}, statement~(c), checks this independence on the
 graph of the model).
 

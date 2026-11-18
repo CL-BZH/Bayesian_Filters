@@ -390,13 +390,59 @@ is a measurement of $\x_{t+1}$, which is one step away from $\x_t$. A
 filter ignores this information about the past; a smoother uses it
 (\cref{sec:smoothing}).
 
+\subsection*{Complement: controls computed during the run}
+
+In the network of \cref{fig:bayesnet} no arrow enters a control: the
+controls are fixed in advance. A mower can also compute them as it goes,
+for instance to steer back towards its planned path. What this changes
+depends on what the controls are computed from. In the two drawings below
+the new arrows are blue.
+
+\emph{From the past measurements.} If $\uu_t$ is computed from
+$\z_{1:t}$, arrows go from the measurements to the controls (only the
+arrow from the latest measurement is drawn).
+
+\begin{center}
+\input{figures/tikz/bn_fbz}
+\end{center}
+
+Statement (c) still holds. There is a new path from $\uu_t$ to $\x_t$,
+namely $\uu_t\leftarrow\z_t\leftarrow\x_t$, in which $\z_t$ is a chain
+node. It is given, so the path is blocked; the same holds for a path
+through an earlier measurement. The filter is therefore unchanged: it does
+not matter how the controls were chosen, as long as they are computed from
+measurements that the filter is given.
+
+One thing does change. A \emph{later} control now carries information
+about the past: the path $\uu_{t+1}\leftarrow\z_{t+1}\leftarrow\x_{t+1}$
+is open as long as $\z_{t+1}$ is not given. The step of the proof of
+\cref{prop:joint} that removes the later controls is then not valid. The
+product \eqref{eq:joint} is still the joint density of the poses and the
+measurements, with each $\uu_t$ replaced by its expression in terms of
+$\z_{1:t}$, but it can no longer be read as a density given the whole
+sequence of controls.
+
+\emph{From the true pose.} If $\uu_t$ is computed from $\x_t$ itself,
+there is an arrow $\x_t\rightarrow\uu_t$.
+
+\begin{center}
+\input{figures/tikz/bn_fbx}
+\end{center}
+
+This arrow is a path between $\x_t$ and $\uu_t$ with no node in between,
+so nothing can block it: statement (c) fails. The control is then a kind
+of measurement of the pose, and a filter that drops $\uu_t$ in its
+prediction step, as in the proof of \cref{thm:bayes}, leaves that
+information unused. Assumptions \ref{A1} and \ref{A2} themselves still
+hold, because the noises $\bepsilon_t$ and $\vv_t$ remain independent of
+everything that came before.
+
 \begin{mower}
-The controls may also be computed from the measurements, as a mower does
-when it steers back towards its planned path. This adds arrows from the
-past measurements $\z_{1:t}$ to $\uu_t$. Statement (c) still holds: a new
-path from $\uu_t$ back to $\x_t$ passes through a measurement $\z_s$ with
-$s\le t$, as in $\uu_t\leftarrow\z_s\leftarrow\x_s$, where $\z_s$ is a
-chain node. It is given, so the path is blocked. The filter does not care
-how the controls were chosen, as long as they depend only on the past
-measurements.
+The simulations of this book are in the second case at some steps. The
+mower follows a path fixed in advance, but near the edge of the lawn the
+pilot of the simulation, which knows the true pose, adds a turn towards
+the centre. At those steps the commanded control says ``the mower is near
+the edge'', and the filters do not use this: there they are not exactly
+the Bayes filter of \cref{thm:bayes}, but a filter that ignores part of
+what it is told.
 \end{mower}

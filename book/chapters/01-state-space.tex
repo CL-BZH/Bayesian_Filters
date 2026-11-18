@@ -1228,7 +1228,7 @@ variable, given its parents.}
 \end{figure}
 
 \begin{proposition}{Factorisation of the joint distribution}{joint}
-Under \ref{A1}--\ref{A2}, for known controls $\uu_{0:T-1}$,
+Under \ref{A1}--\ref{A2}, for controls $\uu_{0:T-1}$ fixed in advance,
 \begin{equation}\label{eq:joint}
   p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
   p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}).
@@ -1248,14 +1248,27 @@ which each variable is conditioned on those before it:
 $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$, and so on. Order the variables
 as $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ and apply it, every factor being also
 conditioned on the controls. The factor of $\x_{t+1}$ is
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. Future controls carry no
-information about the past motion (they are chosen in advance or from
-past data; \cref{sec:bayesnet-mower}, statement~(c), checks it on the
-graph), so this equals $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$,
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It is conditioned on all
+the controls, including the later ones $\uu_{t+1},\dots,\uu_{T-1}$, which
+must be removed before \ref{A1} can be used. That something comes later is
+not a sufficient reason: the future cannot act on the past, but it can
+carry \emph{information} about it. The measurement $\z_{t+1}$, for
+instance, is taken after the pose $\x_t$ and still tells something about
+it (\cref{sec:bayesnet-mower}, statement~(d)). The reason is that the
+controls are fixed in advance: they are not computed from anything that
+happens during the run, so the later controls tell nothing about
+$\x_{t+1}$ (statement~(c) of \cref{sec:bayesnet-mower} checks it on the
+graph). The factor therefore equals
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$,
 which is $p(\x_{t+1}\mid\x_t,\uu_t)$ by \ref{A1}. The factor of
-$\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu)$, which is
+$\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu_{0:T-1})$. The later
+controls are removed in the same way, and what remains is
 $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
 \end{proof}
+
+The controls were assumed fixed in advance. \Cref{sec:bayesnet-mower} ends
+with what changes when they are computed during the run, from the
+measurements or from the pose.
 
 \begin{inwords}
 The whole story, every pose and every measurement, is a chain of small
@@ -1432,7 +1445,8 @@ of particles or sigma points. \code{simulate} returns a \code{Run} with the
 true poses, the commanded controls and every sensor reading. The pilot of
 the simulation steers the mower back towards the centre near the edges of
 the lawn; that steering is part of the \emph{command}, so the filters know
-it. The notebook draws \cref{fig:transition,fig:deadreckoning}.
+it (it is computed from the true pose; the end of
+\cref{sec:bayesnet-mower} says what this changes). The notebook draws \cref{fig:transition,fig:deadreckoning}.
 \end{practice}
 
 \begin{mower}

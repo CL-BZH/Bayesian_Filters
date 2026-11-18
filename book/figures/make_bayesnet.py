@@ -7,7 +7,7 @@ def pos(kind, k):
 def lab(kind, k, names):
     return names[k]
 def net(names, given=(), query=(), red=(), green=(), zobs=None, kmax=3,
-        dots=True, ulist=None, scale=1.25):
+        dots=True, ulist=None, scale=1.25, pre=(), extra=()):
     """names: index labels for x_k, k=0..kmax. given/query: set of (kind,k).
     red/green: list of paths, each a list of (kind,k). zobs: set of k whose z
     is drawn (default 1..kmax or all)."""
@@ -20,6 +20,7 @@ def net(names, given=(), query=(), red=(), green=(), zobs=None, kmax=3,
     for path, col in [(p, 'red!70') for p in red] + [(p, 'green!60!black') for p in green]:
         pts = " -- ".join("(%.3f,%.3f)" % pos(*n) for n in path)
         L.append(r"  \draw[line width=5pt,%s,opacity=0.35,line cap=round,line join=round] %s;" % (col, pts))
+    L.extend(pre)   # raw TikZ drawn under the nodes (curved bands)
     zs = range(kmax+1) if zobs is None else zobs
     us = range(kmax) if ulist is None else ulist
     def style(n, base):
@@ -45,6 +46,7 @@ def net(names, given=(), query=(), red=(), green=(), zobs=None, kmax=3,
     if dots:
         L.append(r"  \draw[->,thick,dotted] ($(x0)+(-1.1,0)$) -- (x0);")
         L.append(r"  \draw[->,thick,dotted] (x%d) -- ++(1.1,0);" % kmax)
+    L.extend(extra)   # raw TikZ drawn last (extra arrows)
     L.append(r"\end{tikzpicture}")
     return "\n".join(L)
 
@@ -60,6 +62,17 @@ panels = {
  'smooth': net(T, given={Z(0), Z(1), U(0), U(1), U(2)}, query={X(1), Z(2)},
            green=[[X(1), X(2), Z(2)]]),
 }
+# Controls computed during the run (feedback): extra arrows in blue.
+FB = r"\draw[->,thick,blue!70!black]"
+BEND = "to[out=35,in=-100]"
+panels['fbz'] = net(T, given={Z(0), Z(1), U(0)}, query={X(1), U(1)},
+    red=[[X(1), X(2), U(1)]],
+    pre=[r"  \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] "
+         r"(%.3f,%.3f) -- (%.3f,%.3f) %s (%.3f,%.3f);" % (*pos('x', 1), *pos('z', 1), BEND, *pos('u', 1))],
+    extra=[r"  %s (z%d) %s (u%d);" % (FB, k, BEND, k) for k in range(3)])
+panels['fbx'] = net(T, given={Z(0), Z(1), U(0)}, query={X(1), U(1)},
+    red=[[X(1), X(2), U(1)]], green=[[X(1), U(1)]],
+    extra=[r"  %s (x%d) -- (u%d);" % (FB, k, k) for k in range(3)])
 main = net(['0', '1', '2', '3'], given={Z(1), Z(2), Z(3), U(0), U(1), U(2)},
            zobs=[1, 2, 3], dots=False, scale=1.3)
 import os, sys
