@@ -138,7 +138,15 @@ accuracy.
 \label{sec:smoothing}
 
 All the filters of this book estimate the \emph{current} state and then
-forget the past. For a linear-Gaussian model that loses nothing.
+forget the past. Yet a later measurement still carries information about
+an earlier pose (\cref{sec:bayesnet-mower}, panel~(d)). Estimating the
+whole trajectory from all the measurements is called \emph{smoothing}. For
+the current pose of a linear-Gaussian model the two give the same answer,
+so filtering loses nothing there.
+
+As in \cref{prop:gaussnewton}, $\norm{\vect e}_A^2=\vect e\T A^{-1}\vect e$
+is the squared Mahalanobis norm: the squared size of $\vect e$ counted in
+standard deviations of a noise of covariance $A$.
 
 \begin{proposition}{The Kalman filter solves a least-squares problem}{batch}
 For the linear-Gaussian model of \cref{def:lgmodel}, the trajectory
@@ -201,7 +209,10 @@ past.}
 \label{fig:factorgraph}
 \end{figure}
 
-\Cref{fig:factorgraph} draws the structure of $J$. In the non-linear case
+\Cref{fig:factorgraph} draws the structure of $J$. It is the Bayesian
+network of \cref{fig:bayesnet} seen from the side of the cost: each
+conditional density of the network becomes one factor, that is, one
+squared term of $J$. In the non-linear case
 the equivalence breaks. The EKF linearises each
 measurement once, at the estimate available \emph{at that time}, and
 never revisits that decision, even after later measurements have shown the
