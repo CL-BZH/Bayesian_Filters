@@ -441,13 +441,31 @@ product $\vect c_1\times\vect c_2$, which is non-zero because they are
 independent. So the null space of $Q_t$ has dimension $1$, and by the
 rank--nullity theorem $Q_t$ has rank $3-1=2$.
 
-(ii) The first column of $V$ is the unit vector along the heading, with no
-heading component; the second is $s$ times the sideways unit vector, with
-heading component $1$. Reading \eqref{eq:firstorder} in the frame of the
-step gives the three errors (the last one, $e_\theta=\varepsilon_\delta$,
-is exact). The covariance follows from the independence of
-$\varepsilon_s$ and $\varepsilon_\delta$, and the correlation of $e_\perp$
-and $e_\theta$ is
+(ii) Call $\vect a=(\cos\theta',\sin\theta')$ and
+$\vect n=(-\sin\theta',\cos\theta')$ the unit vectors of the two axes of
+the frame. They are orthogonal:
+$\vect a\cdot\vect a=\vect n\cdot\vect n=1$ and $\vect a\cdot\vect n=0$.
+The first two rows of \eqref{eq:firstorder} are the position error,
+\[
+  \q-\p'\approx\varepsilon_s\,\vect a+s\,\varepsilon_\delta\,\vect n .
+\]
+The coordinate of a vector along an axis is its dot product with the unit
+vector of that axis, so
+\[
+  e_\parallel=(\q-\p')\cdot\vect a\approx\varepsilon_s,\qquad
+  e_\perp=(\q-\p')\cdot\vect n\approx s\,\varepsilon_\delta .
+\]
+The third row of \eqref{eq:firstorder} is the heading error. It needs no
+approximation: $\varphi=\theta'+\varepsilon_\delta$ by definition, so
+$e_\theta=\varphi-\theta'=\varepsilon_\delta$ exactly.
+
+For the covariance, $\varepsilon_s$ and $\varepsilon_\delta$ are
+independent with variances $\sigma_s^2$ and $\sigma_\delta^2$. Hence
+$\Var(e_\parallel)=\sigma_s^2$, $\Var(e_\perp)=s^2\sigma_\delta^2$,
+$\Var(e_\theta)=\sigma_\delta^2$,
+$\Cov(e_\perp,e_\theta)=\Cov(s\,\varepsilon_\delta,\varepsilon_\delta)
+=s\,\sigma_\delta^2$, and $e_\parallel$ is uncorrelated with the other
+two. The correlation of $e_\perp$ and $e_\theta$ is
 $s\sigma_\delta^2/\sqrt{s^2\sigma_\delta^2\cdot\sigma_\delta^2}=1$ for
 $s>0$ ($-1$ for $s<0$, a mower in reverse).
 Exercise~\ref{ex:nullspace} computes the null space of $Q_t$ and
