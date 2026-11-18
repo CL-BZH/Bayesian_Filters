@@ -570,6 +570,39 @@ sheet; the Gaussian of \cref{prop:firstorder} replaces the sheet by the
 plane that touches it at the intended pose.
 \end{inwords}
 
+\Cref{fig:onestepray} shows (iii) and (iv) on the lawn. One step is a
+single straight segment starting at $\p$, so the line from the start to the
+end position \emph{is} the path, and the mower, which has just driven
+along it, faces along it.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.15,>=Stealth]
+  \coordinate (P) at (0,0);
+  \draw[dashed,black!45] (P) -- (0:5.6) node[right,font=\small,black!55]
+    {$x$-axis};
+  \foreach \ang/\d/\name/\pos in {12/4.3/1/below right, 30/3.5/2/below right,
+      50/4.6/3/right}{
+    \draw[black!35] (P) -- (\ang:5.6);
+    \draw[thick,blue!70!black] (P) -- (\ang:\d);
+    \draw[->,very thick,orange!85!black] (\ang:\d) -- (\ang:\d+0.95);
+    \fill[blue!70!black] (\ang:\d) circle (1.6pt);
+    \node[\pos=1pt,font=\small] at (\ang:\d) {$\q_{\name}$};
+  }
+  \draw[->,black!70] (1.5,0) arc[start angle=0,end angle=30,radius=1.5];
+  \node[font=\small] at (15:1.85) {$\varphi_2$};
+  \fill (P) circle (1.6pt) node[below left,font=\small] {$\p$};
+\end{tikzpicture}
+\caption{Three possible outcomes of one step from $\p$. Blue: the path
+driven, of length $d$. Orange: the heading at the end. Given the heading
+$\varphi$, the end position lies on the line through $\p$ in the direction
+$\varphi$ (grey), somewhere along it (\cref{prop:degenerate}(iii)). Given
+the end position $\q$, the heading is the direction of the line from $\p$
+to $\q$: the orange arrow prolongs the blue segment
+(\cref{prop:degenerate}(iv)).}
+\label{fig:onestepray}
+\end{figure}
+
 \paragraph{From one step to many.} With the noise of the simulations, one
 step covers only a small patch of the staircase, which is almost flat, and
 the Gaussian approximation is excellent. Two things change as the steps
@@ -600,7 +633,22 @@ $2s\,\varepsilon_{\delta,1}+s\,\varepsilon_{\delta,2}$ and the heading error
 $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. These are two different
 combinations of the two turn errors, so the sideways error and the heading
 error can now vary separately: the heading no longer determines the
-sideways position, as it did after one step. Together with the distance
+sideways position, as it did after one step.
+
+The line from the start to the end position shows it (violet in
+\cref{fig:twolegs}). After one step this line was the path itself, and its
+direction was the heading (\cref{fig:onestepray}). After two steps its
+direction is $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}/2$, the average
+of the directions $\varepsilon_{\delta,1}$ and
+$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$ of the two legs: the sum of
+two vectors of the same length points along the bisector of the angle
+between them. The mower, however, faces
+$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$, the direction of its last
+leg. The end position reveals the average direction of travel, not the
+final heading; the two differ by $\varepsilon_{\delta,2}/2$, because the
+last turn error has had only one leg to show up in the position.
+
+Together with the distance
 errors, which move the mower along the path, the errors displace the pose
 in three independent directions. From two steps on, the distribution of
 the pose has a genuine density on $\R^3$, and the degeneracy of a single
@@ -646,14 +694,14 @@ step causes no difficulty in the filters.
     \node[below,font=\small,black!60] at ($(A)!0.72!(B)$) {second leg};
   \end{scope}
   % ---------- bottom: the same first leg, then a second turn error
-  \begin{scope}[shift={(0,-6.3)}]
+  \begin{scope}[shift={(0,-6.9)}]
     \coordinate (O) at (0,0);
     \coordinate (A) at (\s,0);
     \coordinate (B) at (2*\s,0);
     \coordinate (A1) at (\ea:\s);
     \coordinate (B1) at ($(A1)+(\ea:\s)$);
     \coordinate (B2) at ($(A1)+(\ea+\eb:\s)$);
-    \node[font=\small\bfseries,anchor=west] at (-0.3,4.0)
+    \node[font=\small\bfseries,anchor=west] at (-0.3,4.6)
       {The same first leg, then a turn error $\varepsilon_{\delta,2}$ at
        the second turn};
     \draw[dashed,black!55,->] (O) -- (A);
@@ -680,11 +728,21 @@ step causes no difficulty in the filters.
     \node[font=\small,orange!60!red,anchor=west] at
       ($(B1)!0.5!(B2)+(0.12,0)$) {$s\,\varepsilon_{\delta,2}$};
     \draw[dashed,black!45] (B2) -- ++(0:1.6);
-    \draw[->,blue!70!black] (B2) -- ++(\ea+\eb:1.6);
+    \draw[->,blue!70!black] (B2) -- ++(\ea+\eb:2.9);
     \draw[->,black!70] (B2) ++(0:1.2) arc[start angle=0,
       end angle=\ea+\eb,radius=1.2];
-    \node[font=\small,anchor=west] at ($(B2)+({(\ea+\eb)/2}:1.75)$)
+    \node[font=\small,anchor=west] at ($(B2)+(6:1.7)$)
       {heading error $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$};
+    % line from the start through the end position
+    \draw[violet,dashed,thick] (O) -- ($(B2)+({\ea+\eb/2}:2.9)$);
+    \draw[->,violet] (2.6,0) arc[start angle=0,end angle={\ea+\eb/2},
+      radius=2.6];
+    \node[font=\small,violet,anchor=west,fill=white,inner sep=1pt] at
+      (7.5:2.72) {$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}/2$};
+    \draw[violet] ($(B2)+({\ea+\eb/2}:2.5)$) arc[
+      start angle={\ea+\eb/2},end angle=\ea+\eb,radius=2.5];
+    \node[font=\small,violet,anchor=west] at
+      ($(B2)+({\ea+0.75*\eb}:2.95)$) {$\varepsilon_{\delta,2}/2$};
     \fill (O) circle (1.4pt) node[below,font=\small] {start};
     \fill[black!55] (A) circle (1.2pt);
     \fill[black!55] (B) circle (1.2pt);
@@ -704,8 +762,10 @@ second leg now starts from the end of the same first leg, with a further
 turn error $\varepsilon_{\delta,2}$. Compared with the top case (dotted),
 only the second leg has turned: the end point moves by a further
 $s\,\varepsilon_{\delta,2}$, and the heading error becomes
-$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. The orange lengths are
-first-order values.}
+$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. Violet: the line from the
+start through the end position. Its direction is the average of the
+directions of the two legs; the final heading differs from it by
+$\varepsilon_{\delta,2}/2$. The orange lengths are first-order values.}
 \label{fig:twolegs}
 \end{figure}
 
