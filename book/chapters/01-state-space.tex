@@ -573,22 +573,85 @@ plane that touches it at the intended pose.
 \paragraph{From one step to many.} With the noise of the simulations, one
 step covers only a small patch of the staircase, which is almost flat, and
 the Gaussian approximation is excellent. Two things change as the steps
-accumulate (\cref{fig:transition,fig:coupling}).
+accumulate.
+
+\emph{The sheet thickens into a volume.} Take two steps of the same length
+$s$ straight ahead (both commanded turns are zero), and call each of the
+two straight segments driven a \emph{leg}. There are now four errors: a
+distance error and a turn error for each step. Look at the two turn
+errors, $\varepsilon_{\delta,1}$ before the first leg and
+$\varepsilon_{\delta,2}$ before the second (\cref{fig:twolegs}).
 \begin{itemize}[nosep]
-  \item \emph{The sheet thickens into a volume.} After a second step there
-    are four noise variables for three coordinates, and they move the pose
-    in three independent directions: both turn errors change the heading
-    by the same amount, but the first one pushes the mower sideways over
-    \emph{both} legs, the second only over the second leg. From two steps
-    on, the distribution of the pose has a genuine density on $\R^3$. The
-    degeneracy of a single step therefore causes no difficulty in the
-    filters.
-  \item \emph{The curvature becomes visible.} Heading errors become
-    position errors across the path, along arcs, and the cloud of possible
-    positions bends into a ``banana''. Position and heading are no longer
-    tied exactly, but they stay strongly correlated
-    (Exercise~\ref{ex:corr}).
+  \item \emph{Final heading.} The mower turns by $\varepsilon_{\delta,1}$,
+    then by $\varepsilon_{\delta,2}$, so its final heading is off by
+    $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. The two errors count
+    equally: one degree too much at the first turn or at the second gives
+    the same final heading.
+  \item \emph{Final sideways error.} Here they do not count equally. The
+    first error is made before anything is driven, so \emph{both} legs are
+    driven in a wrong direction, and the mower ends
+    $2s\,\varepsilon_{\delta,1}$ to the side. The second error is made
+    after the first leg, which was driven straight; only the second leg is
+    affected, and the mower ends $s\,\varepsilon_{\delta,2}$ to the side.
 \end{itemize}
+To first order, the sideways error is
+$2s\,\varepsilon_{\delta,1}+s\,\varepsilon_{\delta,2}$ and the heading error
+$\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. These are two different
+combinations of the two turn errors, so the sideways error and the heading
+error can now vary separately: the heading no longer determines the
+sideways position, as it did after one step. Together with the distance
+errors, which move the mower along the path, the errors displace the pose
+in three independent directions. From two steps on, the distribution of
+the pose has a genuine density on $\R^3$, and the degeneracy of a single
+step causes no difficulty in the filters.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \def\s{2.6}\def\e{16}
+  \foreach \ox/\title/\ea/\eb/\lab in {
+      0/{error at the first turn only}/\e/0/{$2s\,\varepsilon$},
+      7.6/{error at the second turn only}/0/\e/{$s\,\varepsilon$}}{
+    \begin{scope}[shift={(\ox,0)}]
+      \coordinate (O) at (0,0);
+      \coordinate (A) at (\s,0);
+      \coordinate (B) at (2*\s,0);
+      \coordinate (A1) at (\ea:\s);
+      \coordinate (B1) at ($(A1)+(\ea+\eb:\s)$);
+      \node[font=\small\bfseries] at (\s,2.25) {\title};
+      \draw[dashed,black!55,->] (O) -- (A) -- (B);
+      \draw[thick,blue!70!black,->] (O) -- (A1);
+      \draw[thick,blue!70!black,->] (A1) -- (B1);
+      \draw[very thick,orange!85!black] (B) -- (B1)
+        node[pos=0.5,right=2pt,font=\small] {\lab};
+      \draw[dashed,black!45] (B1) -- ++(0:1.0);
+      \draw[->,blue!70!black] (B1) -- ++(\ea+\eb:1.0);
+      \draw[->,black!70] (B1) ++(0:0.75) arc[start angle=0,end angle=\e,
+        radius=0.75];
+      \node[font=\small] at ($(B1)+(\e/2:1.0)$) {$\varepsilon$};
+      \fill (O) circle (1.4pt) node[below,font=\small] {start};
+      \fill[black!55] (A) circle (1.2pt);
+      \fill[black!55] (B) circle (1.2pt);
+      \fill[blue!70!black] (A1) circle (1.2pt);
+      \fill[blue!70!black] (B1) circle (1.4pt);
+      \node[below,font=\small,black!60] at ($(O)!0.5!(A)$) {first leg};
+      \node[below,font=\small,black!60] at ($(A)!0.5!(B)$) {second leg};
+    \end{scope}
+  }
+\end{tikzpicture}
+\caption{Two steps straight ahead (dashed: the intended path) with a turn
+error $\varepsilon$ at one of the two turns (blue: the actual path). In both
+cases the final heading is off by $\varepsilon$. The final sideways error
+(orange) is twice as large when the error is made at the first turn,
+because both legs are then driven in the wrong direction.}
+\label{fig:twolegs}
+\end{figure}
+
+\emph{The curvature becomes visible.} Over many steps
+(\cref{fig:transition,fig:coupling}), heading errors become position
+errors across the path, along arcs, and the cloud of possible positions
+bends into a ``banana''. Position and heading are no longer tied exactly,
+but they stay strongly correlated (Exercise~\ref{ex:corr}).
 
 \begin{figure}[ht]
 \centering
