@@ -318,7 +318,8 @@ Chapter~\ref{ch:ukf}); or \emph{iterate} the update.
 
 There is another way to look at the update. The posterior density is the
 product of the predicted belief and the likelihood; its \emph{mode} is the
-most probable pose. Maximising a product of Gaussian densities is the same
+pose at which this density is highest, also called the \emph{maximum a
+posteriori} (MAP) estimate. Maximising a product of Gaussian densities is the same
 as minimising the sum of their exponents, a least-squares problem.
 \emph{Gauss--Newton} is the standard method for non-linear least squares:
 linearise the non-linear residual at the current point, solve the
@@ -360,6 +361,34 @@ step, gets closer to the true posterior mode. This is also the bridge to
 modern SLAM, which solves the same least-squares problem for a whole
 trajectory at once (Chapter~\ref{ch:choosing}).
 \end{inwords}
+
+\paragraph{A caution about the mode.} The mode is often called ``the most
+probable pose''. This is a manner of speaking: the probability of any
+exact pose is zero. The value of a density is a probability per unit
+volume (\cref{sec:shape}), so the mode is the pose around which a small
+ball \emph{of given volume} has the largest probability. Here the volume
+is measured in the space of the state, and this has a consequence that the
+maximum-likelihood choice of \cref{ch:bayes} does not have.
+\begin{itemize}[nosep]
+  \item \emph{The mode depends on how the state is written.} Take a
+    positive quantity $X$ and its logarithm $Z=\ln X$, two ways of writing
+    the same unknown. If $Z\sim\Normal(\mu,\sigma^2)$, the mode of $Z$ is
+    $\mu$, but the density of $X$ is highest at $e^{\mu-\sigma^2}$, not at
+    $e^\mu$. Balls of equal volume in $Z$ are not of equal volume in $X$,
+    so ``highest probability per unit volume'' does not designate the same
+    point.
+  \item \emph{The maximum of a likelihood does not.} A likelihood is not a
+    density in the state, no volume of the state space enters it, and its
+    maximum is the same point however the state is written.
+\end{itemize}
+In this book the difference is harmless. A change of coordinates that is
+linear multiplies the density by the same factor everywhere and moves no
+maximum; the pose is always written $(p^x,p^y,\theta)$; and for a Gaussian
+the mode is the mean. It matters when a distribution is far from Gaussian.
+For the bent cloud of \cref{fig:ekfbanana}, the mean is at $3.76$ along
+the heading, inside the bend, while the density of the end positions is
+highest on the arc, near $3.9$: the mode and the mean are different
+points, and neither is ``the'' answer.
 
 \section{Data association}
 \label{sec:ekf-association}

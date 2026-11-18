@@ -22,6 +22,37 @@ And $p(\z\mid\x)$, read as a function of the state $\x$ for the
 measurement $\z$ actually received, is the \emph{likelihood}: it says how
 well each possible state explains that measurement.
 
+\paragraph{What the value of a likelihood means.} The number
+$p(\z\mid\x)$ is not the probability of receiving $\z$: for a continuous
+measurement the probability of any exact value is zero. It is the value of
+a density, a probability per unit volume (\cref{sec:shape}). For a small
+region $B$ around the reading that was received,
+\[
+  \Pr(\z\in B\mid\x)\approx p(\z\mid\x)\times\text{volume of }B .
+\]
+The volume of $B$ is the same whatever the state $\x$. So comparing two
+states by their likelihoods is comparing the probabilities that they give
+to ``a reading close to the one received'': if
+$p(\z\mid\x)=3\,p(\z\mid\x')$, such a reading is three times more
+probable from $\x$ than from $\x'$. This is also what a sensor really
+delivers, since its resolution is finite: a small cell, not an exact
+value.
+
+This is what makes it legitimate to weigh the states by their likelihood,
+as Bayes' rule does below, and to prefer the state under which the
+measurement is the most likely, the \emph{maximum-likelihood} choice
+(used in \cref{sec:ekf-association} to decide which landmark a reading
+comes from). Two cautions go with it.
+\begin{itemize}[nosep]
+  \item The likelihood is a density in $\z$, not in $\x$: read as a
+    function of $\x$ it need not integrate to one, and only ratios between
+    states have a meaning. Changing the unit of $\z$ multiplies all the
+    likelihoods by the same factor and changes no ratio.
+  \item It ranks the states by how well they explain the measurement. It
+    does not say how probable a state is: that needs a prior as well, and
+    is the posterior.
+\end{itemize}
+
 \begin{definition}{Belief and predicted belief}{belief}
 The \emph{belief} at step $t$ is the posterior distribution of the
 current state given everything observed so far,
