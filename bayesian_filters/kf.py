@@ -51,11 +51,14 @@ class KalmanFilter:
 class CompassGpsKF(Filter):
     """Linear KF on the mower's position, using compass + odometry + GPS.
 
-    Prediction: ``p_{t+1} = p_t + step_t * (cos h_t, sin h_t) + w_t`` where
-    ``h_t`` is the compass reading taken after the turn.  The noise ``w_t``
-    comes from the step noise (along the heading) and from the compass noise
-    (across it); to first order its covariance is ``G diag(s_step^2,
-    s_compass^2) G^T`` with ``G = [[cos h, -step sin h], [sin h, step cos h]]``.
+    Prediction: ``p_{t+1} = p_t + step_t * (cos c_{t+1}, sin c_{t+1}) + w_t``
+    where ``c_{t+1}`` is the compass reading of the heading ``theta_{t+1}``
+    that the mower has after its turn, the heading along which it drives
+    (same notation as the book, Section 3.3; in a ``Run`` it is
+    ``z_compass[t]``).  The noise ``w_t`` comes from the step noise (along
+    the heading) and from the compass noise (across it); to first order its
+    covariance is ``G diag(sigma_step^2, sigma_compass^2) G^T`` with
+    ``G = [[cos c, -step sin c], [sin c, step cos c]]``.
     """
 
     name = "KF"
@@ -76,11 +79,11 @@ class CompassGpsKF(Filter):
     def predict(self, u, heading=None):
         if heading is not None:
             self.heading = heading
-        step, h = u[0], self.heading
-        c, s = np.cos(h), np.sin(h)
-        G = np.array([[c, -step * s], [s, step * c]])
+        step = u[0]
+        cos_c, sin_c = np.cos(self.heading), np.sin(self.heading)
+        G = np.array([[cos_c, -step * sin_c], [sin_c, step * cos_c]])
         Q = G @ np.diag([self.sigma_step**2, self.sigma_compass**2]) @ G.T
-        self.kf.predict(np.eye(2), Q, B=np.eye(2), u=step * np.array([c, s]))
+        self.kf.predict(np.eye(2), Q, B=np.eye(2), u=step * np.array([cos_c, sin_c]))
 
     def update(self, z, visible=None):
         self.kf.update(np.asarray(z, dtype=float), self.H, self.R)

@@ -12,13 +12,13 @@ showing why the obvious answer, integrating the commands
 \section{State, control and motion}
 \label{sec:motion}
 
-This section builds the motion model in five steps: what the state of the
+This section builds the motion model in four steps: what the state of the
 mower is and how one command moves it (\cref{sec:pose}); how the real
 mower deviates from the command (\cref{sec:noise}); how these deviations
-become errors on the pose (\cref{sec:errors}); and what the resulting
-uncertainty looks like (\cref{sec:shape,sec:coupling}). The first three
-steps are elementary. The last two are more demanding; the section ends
-with a summary of what to remember.
+become errors on the pose, to first order (\cref{sec:errors}); and what
+the exact distribution of the next pose looks like (\cref{sec:shape}).
+The first three steps are elementary, the last one is more demanding. The
+section ends with a summary of what to remember.
 
 \subsection{The pose and the control}
 \label{sec:pose}
@@ -176,44 +176,39 @@ subsection shows how.
 \subsection{From control errors to pose errors}
 \label{sec:errors}
 
-Fix the pose $\x=(\p,\theta)$ and the control $\uu=(s,\delta)$. Without
-noise, the mower would end at $f(\x,\uu)$, with heading
-$\theta'=\theta+\delta$. What does each of the two errors do to this end
-pose? Take them one at a time.
+Fix the pose $\x=(\p,\theta)$ and the control $\uu=(s,\delta)$, and take one
+step. Two sets of symbols are used from here to the end of the section.
+\begin{itemize}[nosep]
+  \item \emph{Without noise}, the mower turns to the heading
+    $\theta'=\theta+\delta$ and drives $s$, ending at
+    $\p'=\p+s\,(\cos\theta',\sin\theta')$. This is the \emph{intended} end
+    pose $f(\x,\uu)=(\p',\theta')$.
+  \item \emph{With noise}, it turns to the heading
+    $\varphi=\theta'+\varepsilon_\delta$ and drives the distance
+    $d=s+\varepsilon_s$, ending at
+    \begin{equation}\label{eq:actual}
+      \q=\p+d\begin{pmatrix}\cos\varphi\\ \sin\varphi\end{pmatrix}.
+    \end{equation}
+    This is the \emph{actual} end pose $\x_{t+1}=(\q,\varphi)$.
+\end{itemize}
+The pose error is the difference between the two. To see how it depends on
+$\varepsilon_s$ and $\varepsilon_\delta$, take one error at a time.
 
-\paragraph{A distance error moves the mower along its heading.} With
-$\varepsilon_\delta=0$, the mower faces the right direction $\theta'$ and
-drives $s+\varepsilon_s$ instead of $s$. It ends
-\[
-  \varepsilon_s\begin{pmatrix}\cos\theta'\\\sin\theta'\end{pmatrix}
-\]
-away from the intended position: ahead of it if $\varepsilon_s>0$, behind
-it if $\varepsilon_s<0$. Its heading is correct. This is exact, not an
-approximation.
+\paragraph{A distance error moves the mower along its heading.} If
+$\varepsilon_\delta=0$, then $\varphi=\theta'$ and \eqref{eq:actual} gives
+$\q-\p'=\varepsilon_s\,(\cos\theta',\sin\theta')$: the mower ends ahead of
+the intended position if $\varepsilon_s>0$, behind it if
+$\varepsilon_s<0$, with the correct heading. This is exact.
 
 \paragraph{A turn error changes the heading and moves the mower sideways.}
-With $\varepsilon_s=0$, the mower drives the right distance $s$, but in
-the direction $\theta'+\varepsilon_\delta$ instead of $\theta'$. Its final
-heading is wrong by $\varepsilon_\delta$. Its final position is wrong too:
-having driven in a slightly wrong direction, it ends beside the intended
-position, displaced \emph{sideways} (at a right angle to the heading) by
-about $s\,\varepsilon_\delta$. The rest of this paragraph justifies these
-two claims, the direction and the amount.
+If $\varepsilon_s=0$, the mower drives the intended distance $s$ in the
+direction $\theta'+\varepsilon_\delta$. Whatever the direction, it ends at
+distance $s$ from $\p$: as the direction varies, the end point travels
+along the circle of radius $s$ centred at the start, and the heading points
+along the radius of that circle.
 
-\paragraph{Why sideways, and by how much.} Forget the noise for a moment and
-look only at the geometry. The mower starts at $\p$ and drives a distance
-$s$ along the heading $\theta'$; its new position is
-\[
-  \p'=\p+s\begin{pmatrix}\cos\theta'\\\sin\theta'\end{pmatrix}.
-\]
-Change only the heading and keep $s$ fixed. Whatever $\theta'$ is, the end
-point stays at distance $s$ from $\p$, so as $\theta'$ varies it travels
-along the circle of radius $s$ centred at the start
-(\cref{fig:tangent}). The heading vector $(\cos\theta',\sin\theta')$ points
-along that circle's radius.
-
-Now turn by a small extra $\Delta\theta$. The end point moves from $\p'$ to a
-new point $\p''$ on the same circle. The triangle $\p\,\p'\,\p''$ has two
+Now turn by a small extra $\Delta\theta$. The end point moves from $\p'$
+to a new point $\p''$ on the same circle (\cref{fig:tangent}). The triangle $\p\,\p'\,\p''$ has two
 sides of length $s$ and the angle $\Delta\theta$ between them: it is
 isosceles, so its two other angles are equal, each
 $(\pi-\Delta\theta)/2=\pi/2-\Delta\theta/2$. Two facts follow.
@@ -309,97 +304,63 @@ the heading.}
 \label{fig:tangent}
 \end{figure}
 
-So a turn error does not move the mower further: that is the job of $s$,
-whose derivative $(\cos\theta',\sin\theta')$ points along the heading. It
-swings the end point sideways, and the farther the mower drives, the
-bigger the swing: a heading error of $\Delta\theta$ produces a sideways
-error of about $s\,\Delta\theta$. This is why, in a filter, heading
-uncertainty becomes an error band perpendicular to the direction of
-travel, which widens with the distance travelled: the banana of
-\cref{fig:transition}. For a large turn the tangent is no longer a good
-approximation: the end point also falls back along the heading, by
-$s(1-\cos\Delta\theta)\approx s\,\Delta\theta^2/2$, the second-order
-shortening of \cref{prop:deadreckoning}.
+With $\Delta\theta=\varepsilon_\delta$: a turn error changes the heading by
+$\varepsilon_\delta$ and, to first order, moves the mower by
+$s\,\varepsilon_\delta$ at a right angle to the intended heading. The
+error neglected is of second order: the end point also falls back along
+the heading, by $s(1-\cos\varepsilon_\delta)\approx
+s\,\varepsilon_\delta^2/2$. It will matter in \cref{sec:deadreckoning}.
 
 \paragraph{Both errors together.} When both errors are present and small,
-their effects add up, to first order. The pose error is then
+their effects add up, to first order:
 \begin{equation}\label{eq:firstorder}
   \x_{t+1}-f(\x_t,\uu_t)\;\approx\;
   \varepsilon_s\underbrace{\begin{pmatrix}\cos\theta'\\ \sin\theta'\\ 0
   \end{pmatrix}}_{\text{along the heading}}
   +\;\varepsilon_\delta\underbrace{\begin{pmatrix}-s\sin\theta'\\
   s\cos\theta'\\ 1\end{pmatrix}}_{\text{sideways, and heading}}
-  \;=\;V\bepsilon_t.
+  \;=\;V\bepsilon_t,
 \end{equation}
-The third entry of each vector is the heading error: $0$ for a distance
-error, $\varepsilon_\delta$ for a turn error. The matrix
+where the third entry of each vector is the heading error and
 \[
   V=\begin{pmatrix}\cos\theta'&-s\sin\theta'\\ \sin\theta'&s\cos\theta'
   \\0&1\end{pmatrix}
 \]
-simply stores the two vectors as its columns, so that $V\bepsilon_t$ is
-the combination above. Its first column is the derivative of $f$ with respect to
-$s$, its second the derivative with respect to $\delta$ (differentiate the
-three components of \eqref{eq:f}): $V=\partial f/\partial\uu$ is the
-\emph{Jacobian matrix} of $f$ with respect to the control, and
-\eqref{eq:firstorder} is the first-order Taylor expansion of
-$f(\x_t,\uu_t+\bepsilon_t)$ in the noise.
+is the matrix with these two vectors as columns. Its first column is the
+derivative of $f$ with respect to $s$, its second the derivative with
+respect to $\delta$ (differentiate the three components of \eqref{eq:f}):
+$V=\partial f/\partial\uu$ is the \emph{Jacobian matrix} of $f$ with
+respect to the control, and \eqref{eq:firstorder} is the first-order Taylor
+expansion of $f(\x_t,\uu_t+\bepsilon_t)$ in the noise.
 
-With the values of the simulations, the error along the heading has
-standard deviation $\sigma_s=0.4$, the sideways error
-$s\,\sigma_\delta=4\times0.03=0.12$, and the heading error
-$\sigma_\delta=0.03$\,rad.
+It is convenient to measure the pose error in the frame of the step. Let
+$e_\parallel$ be the component of $\q-\p'$ along the intended heading
+$(\cos\theta',\sin\theta')$, $e_\perp$ its component along the sideways
+direction $(-\sin\theta',\cos\theta')$, and $e_\theta=\varphi-\theta'$ the
+heading error.
 
-\subsection{The shape of the uncertainty after one step}
-\label{sec:shape}
-
-The approximation \eqref{eq:firstorder} is linear in the Gaussian noise
-$\bepsilon_t$, so it describes the next pose as a Gaussian. The exact
-distribution of the next pose differs from it in two ways that matter for
-the filters of this book. Both come from the same observation: the pose
-has \emph{three} coordinates, but one step from a known pose is decided by
-only \emph{two} random numbers, $\varepsilon_s$ and $\varepsilon_\delta$.
-
-\begin{proposition}{The transition is non-Gaussian and degenerate}{degenerate}
-Fix $\x_t$ and $\uu_t$ with $s_t\neq0$.
+\begin{proposition}{The pose error to first order}{firstorder}
+To first order in the noise:
 \begin{enumerate}[label=(\roman*),nosep]
-\item The distribution of $\x_{t+1}$ is not Gaussian.
-\item It is concentrated on a two-dimensional surface of the
-  three-dimensional state space, so it has no density with respect to
-  the Lebesgue measure on $\R^3$.
-\item To first order in the noise,
-  $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$, where
-  $V=\frac{\partial f}{\partial\uu}(\x_t,\uu_t)$ is the $3\times2$
-  matrix of \eqref{eq:firstorder}. The covariance of
-  $\x_{t+1}$ is then approximately $Q_t=VMV\T$, a $3\times3$ matrix of
-  rank $2$.
+\item $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$ is Gaussian with mean
+  $f(\x_t,\uu_t)$ and covariance $Q_t=VMV\T$, a $3\times3$ matrix of rank
+  $2$.
+\item In the frame of the step, $e_\parallel=\varepsilon_s$,
+  $e_\perp=s\,\varepsilon_\delta$ and $e_\theta=\varepsilon_\delta$, so
+  \[
+    \Cov(e_\parallel,e_\perp,e_\theta)=\begin{pmatrix}\sigma_s^2&0&0\\
+    0&s^2\sigma_\delta^2&s\sigma_\delta^2\\0&s\sigma_\delta^2&\sigma_\delta^2
+    \end{pmatrix}.
+  \]
+  If $s\neq0$, the sideways error and the heading error have correlation
+  $1$.
 \end{enumerate}
 \end{proposition}
 
 \begin{proof}
-(ii) The map $\bepsilon\mapsto f(\x_t,\uu_t+\bepsilon)$ goes from $\R^2$
-to $\R^3$ and is smooth, so its image is (at most) a two-dimensional
-surface $\mathcal S$, and $\x_{t+1}$ lies on it with probability one.
-If $\x_{t+1}$ had a density $g$ on $\R^3$, every set $A$ would satisfy
-$\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, so every set of zero
-volume (three-dimensional Lebesgue measure $\lambda^3$) would have
-probability zero. A surface has zero volume, yet
-$\Pr(\x_{t+1}\in\mathcal S)=1$: no density can exist. (i) A Gaussian on $\R^3$ is either non-degenerate (and has a
-density) or supported on an affine subspace (\cref{lem:dichotomy}). The
-surface of (ii) is not
-flat: the heading $\theta_{t+1}=\theta_t+\delta_t+\varepsilon_\delta$
-enters the position through $\cos$ and $\sin$, so for a fixed step the
-position runs along a circular arc as $\varepsilon_\delta$ varies.
-(iii) The approximation is \eqref{eq:firstorder}; formally, it is Taylor's
-formula
-$f(\x_t,\uu_t+\bepsilon_t)=f(\x_t,\uu_t)+V\bepsilon_t
-+O(\norm{\bepsilon_t}^2)$ with
-$V_{ij}=\partial f_i/\partial u_j(\x_t,\uu_t)$, $u_1=s$, $u_2=\delta$. The
-error $V\bepsilon_t$ is a linear map of the Gaussian
-$\bepsilon_t$, whose covariance is
-$\Cov(V\bepsilon_t)=V\Cov(\bepsilon_t)V\T=VMV\T$
-(\cref{lem:affine}). It remains to show that $Q_t=VMV\T$ has rank $2$, in
-three steps.
+(i) $V\bepsilon_t$ is a linear map of the Gaussian $\bepsilon_t$, so it is
+Gaussian with covariance $V\Cov(\bepsilon_t)V\T=VMV\T$
+(\cref{lem:affine}). The rank is obtained in three steps.
 
 \emph{The columns of $V$ are linearly independent.} Call them
 $\vect c_1=(\cos\theta',\sin\theta',0)\T$ and
@@ -420,23 +381,135 @@ two independent vectors of $\R^3$ form a line, spanned by their cross
 product $\vect c_1\times\vect c_2$, which is non-zero because they are
 independent. So the null space of $Q_t$ has dimension $1$, and by the
 rank--nullity theorem $Q_t$ has rank $3-1=2$.
-Exercise~\ref{ex:nullspace} computes $\vect c_1\times\vect c_2$ and
-interprets it. The same Jacobian is used by the extended Kalman filter
+
+(ii) The first column of $V$ is the unit vector along the heading, with no
+heading component; the second is $s$ times the sideways unit vector, with
+heading component $1$. Reading \eqref{eq:firstorder} in the frame of the
+step gives the three errors (the last one, $e_\theta=\varepsilon_\delta$,
+is exact). The covariance follows from the independence of
+$\varepsilon_s$ and $\varepsilon_\delta$, and the correlation of $e_\perp$
+and $e_\theta$ is
+$s\sigma_\delta^2/\sqrt{s^2\sigma_\delta^2\cdot\sigma_\delta^2}=1$ for
+$s>0$ ($-1$ for $s<0$, a mower in reverse).
+Exercise~\ref{ex:nullspace} computes the null space of $Q_t$ and
+interprets it. The same Jacobian $V$ is used by the extended Kalman filter
 (\cref{prop:jacobians}).
 \end{proof}
 
 \begin{inwords}
-The pose space is three-dimensional: $(p^x,p^y,\theta)$. After one step
-from a known pose, the new pose is fixed by only \emph{two} random
-numbers, ``drove a bit more or less'' ($\varepsilon_s$) and ``turned a
-bit more or less'' ($\varepsilon_\delta$). Three coordinates that depend on
-two random inputs cannot fill a three-dimensional region: the reachable
-poses form a two-dimensional sheet, and every pose off the sheet is
-impossible. A Gaussian can only approximate it. After several steps the
-noises of all the steps compound, the uncertainty fills all three
-dimensions, but it stays curved: the familiar ``banana'' of
-\cref{fig:transition}.
+The control errors are independent, but the pose errors are not. A
+diagonal $M$ separates the error \emph{along the path} from the rest; it
+does not separate position from heading. Turning a bit too much both
+changes the heading and pushes the mower sideways: the sideways error and
+the heading error are two faces of the same random number. This is why a
+filter's covariance has large off-diagonal terms between $\theta$ and the
+position, and why a measurement of the heading also corrects the position.
+With the values of the simulations, the standard deviations after one step
+are $\sigma_s=0.4$ along the heading, $s\,\sigma_\delta=4\times0.03=0.12$
+sideways, and $\sigma_\delta=0.03$\,rad in heading.
 \end{inwords}
+
+\subsection{The exact distribution after one step}
+\label{sec:shape}
+
+The proposition above describes the next pose as a Gaussian. That is an
+approximation. The exact distribution is fixed by \eqref{eq:actual}: the
+pose $(\q,\varphi)$ has \emph{three} coordinates, but it is a function of
+only \emph{two} random numbers, $d$ and $\varphi$. As they vary, the pose
+\[
+  (d,\varphi)\longmapsto\bigl(p^x+d\cos\varphi,\;p^y+d\sin\varphi,\;
+  \varphi\bigr)
+\]
+sweeps a two-dimensional sheet in the three-dimensional pose space, a
+\emph{helicoid}: the shape of a spiral staircase around the vertical line
+through the start position (\cref{fig:helicoid}). At height $\varphi$ (a
+given heading), the possible positions form a straight line pointing in
+the direction $\varphi$; as the height increases, the line rotates. Its
+shadow on the lawn, the set of reachable positions, is an arc-shaped band.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/ch01_helicoid.pdf}
+\caption{The poses reachable in one step from the start pose (black dot),
+with the noise exaggerated for visibility ($\sigma_s=0.6$,
+$\sigma_\delta=0.35$\,rad). Orange: 500 sampled end poses;
+they all lie on a helicoid (blue), whose horizontal slices are the
+straight segments of fixed heading (dark lines). Grey: their shadow on
+the lawn, the positions alone, an arc-shaped band.}
+\label{fig:helicoid}
+\end{figure}
+
+\begin{proposition}{The transition is degenerate and not Gaussian}{degenerate}
+Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
+\eqref{eq:actual}.
+\begin{enumerate}[label=(\roman*),nosep]
+\item With probability one $\x_{t+1}$ lies on the helicoid, a surface. It
+  has no density with respect to volume (the Lebesgue measure on $\R^3$).
+\item The distribution of $\x_{t+1}$ is not Gaussian.
+\item Given the new heading $\varphi$, the new position lies on the
+  straight line through $\p$ in the direction $\varphi$, at the distance
+  $d\sim\Normal(s,\sigma_s^2)$ from $\p$: it has no spread across that
+  line.
+\item Given the new position $\q$, and if $d>0$, the new heading is
+  determined exactly: it is the direction of $\q-\p$,
+  $\varphi=\operatorname{atan2}(q^y-p^y,\,q^x-p^x)$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(i) The first claim is \eqref{eq:actual}. If $\x_{t+1}$ had a density $g$
+on $\R^3$, every set $A$ would satisfy
+$\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, where $\lambda^3$ is
+the volume, so every set of zero volume would have probability zero. A
+surface has zero volume, yet the helicoid has probability one: no density
+can exist.
+
+(ii) A Gaussian on $\R^3$ either has a density or lies in a plane, a line
+or a point (\cref{lem:dichotomy}). By (i) there is no density. And the
+distribution does not lie in a plane: by (iii), the poses with heading
+$\varphi$ fill a whole line in the direction $\varphi$, and these lines,
+at different heights and in different directions, are not contained in any
+single plane (two of them with different directions, together with the
+vertical line through $\p$ that joins them, already span $\R^3$).
+
+(iii) Conditioning on $\varphi$ is conditioning on $\varepsilon_\delta$,
+which is independent of $\varepsilon_s$. So $d$ keeps its distribution
+$\Normal(s,\sigma_s^2)$, and $\q=\p+d\,(\cos\varphi,\sin\varphi)$ runs
+along a fixed line.
+
+(iv) For $d>0$, $\q-\p$ is a positive multiple of
+$(\cos\varphi,\sin\varphi)$, so its direction is $\varphi$.
+\end{proof}
+
+\begin{inwords}
+After one step from a known pose, the reachable poses form a twisted sheet,
+and every pose off the sheet is impossible. On the sheet, position and
+heading are tied exactly: slices at a fixed heading are straight lines
+(iii), and above each point of the lawn the sheet has a single height
+(iv). A Gaussian, whose level sets are ellipsoids, cannot follow a twisted
+sheet; the Gaussian of \cref{prop:firstorder} replaces the sheet by the
+plane that touches it at the intended pose.
+\end{inwords}
+
+\paragraph{From one step to many.} With the noise of the simulations, one
+step covers only a small patch of the staircase, which is almost flat, and
+the Gaussian approximation is excellent. Two things change as the steps
+accumulate (\cref{fig:transition,fig:coupling}).
+\begin{itemize}[nosep]
+  \item \emph{The sheet thickens into a volume.} After a second step there
+    are four noise variables for three coordinates, and they move the pose
+    in three independent directions: both turn errors change the heading
+    by the same amount, but the first one pushes the mower sideways over
+    \emph{both} legs, the second only over the second leg. From two steps
+    on, the distribution of the pose has a genuine density on $\R^3$. The
+    degeneracy of a single step therefore causes no difficulty in the
+    filters.
+  \item \emph{The curvature becomes visible.} Heading errors become
+    position errors across the path, along arcs, and the cloud of possible
+    positions bends into a ``banana''. Position and heading are no longer
+    tied exactly, but they stay strongly correlated
+    (Exercise~\ref{ex:corr}).
+\end{itemize}
 
 \begin{figure}[ht]
 \centering
@@ -445,121 +518,11 @@ dimensions, but it stays curved: the familiar ``banana'' of
 the same 25 commands (drive 4, turn $\pi/50$). Their positions after 5,
 15 and 25 steps. Only the positions are plotted: each cloud is the shadow
 on the lawn of a cloud in the three-dimensional pose space, which after
-several steps fills a curved volume rather than a single helicoid. Heading
+several steps fills a curved volume. Heading
 errors become position errors \emph{across} the path, along arcs: the
 clouds bend.}
 \label{fig:transition}
 \end{figure}
-
-\paragraph{The sheet is a helicoid.} The two-dimensional sheet of reachable
-poses is easy to describe. Call $d=s+\varepsilon_s$ the distance
-actually driven and $\varphi=\theta+\delta+\varepsilon_\delta$ the heading
-actually reached. The reachable poses are
-\[
-  (d,\varphi)\longmapsto\bigl(p^x+d\cos\varphi,\;p^y+d\sin\varphi,\;
-  \varphi\bigr),
-\]
-a \emph{helicoid}: the shape of a spiral staircase around the vertical
-line through the start position (\cref{fig:helicoid}). At height $\varphi$
-(a given heading), the possible positions form a straight segment pointing
-in the direction $\varphi$; as the height increases, the segment rotates.
-Each horizontal slice is straight, but the sheet twists, so it is not a
-plane, and no Gaussian, whose level sets are ellipsoids, can follow it.
-Its shadow on the lawn, the set of reachable positions, is an arc-shaped
-band.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.72\linewidth]{figures/ch01_helicoid.pdf}
-\caption{The poses reachable in one step from the start pose (black dot),
-with the noise exaggerated for visibility ($\sigma_s=0.6$,
-$\sigma_\delta=0.35$\,rad). Orange: 500 sampled poses $(p^x,p^y,\theta)$;
-they all lie on a helicoid (blue), whose horizontal slices are the
-straight segments of fixed heading (dark lines). Grey: their shadow on
-the lawn, the positions alone, an arc-shaped band.}
-\label{fig:helicoid}
-\end{figure}
-
-With the real noise of the simulations ($\sigma_s=0.4$,
-$\sigma_\delta=0.03$), one step covers only a small patch of the
-staircase, which looks almost flat. The curvature becomes visible as the
-steps accumulate.
-
-\subsection{Position and heading are coupled}
-\label{sec:coupling}
-
-Because $M$ is diagonal, the
-two \emph{control} errors $\varepsilon_s$ and $\varepsilon_\delta$ are
-independent. It is tempting to conclude that the new position and the new
-heading are independent too, so that the position at a given heading is
-spread over an ellipse and the heading at a given position is Gaussian.
-Neither is true. To state precisely what holds, measure the errors in the
-frame of the nominal step: with $\bar\varphi=\theta+\delta$ and
-$\bar{\p}'=\p+s(\cos\bar\varphi,\sin\bar\varphi)$, let
-\[
-  e_\parallel=(\p'-\bar{\p}')\cdot\begin{pmatrix}\cos\bar\varphi\\
-  \sin\bar\varphi\end{pmatrix},\qquad
-  e_\perp=(\p'-\bar{\p}')\cdot\begin{pmatrix}-\sin\bar\varphi\\
-  \cos\bar\varphi\end{pmatrix},\qquad
-  e_\theta=\theta'-\bar\varphi,
-\]
-the errors \emph{along} the path, \emph{across} it, and in heading.
-
-\begin{proposition}{Position and heading after one step}{coupling}
-Take one step from a known pose $(\p,\theta)$ with control $(s,\delta)$,
-$s>0$, and write $d=s+\varepsilon_s$, $\varphi=\theta+\delta+
-\varepsilon_\delta$, so that $\p'=\p+d(\cos\varphi,\sin\varphi)$ and
-$\theta'=\varphi$.
-\begin{enumerate}[label=(\roman*),nosep]
-\item Given the new heading $\theta'=\varphi$, the new position lies on the
-  straight line through $\p$ in the direction $\varphi$, at a Gaussian
-  distance $d\sim\Normal(s,\sigma_s^2)$: a one-dimensional distribution,
-  with no spread across the line.
-\item Given the new position $\p'$ (and $d>0$), the new heading is
-  determined exactly: $\theta'=\operatorname{atan2}(p'^y-p^y,\,
-  p'^x-p^x)$. Its conditional distribution is a single point.
-\item To first order in the noise, $e_\parallel=\varepsilon_s$,
-  $e_\perp=s\,\varepsilon_\delta$ and $e_\theta=\varepsilon_\delta$, so
-  \[
-    \Cov(e_\parallel,e_\perp,e_\theta)=\begin{pmatrix}\sigma_s^2&0&0\\
-    0&s^2\sigma_\delta^2&s\sigma_\delta^2\\0&s\sigma_\delta^2&\sigma_\delta^2
-    \end{pmatrix},
-  \]
-  and the sideways error and the heading error have correlation $1$.
-\end{enumerate}
-\end{proposition}
-
-\begin{proof}
-(i) Conditioning on $\varphi$ is conditioning on $\varepsilon_\delta$,
-which is independent of $\varepsilon_s$; so $d$ keeps its distribution
-$\Normal(s,\sigma_s^2)$, and $\p'=\p+d(\cos\varphi,\sin\varphi)$ runs along
-a fixed line. (ii) For $d>0$, $\p'-\p$ is a positive multiple of
-$(\cos\varphi,\sin\varphi)$, so its direction is $\varphi$. (iii) Expand
-$\p'=\p+(s+\varepsilon_s)(\cos(\bar\varphi+\varepsilon_\delta),
-\sin(\bar\varphi+\varepsilon_\delta))$ to first order:
-$\p'\approx\bar{\p}'+\varepsilon_s(\cos\bar\varphi,\sin\bar\varphi)+
-s\,\varepsilon_\delta(-\sin\bar\varphi,\cos\bar\varphi)$. Projecting on the
-two directions gives $e_\parallel$ and $e_\perp$, and
-$e_\theta=\varepsilon_\delta$ exactly. The covariance follows from the
-independence of $\varepsilon_s$ and $\varepsilon_\delta$; the correlation
-of $e_\perp$ and $e_\theta$ is $s\sigma_\delta^2/\sqrt{s^2\sigma_\delta^2
-\cdot\sigma_\delta^2}=1$.
-\end{proof}
-
-\begin{inwords}
-A diagonal $M$ separates \emph{along the path} from \emph{across the path
-and heading}; it does not separate position from heading. Turning a bit
-too much both changes the heading and pushes the mower sideways, so the
-two errors are two faces of the same random number. The helicoid of
-\cref{fig:helicoid} is this statement in pictures: slices at a fixed
-heading are straight segments (i), and above each point of the lawn the
-sheet has a single height (ii). Over many steps the errors of different
-steps add up and the conditionals become genuine distributions, but the
-coupling stays strong (\cref{fig:coupling}; Exercise~\ref{ex:corr}).
-This coupling is why a filter's covariance has large off-diagonal terms
-between $\theta$ and the position, and why a measurement of the heading
-also corrects the position.
-\end{inwords}
 
 \begin{figure}[ht]
 \centering
@@ -575,45 +538,32 @@ elongated cloud after 25 steps (correlation $0.87$).}
 \label{fig:coupling}
 \end{figure}
 
-\paragraph{A Dirac in one direction only.} \emph{This paragraph and the
-next are for readers who know the Dirac distribution; they can be skipped
-on a first reading.} \Cref{prop:degenerate} says
-that the one-step transition has no density on $\R^3$, but it is not a
-Dirac distribution either: its mass is spread smoothly over a surface,
-not concentrated at a point. \Cref{prop:coupling}(ii) makes this exact.
-Write $\delta_{\mathrm D}$ for the Dirac distribution (to avoid a clash with
-the turn $\delta$), and, for a position $\p'\ne\p$, let
-$d(\p')=\norm{\p'-\p}$ and $\varphi(\p')$ be the direction of $\p'-\p$.
-Then, for $\sigma_\delta$ small enough that wrapping can be ignored and
-$\sigma_s$ small enough compared with $s$ that $d>0$ in practice,
+\paragraph{The one-step transition as a formula.} \emph{This paragraph is
+for readers who know the Dirac distribution; it can be skipped on a first
+reading.} The transition has no density on $\R^3$, but it is not a point
+mass either: its mass is spread smoothly over the helicoid. Write
+$\delta_{\mathrm D}$ for the Dirac distribution (to avoid a clash with the
+turn $\delta$), and, for a position $\q\neq\p$, let $d(\q)=\norm{\q-\p}$
+and $\alpha(\q)$ be the direction of $\q-\p$. For $\sigma_\delta$ small
+enough that wrapping can be ignored, and $\sigma_s$ small enough compared
+with $s$ that $d>0$ in practice,
 \begin{equation}\label{eq:diracform}
-  p(\p',\theta'\mid\x,\uu)=g(\p')\;\delta_{\mathrm D}\bigl(\theta'-
-  \varphi(\p')\bigr),\qquad
-  g(\p')=\frac{\Normal\bigl(d(\p');s,\sigma_s^2\bigr)\,
-  \Normal\bigl(\varphi(\p');\theta+\delta,\sigma_\delta^2\bigr)}{d(\p')}.
+  p(\q,\varphi\mid\x,\uu)=g(\q)\;\delta_{\mathrm D}\bigl(\varphi-
+  \alpha(\q)\bigr),\qquad
+  g(\q)=\frac{\Normal\bigl(d(\q);s,\sigma_s^2\bigr)\,
+  \Normal\bigl(\alpha(\q);\theta',\sigma_\delta^2\bigr)}{d(\q)}.
 \end{equation}
-The first factor $g$ is an ordinary density on the lawn: the density of
-$(d,\varphi)$, which are independent Gaussians, rewritten in Cartesian
-coordinates, where $1/d$ is the Jacobian of polar coordinates
-($\mathrm dp^x\,\mathrm dp^y=d\,\mathrm dd\,\mathrm d\varphi$). It is the
-arc-shaped band of \cref{fig:helicoid}, in grey. The second factor says
-that, given the position, the heading is fixed: the single height of the
-sheet above each point of the lawn. In measure-theoretic terms the
-transition is \emph{singular} with respect to volume, with a density with
-respect to the area of the surface.
+The factor $g$ is an ordinary density on the lawn: the density of the
+independent Gaussians $(d,\varphi)$ rewritten in Cartesian coordinates,
+where $1/d$ is the Jacobian of polar coordinates
+($\mathrm dq^x\,\mathrm dq^y=d\,\mathrm dd\,\mathrm d\varphi$). It is the
+grey band of \cref{fig:helicoid}. The Dirac factor is
+\cref{prop:degenerate}(iv): given the position, the heading is fixed. The
+Gaussian approximation has the same structure in linear form: $Q_t$ has
+rank two, so it describes a Gaussian squashed onto a plane, with a density
+within the plane and a Dirac across it.
 
-The Gaussian approximation has the same structure in linear form: $Q=VMV\T$
-has rank two (\cref{prop:degenerate}(iii)), so it describes a Gaussian
-squashed onto a plane, with a density within the plane and a Dirac across
-it; the EKF replaces the curved sheet by its tangent plane. After a second
-step there are four noise variables for three coordinates, and they move
-the pose in three independent directions: both turn errors change the
-heading by the same amount, but the first one also pushes the mower
-sideways over \emph{both} legs, the second only over the second leg. This
-smears the sheet into a volume: from two steps on, the distribution of the
-pose has a genuine density on $\R^3$, and the singularity of a single
-transition causes no difficulty in the filters.
-
+\FloatBarrier
 \paragraph{What to remember from this section.}
 \begin{enumerate}[nosep]
   \item The state is the pose $(p^x,p^y,\theta)$. A control $(s,\delta)$
@@ -1002,7 +952,7 @@ RTK-GNSS or a camera.
     Gaussian noise on the control (\cref{sec:motion}).
   \item A turn error changes the heading and moves the mower sideways. One
     step from a known pose is not Gaussian, and its first-order covariance
-    $Q=VMV\T$ has rank $2$.
+    $Q=VMV\T$ has rank $2$ (\cref{prop:firstorder,prop:degenerate}).
   \item The main sensor returns the range and the bearing of landmarks,
     $\z_{t,j}=h_j(\x_t)+\vv_{t,j}$. Angles are always compared through
     $\wrap$ (\cref{sec:sensors}).
@@ -1022,7 +972,7 @@ RTK-GNSS or a camera.
 
 \begin{enumerate}[label=\textbf{1.\arabic*},ref=1.\arabic*]
 \item\label{ex:nullspace} Compute the null space of $Q=VMV\T$ from
-  \cref{prop:degenerate}. Which combination of position and heading
+  \cref{prop:firstorder}. Which combination of position and heading
   errors can a single step never produce, to first order?
 \item\label{ex:ecos} Let $\theta\sim\Normal(0,\sigma^2)$. Show that
   $\E[\cos\theta]=e^{-\sigma^2/2}$ and $\E[\sin\theta]=0$. Deduce the
@@ -1048,7 +998,7 @@ RTK-GNSS or a camera.
 \subsection*{Solutions}
 
 \textbf{1.1.} The null space of $VMV\T$ equals the null space of $V\T$
-because $M$ is positive definite (proof of \cref{prop:degenerate}(iii)). A
+because $M$ is positive definite (proof of \cref{prop:firstorder}). A
 vector $\vect{n}$ with $V\T\vect{n}=
 \vect0$ is orthogonal to both columns of $V$, so it is their cross
 product:

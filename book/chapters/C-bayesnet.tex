@@ -2,177 +2,401 @@
 \label{app:bayesnet}
 
 The derivations of \cref{ch:statespace,ch:bayes} repeatedly drop variables
-from a conditioning: ``given $\x_t$, the past does not matter'', ``the
-control $\uu_t$ carries no information about $\x_t$''. This appendix gives
-a mechanical way to check such statements: draw the model as a graph and
-read the independences off it. It is a short overview; Koller and
-Friedman give the complete treatment (see the references).
+from a conditioning: ``given the current pose, the past does not matter'',
+``the next control says nothing about the current pose''. Each of these is
+a statement of \emph{conditional independence}. This appendix explains a
+way to check such statements without any computation: draw the model as a
+graph, and read the independences off the graph.
+
+It proceeds in four steps: what conditional independence means
+(\cref{sec:condind}); how a model is drawn as a graph
+(\cref{sec:bn}); the three situations that can occur along a path of the
+graph, each proved from the definition (\cref{sec:three}); and the
+general rule, called \emph{d-separation}, with a recipe to apply it
+(\cref{sec:dsep}). \Cref{sec:bayesnet-mower} then applies the recipe to
+the mower.
+
+\section{Conditional independence}
+\label{sec:condind}
+
+Let $A$, $B$ and $C$ be random variables. $A$ and $B$ are
+\emph{independent} if knowing one says nothing about the other:
+$p(a\mid b)=p(a)$, or equivalently $p(a,b)=p(a)\,p(b)$. We write
+$A\indep B$.
+
+They are \emph{conditionally independent given $C$} if, \emph{once $C$ is
+known}, knowing $B$ says nothing more about $A$:
+\[
+  p(a\mid b,c)=p(a\mid c),\qquad\text{or equivalently}\qquad
+  p(a,b\mid c)=p(a\mid c)\,p(b\mid c).
+\]
+We write $A\indep B\mid C$. This is exactly what allows a variable to be
+dropped from a conditioning.
+
+The two notions are different, and neither implies the other. Two
+variables can be dependent and become independent once a third is known;
+two variables can be independent and become dependent once a third is
+known. \Cref{sec:three} gives an example of each.
 
 \section{Bayesian networks}
+\label{sec:bn}
 
-A \emph{Bayesian network} is a directed acyclic graph whose nodes are
-random variables, together with the factorisation
+A model is often described by saying, for each variable, which other
+variables it is computed from. A \emph{Bayesian network} draws this
+description: one node per variable, and an arrow $A\rightarrow B$ when $A$
+is one of the variables that $B$ is computed from. The arrows must not
+form a cycle.
+
+Some vocabulary. In $A\rightarrow B$, $A$ is a \emph{parent} of $B$ and
+$B$ a \emph{child} of $A$. The set of parents of a node $v$ is written
+$\mathrm{pa}(v)$. The \emph{descendants} of $v$ are its children, their
+children, and so on: every node that can be reached from $v$ by following
+arrows forwards.
+
+The graph stands for a factorisation of the joint distribution, with one
+factor per variable, the distribution of that variable given its parents:
+\begin{equation}\label{eq:bnfactor}
+  p(v_1,\dots,v_n)=\prod_{k=1}^n p\bigl(v_k\mid\mathrm{pa}(v_k)\bigr).
+\end{equation}
+A variable without parents contributes its plain distribution $p(v_k)$.
+
+\begin{example}{A garden}{garden}
+Four variables: it rained ($R$), the sprinkler was on ($S$), the grass is
+wet ($W$), someone slips on the grass ($L$). Rain and sprinkler each make
+the grass wet, and wet grass makes people slip (\cref{fig:garden}). The
+parents are $\mathrm{pa}(W)=\{R,S\}$ and $\mathrm{pa}(L)=\{W\}$; $R$ and
+$S$ have none. The descendants of $R$ are $W$ and $L$. The factorisation
+\eqref{eq:bnfactor} reads
 \[
-  p(v_1,\dots,v_n)=\prod_{k=1}^n p\bigl(v_k\mid\mathrm{pa}(v_k)\bigr),
+  p(r,s,w,l)=p(r)\,p(s)\,p(w\mid r,s)\,p(l\mid w).
 \]
-where $\mathrm{pa}(v_k)$ is the set of \emph{parents} of $v_k$: the nodes
-from which an arrow points to $v_k$. In $A\rightarrow B$, $A$ is a parent
-of $B$. Known inputs, such as the controls $\uu_t$, can be
-drawn as nodes that are always given; nothing below changes. The mower
-network of \cref{fig:bayesnet} has the parents $\mathrm{pa}(\x_{t+1})=
-\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$, and its factorisation is
-\eqref{eq:joint}. The graph also encodes conditional independences, which
-\emph{d-separation} reads directly from it.
-
-\section{Paths and the three elementary connections}
-
-A \emph{path} between two nodes is a sequence of adjacent nodes,
-\emph{regardless of the direction of the arrows}. In
-$A\leftarrow B\rightarrow C$ there is a path from $A$ to $C$, although no
-arrow goes from $A$ to $C$. Each intermediate node of a path plays one of
-three roles, set by the two arrows that meet at it
-(\cref{fig:connections}).
-\begin{enumerate}
-  \item \emph{Chain} $A\rightarrow B\rightarrow C$: $A$ influences $C$
-    through $B$.
-  \item \emph{Fork} (common cause) $A\leftarrow B\rightarrow C$: $A$ and
-    $C$ are correlated because they share the cause $B$.
-  \item \emph{Collider} (common effect) $A\rightarrow B\leftarrow C$: $A$
-    and $C$ are independent causes of $B$.
-\end{enumerate}
+\end{example}
 
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[>=Stealth,
-  var/.style={circle,draw,thick,minimum size=7mm,inner sep=0pt,font=\small}]
-  \foreach \dx/\name/\ta/\tb in {0/chain/->/->, 4.6/fork/<-/->,
-      9.2/collider/->/<-}{
-    \node[var] (A) at (\dx,0) {$A$};
-    \node[var] (B) at (\dx+1.4,0) {$B$};
-    \node[var] (C) at (\dx+2.8,0) {$C$};
-    \draw[\ta,thick] (A) -- (B);
-    \draw[\tb,thick] (B) -- (C);
-    \node[font=\small] at (\dx+1.4,-0.8) {\name};
+  var/.style={circle,draw,thick,minimum size=8mm,inner sep=0pt,font=\small}]
+  \node[var] (R) at (0,1.4) {$R$};
+  \node[var] (S) at (3,1.4) {$S$};
+  \node[var] (W) at (1.5,0) {$W$};
+  \node[var] (L) at (1.5,-1.5) {$L$};
+  \draw[->,thick] (R) -- (W);
+  \draw[->,thick] (S) -- (W);
+  \draw[->,thick] (W) -- (L);
+  \node[left=2pt,font=\small] at (R.west) {rain};
+  \node[right=2pt,font=\small] at (S.east) {sprinkler};
+  \node[right=2pt,font=\small] at (W.east) {wet grass};
+  \node[right=2pt,font=\small] at (L.east) {slip};
+\end{tikzpicture}
+\caption{The Bayesian network of \cref{ex:garden}.}
+\label{fig:garden}
+\end{figure}
+
+For the mower (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
+$\x_t$ and $\uu_t$, and the measurement $\z_t$ from $\x_t$:
+$\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$.
+The factorisation \eqref{eq:bnfactor} is then \eqref{eq:joint}. The
+controls are known inputs rather than random variables; they are drawn as
+nodes that are always given, and nothing below changes.
+
+\section{The three building blocks}
+\label{sec:three}
+
+Take three variables $A$, $B$, $C$ with an arrow between $A$ and $B$ and
+an arrow between $B$ and $C$, and no arrow between $A$ and $C$. The two
+arrows can be oriented in three essentially different ways
+(\cref{fig:connections}). In each case the question is the same: are $A$
+and $C$ independent, and does the answer change when $B$ is known?
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[>=Stealth,
+  var/.style={circle,draw,thick,minimum size=7mm,inner sep=0pt,font=\small,
+    fill=white},
+  giv/.style={fill=defblue!22}]
+  \node[font=\small\bfseries] at (2.6,1.0) {$B$ not given};
+  \node[font=\small\bfseries] at (8.6,1.0) {$B$ given};
+  \foreach \row/\name/\ta/\tb/\va/\vb in {
+      0/chain/->/->/open/blocked,
+      -1.5/fork/<-/->/open/blocked,
+      -3.0/collider/->/<-/blocked/open}{
+    \node[font=\small,anchor=east] at (0.6,\row) {\name};
+    \foreach \dx/\st/\verdict in {1.2/{}/\va, 7.2/giv/\vb}{
+      \node[var] (A) at (\dx,\row) {$A$};
+      \node[var,\st] (B) at (\dx+1.4,\row) {$B$};
+      \node[var] (C) at (\dx+2.8,\row) {$C$};
+      \draw[\ta,thick] (A) -- (B);
+      \draw[\tb,thick] (B) -- (C);
+      \node[font=\small,anchor=west] at (\dx+3.4,\row) {\verdict};
+    }
   }
 \end{tikzpicture}
-\caption{The three ways two arrows can meet at the middle node $B$ of a
-path.}
+\caption{The three ways two arrows can meet at a middle node $B$, and
+whether information passes between $A$ and $C$ (``open'') or not
+(``blocked''). A shaded node is given. Chains and forks are open until $B$
+is given; a collider is the other way round.}
 \label{fig:connections}
 \end{figure}
 
-\section{Blocked paths and d-separation}
+\subsection*{Chain: $A\rightarrow B\rightarrow C$}
 
-Let $\mathcal S$ be the set of given (observed) variables. A path is
-\emph{blocked} by $\mathcal S$ if it has at least one intermediate node $B$
-such that
-\begin{itemize}
-  \item $B$ is a chain or fork node, and $B\in\mathcal S$; or
-  \item $B$ is a collider, and neither $B$ nor any of its descendants is
-    in $\mathcal S$.
+\emph{Example.} It rains ($A$), so the grass is wet ($B$), so someone slips
+($C$). Rain makes slipping more likely: $A$ and $C$ are dependent. But if
+we already know whether the grass is wet, learning that it rained tells
+nothing more about slipping, because rain acts on slipping only through
+the wet grass.
+
+\emph{Statement.} In a chain, $A$ and $C$ are in general dependent, and
+$A\indep C\mid B$.
+
+\emph{Proof.} The factorisation \eqref{eq:bnfactor} is
+$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$. Its first two factors multiply to
+$p(a,b)$, so
+\[
+  p(c\mid a,b)=\frac{p(a,b,c)}{p(a,b)}=p(c\mid b).
+\]
+Given $B$, the value of $A$ does not change the distribution of $C$.
+
+\subsection*{Fork: $A\leftarrow B\rightarrow C$}
+
+\emph{Example.} A patient has the flu ($B$), which causes fever ($A$) and
+cough ($C$). In the population, fever and cough go together: seeing one
+makes the other more likely, because it makes the flu more likely. Among
+patients known to have the flu, a fever says nothing more about a cough.
+
+\emph{Statement.} In a fork, $A$ and $C$ are in general dependent, and
+$A\indep C\mid B$.
+
+\emph{Proof.} The factorisation is $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$.
+Dividing by $p(b)$,
+\[
+  p(a,c\mid b)=p(a\mid b)\,p(c\mid b).
+\]
+
+In both cases the given middle node is said to \emph{screen off} $A$ from
+$C$.
+
+\subsection*{Collider: $A\rightarrow B\leftarrow C$}
+
+\emph{Example.} Rain ($A$) and the sprinkler ($C$) both wet the grass
+($B$). Rain and sprinkler have nothing to do with each other: they are
+independent. Now suppose we see that the grass is wet. If we then learn
+that the sprinkler was on, rain becomes \emph{less} likely, because the
+sprinkler already explains the wet grass. Once the common effect is known,
+its two causes are no longer independent. This is called \emph{explaining
+away}.
+
+\emph{Statement.} In a collider, $A\indep C$, and in general $A$ and $C$
+are dependent given $B$.
+
+\emph{Proof.} The factorisation is $p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$.
+Summing over $b$, and using $\sum_bp(b\mid a,c)=1$,
+\[
+  p(a,c)=p(a)\,p(c):
+\]
+$A$ and $C$ are independent. Given $B$, however,
+$p(a,c\mid b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, and the factor
+$p(b\mid a,c)$ ties $a$ and $c$ together; the next example shows that the
+dependence is real.
+
+\begin{example}{Explaining away, with numbers}{explain}
+It rains with probability $0.2$, the sprinkler is on with probability
+$0.2$, independently, and the grass is wet exactly when at least one of
+the two happened. The grass is wet with probability $1-0.8\times0.8=0.36$.
+\begin{itemize}[nosep]
+  \item Knowing only that the grass is wet, the probability of rain is
+    $0.2/0.36=0.56$.
+  \item Knowing that the grass is wet \emph{and} that the sprinkler was on,
+    the grass would be wet whether it rained or not, so the wet grass says
+    nothing about rain: its probability is back to $0.2$.
 \end{itemize}
-Otherwise the path is \emph{active}. Two sets of variables $\mathcal X$
-and $\mathcal Y$ are \emph{d-separated} by $\mathcal S$ if every path
-between them is blocked. If they are, then $\mathcal X$ and $\mathcal Y$
-are independent given $\mathcal S$ in every distribution that factorises
-according to the graph.
+Given the wet grass, learning about the sprinkler changes the probability
+of rain from $0.56$ to $0.2$: the two causes are dependent.
+\end{example}
 
-\paragraph{Chains and forks: screening off.} Observing the middle node of
-a chain or a fork blocks the path. \emph{Chain}: let $A$ = ``it rains'',
-$B$ = ``the grass is wet'', $C$ = ``someone slips on the grass''. Without
-information about the grass, knowing that it rains makes slipping more
-likely. But once we know whether the grass is wet, the rain tells us
-nothing more about slipping: all its influence goes through the wetness,
-and $p(C\mid A,B)=p(C\mid B)$. The given $B$ \emph{screens off} $C$ from
-$A$. \emph{Fork}: let $B$ = ``the patient has the flu'', $A$ = ``fever'',
-$C$ = ``cough''. Fever and cough are correlated in the population, because
-both are symptoms of the flu. Among patients known to have the flu, a
-fever does not make a cough more likely.
-
-\paragraph{Colliders: explaining away.} A collider works the other way
-round: the path is blocked as long as the collider is \emph{not} given, and
-observing it (or one of its descendants) opens the path. Let $A$ = ``it
-rained'', $C$ = ``the sprinkler was on'', $B$ = ``the grass is wet''. Rain
-and sprinkler are independent. But once we see that the grass is wet,
-learning that it rained makes the sprinkler \emph{less} likely, because
-the rain already explains the wet grass. Observing a common effect makes
-its causes dependent; this is called \emph{explaining away}.
+One more fact about colliders: knowing a \emph{descendant} of the collider
+has the same effect as knowing the collider. If we do not see the grass
+but see someone slip on it, the grass is probably wet, and rain and
+sprinkler become dependent again.
 
 \begin{inwords}
-Information flows through chains and forks unless the middle node is
-known. It flows through a collider only if the collider, or something it
-causes, is known. Two variables are independent given $\mathcal S$ when
-every route between them is cut by one of these rules.
+Information flows through a chain or a fork, unless the middle node is
+known. Information does not flow through a collider, unless the collider,
+or something it causes, is known.
 \end{inwords}
+
+\section{d-separation}
+\label{sec:dsep}
+
+In a larger graph, two variables can be connected by several routes, each
+made of chains, forks and colliders. The rule of d-separation (``d'' for
+\emph{directional}) combines the three building blocks.
+
+A \emph{path} between two nodes is a sequence of nodes in which each one is
+joined to the next by an arrow, \emph{whatever the direction of the
+arrows}. In \cref{fig:garden}, $R\rightarrow W\leftarrow S$ is a path from
+$R$ to $S$, although no arrow leads from $R$ to $S$. Each intermediate node
+of a path is a chain, a fork or a collider \emph{on that path}, according
+to the two arrows of the path that meet at it.
+
+\begin{definition}{Blocked path, d-separation}{dsep}
+Let $\mathcal S$ be a set of given variables. A path is \emph{blocked} by
+$\mathcal S$ if at least one of its intermediate nodes $B$ satisfies one
+of the following:
+\begin{itemize}[nosep]
+  \item $B$ is a chain or a fork on the path, and $B$ is in $\mathcal S$;
+  \item $B$ is a collider on the path, and neither $B$ nor any descendant
+    of $B$ is in $\mathcal S$.
+\end{itemize}
+A path that is not blocked is \emph{open}. Two variables $X$ and $Y$ are
+\emph{d-separated} by $\mathcal S$ if every path between them is blocked
+by $\mathcal S$.
+\end{definition}
+
+One blocking node is enough to block a path, but every path must be
+blocked for d-separation.
+
+\begin{theorem}{d-separation implies conditional independence}{dsep}
+If $X$ and $Y$ are d-separated by $\mathcal S$ in a Bayesian network, then
+$X\indep Y\mid\mathcal S$ for every distribution that factorises as
+\eqref{eq:bnfactor}.
+\end{theorem}
+
+The proofs of \cref{sec:three} are the three smallest cases of this
+theorem. The general proof extends the same computations to any graph;
+it can be found in Koller and Friedman (see the references).
+
+\paragraph{A recipe.} To decide whether $X\indep Y\mid\mathcal S$:
+\begin{enumerate}[nosep]
+  \item Shade the nodes of $\mathcal S$.
+  \item List the paths between $X$ and $Y$, ignoring the direction of the
+    arrows.
+  \item On each path, look for a blocking node: a shaded chain or fork
+    node, or a collider that is unshaded and has no shaded descendant.
+  \item If every path has a blocking node, $X$ and $Y$ are independent
+    given $\mathcal S$. If some path has none, the graph does not
+    guarantee independence.
+\end{enumerate}
+
+\begin{example}{Three questions about the garden}{gardenq}
+In \cref{fig:garden}:
+\begin{itemize}[nosep]
+  \item \emph{Is $R\indep S$, with nothing given?} The only path is
+    $R\rightarrow W\leftarrow S$. Its middle node $W$ is a collider; it is
+    not given, and neither is its descendant $L$. The path is blocked:
+    yes, rain and sprinkler are independent.
+  \item \emph{Is $R\indep S\mid L$?} Same path, but now $L$, a descendant
+    of the collider $W$, is given. The path is open: no.
+  \item \emph{Is $R\indep L\mid W$?} The only path is
+    $R\rightarrow W\rightarrow L$, a chain whose middle node $W$ is given.
+    The path is blocked: yes. Once the state of the grass is known, rain
+    says nothing more about slipping.
+\end{itemize}
+\end{example}
 
 \section{Reading the mower's network}
 \label{sec:bayesnet-mower}
 
-\Cref{fig:bayesnet-panels} applies the rules to the four statements
-the book relies on. In each panel the shaded nodes are given, the nodes
-with an orange ring are those whose independence is in question, and the
-coloured bands are the paths between them: red when blocked, green when
-active. The panels show four consecutive steps; the rest of the chain, to
-the left and to the right, only adds paths that cross the same nodes.
+The recipe is now applied to the four statements that the book relies on.
+Each is drawn on four consecutive steps of the network of
+\cref{fig:bayesnet}; the rest of the chain, to the left and to the right,
+only adds paths that pass through the same nodes. In each drawing the
+shaded nodes are given, the nodes with an orange ring are the two whose
+independence is in question, and a coloured band marks a path between
+them: red if it is blocked, green if it is open.
 
-\begin{figure}[p]
-\centering
-\input{figures/tikz/bn_A2}\\[2pt]
-{\small (a) \ref{A2}: $\z_t$ given $\x_{0:t},\uu_{0:t-1},\z_{1:t-1}$}
-\\[10pt]
-\input{figures/tikz/bn_A1}\\[2pt]
-{\small (b) \ref{A1}: $\x_{t+1}$ given $\x_{0:t},\uu_{0:t},\z_{1:t}$}
-\\[10pt]
-\input{figures/tikz/bn_pred}\\[2pt]
-{\small (c) prediction: $\uu_t$ and $\x_t$ given $\z_{1:t},\uu_{0:t-1}$}
-\\[10pt]
-\input{figures/tikz/bn_smooth}\\[2pt]
-{\small (d) smoothing: $\x_t$ and $\z_{t+1}$ given $\z_{1:t},\uu_{0:t+1}$}
-\caption{d-separation in the mower network. Shaded: given. Orange ring:
-the variables whose independence is tested. Red band: a blocked path;
-green band: an active path. (a)--(c) are independences, (d) is not.}
-\label{fig:bayesnet-panels}
-\end{figure}
+Two features of this network do most of the work. First, a measurement
+$\z_t$ has a single neighbour, its parent $\x_t$. Second, the poses form a
+chain, so that the past and the future are joined only through the
+current pose.
 
-\begin{enumerate}[label=(\alph*)]
-  \item \emph{Assumption \ref{A2}}: $p(\z_t\mid\x_{0:t},\uu_{0:t-1},
-    \z_{1:t-1})=p(\z_t\mid\x_t)$. The only neighbour of $\z_t$ is its
-    parent $\x_t$, so every path into $\z_t$ ends with
-    $\x_t\rightarrow\z_t$. At $\x_t$ the path is a chain (coming from
-    $\x_{t-1}$ or $\uu_{t-1}$) or a fork (coming from $\x_{t+1}$), and
-    $\x_t$ is given: every path is blocked.
-  \item \emph{Assumption \ref{A1}}: $p(\x_{t+1}\mid\x_{0:t},\uu_{0:t},
-    \z_{1:t})=p(\x_{t+1}\mid\x_t,\uu_t)$. The variables to
-    drop are $\x_{0:t-1}$, $\uu_{0:t-1}$ and $\z_{1:t}$. Each of them is
-    joined to the rest of the graph only through $\x_t$, so every path from
-    one of them to $\x_{t+1}$ passes through $\x_t$, as a chain
-    ($\x_{t-1}\rightarrow\x_t\rightarrow\x_{t+1}$) or a fork
-    ($\z_t\leftarrow\x_t\rightarrow\x_{t+1}$). Since $\x_t$ is given, all
-    these paths are blocked. The other parent of $\x_{t+1}$, the control
-    $\uu_t$, stays in the conditioning.
-  \item \emph{The prediction step} (proof of \cref{thm:bayes}) drops
-    $\uu_t$ from $p(\x_t\mid\z_{1:t},\uu_{0:t})$. Every path from $\uu_t$
-    to $\x_t$ starts with $\uu_t\rightarrow\x_{t+1}$, and continues either
-    with $\x_{t+1}\leftarrow\x_t$, making $\x_{t+1}$ a collider, or with
-    $\x_{t+1}\rightarrow\x_{t+2}$ or $\x_{t+1}\rightarrow\z_{t+1}$,
-    which only lead to the future. Neither $\x_{t+1}$ nor any of its
-    descendants is given, so all these paths are blocked: the next
-    control says nothing about the current pose. The same argument shows,
-    in the proof of \cref{prop:joint}, that future controls carry no
-    information about past poses.
-  \item \emph{Smoothing.} Given the measurements up to $t$ only, is $\x_t$
-    independent of the \emph{next} measurement $\z_{t+1}$? No: the path
-    $\x_t\rightarrow\x_{t+1}\rightarrow\z_{t+1}$ is a chain whose middle
-    node $\x_{t+1}$ is not given, so it is active. A later measurement
-    still carries information about an earlier pose. A filter ignores it,
-    a smoother uses it (\cref{sec:smoothing}).
-\end{enumerate}
+\subsection*{(a) Assumption \ref{A2}: the measurement depends only on the
+current pose}
+
+\emph{Claim.} $p(\z_t\mid\x_{0:t},\uu_{0:t-1},\z_{1:t-1})=p(\z_t\mid\x_t)$:
+given $\x_t$, the measurement $\z_t$ is independent of all the earlier
+poses, controls and measurements.
+
+\begin{center}
+\input{figures/tikz/bn_A2}
+\end{center}
+
+\emph{Check.} Every path that reaches $\z_t$ ends with the arrow
+$\x_t\rightarrow\z_t$, because $\x_t$ is its only neighbour. On such a
+path $\x_t$ is an intermediate node with an arrow leaving towards $\z_t$,
+so it is a chain node (if the path arrives from $\x_{t-1}$ or
+$\uu_{t-1}$) or a fork node (if it arrives from $\x_{t+1}$), never a
+collider. It is given, so every path is blocked. The drawing shows two of
+them, from $\z_{t-1}$ and from $\uu_{t-1}$.
+
+\subsection*{(b) Assumption \ref{A1}: the next pose depends only on the
+current pose and control}
+
+\emph{Claim.} $p(\x_{t+1}\mid\x_{0:t},\uu_{0:t},\z_{1:t})=
+p(\x_{t+1}\mid\x_t,\uu_t)$: given $\x_t$ and $\uu_t$, the next pose is
+independent of the earlier poses $\x_{0:t-1}$, the earlier controls
+$\uu_{0:t-1}$ and the measurements $\z_{1:t}$.
+
+\begin{center}
+\input{figures/tikz/bn_A1}
+\end{center}
+
+\emph{Check.} Each of the variables to drop is joined to the rest of the
+graph only through $\x_t$. So every path from one of them to $\x_{t+1}$
+passes through $\x_t$ and leaves it by the arrow
+$\x_t\rightarrow\x_{t+1}$: there $\x_t$ is a chain node
+($\x_{t-1}\rightarrow\x_t\rightarrow\x_{t+1}$) or a fork node
+($\z_t\leftarrow\x_t\rightarrow\x_{t+1}$). It is given, so every path is
+blocked.
+
+\subsection*{(c) Prediction: the next control says nothing about the
+current pose}
+
+\emph{Claim.} $p(\x_t\mid\z_{1:t},\uu_{0:t})=p(\x_t\mid\z_{1:t},
+\uu_{0:t-1})$: given the measurements and the earlier controls, $\x_t$ is
+independent of $\uu_t$. This is the step of the proof of \cref{thm:bayes}
+that turns the second factor into $\bel(\x_t)$.
+
+\begin{center}
+\input{figures/tikz/bn_pred}
+\end{center}
+
+\emph{Check.} The only arrow at $\uu_t$ is $\uu_t\rightarrow\x_{t+1}$, so
+every path from $\uu_t$ starts with it. To reach $\x_t$, the path must
+then come back along $\x_{t+1}\leftarrow\x_t$: the two arrows point into
+$\x_{t+1}$, which is a collider. Neither $\x_{t+1}$ nor any of its
+descendants ($\z_{t+1}$, $\x_{t+2}$, \dots) is given, since only
+measurements up to time $t$ are. The path is blocked. A path that
+continues from $\x_{t+1}$ into the future cannot return to $\x_t$ without
+passing through $\x_{t+1}$ a second time, so there is no other path.
+
+The same argument shows that all the future controls are independent of
+the past poses, which is used in the proof of \cref{prop:joint}.
+
+\subsection*{(d) Smoothing: a later measurement does say something about
+an earlier pose}
+
+\emph{Question.} Given the measurements up to time $t$, is $\x_t$
+independent of the next measurement $\z_{t+1}$?
+
+\begin{center}
+\input{figures/tikz/bn_smooth}
+\end{center}
+
+\emph{Check.} The path $\x_t\rightarrow\x_{t+1}\rightarrow\z_{t+1}$ is a
+chain whose middle node $\x_{t+1}$ is not given. Nothing blocks it: the
+path is open, and the graph does not give independence. Indeed $\z_{t+1}$
+is a measurement of $\x_{t+1}$, which is one step away from $\x_t$. A
+filter ignores this information about the past; a smoother uses it
+(\cref{sec:smoothing}).
 
 \begin{mower}
 The controls may also be computed from the measurements, as a mower does
-when it steers back towards its planned path. This adds arrows
-$\z_{1:t}\rightarrow\uu_t$. Panel (c) still holds: the new paths from
-$\uu_t$ back to $\x_t$ pass through a given measurement $\z_s$, $s\le t$,
-as a chain or a fork node ($\uu_t\leftarrow\z_s\leftarrow\x_s$), and are
-blocked. The filter does not care how the controls were chosen, as long as
-they depend only on the past measurements.
+when it steers back towards its planned path. This adds arrows from the
+past measurements $\z_{1:t}$ to $\uu_t$. Statement (c) still holds: a new
+path from $\uu_t$ back to $\x_t$ passes through a measurement $\z_s$ with
+$s\le t$, as in $\uu_t\leftarrow\z_s\leftarrow\x_s$, where $\z_s$ is a
+chain node. It is given, so the path is blocked. The filter does not care
+how the controls were chosen, as long as they depend only on the past
+measurements.
 \end{mower}

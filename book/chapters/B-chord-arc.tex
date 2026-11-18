@@ -31,12 +31,12 @@ turn error. It needs no derivative or series, only areas.
   \node[font=\small] at (\x/2:1.15) {$x$};
   \fill (P) circle (1.5pt) node[below left] {$\p$};
   \fill (A) circle (1.5pt) node[below right] {$\p'$};
-  \fill (Q) circle (1.5pt) node[above left] {$\bm q$};
+  \fill (Q) circle (1.5pt) node[above left] {$\bm r$};
   \fill (T) circle (1.5pt) node[right] {$\bm t$};
   \draw[decorate,decoration={brace,amplitude=4pt,raise=2pt}]
     (A) -- (T) node[midway,right=7pt,font=\small] {$s\tan x$};
   \node[font=\small,anchor=west] at (4.1,2.0)
-    {\tikz\fill[green!40] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm q$:
+    {\tikz\fill[green!40] (0,0) rectangle (0.3,0.2); triangle $\p\,\p'\bm r$:
     $\tfrac12 s^2\sin x$};
   \node[font=\small,anchor=west] at (4.1,1.5)
     {\tikz\fill[blue!25] (0,0) rectangle (0.3,0.2); sector: $\tfrac12 s^2 x$};
@@ -50,20 +50,20 @@ the previous one, so their areas increase.}
 \end{figure}
 
 Take a circle of radius $s$ centred at $\p$, a point $\p'$ on it, and the
-point $\bm q$ on the circle seen from $\p$ at the angle $x$ from $\p'$
+point $\bm r$ on the circle seen from $\p$ at the angle $x$ from $\p'$
 (\cref{fig:sinx}). Let $\bm t$ be the point where the ray from $\p$ through
-$\bm q$ meets the tangent at $\p'$. Three regions are nested:
+$\bm r$ meets the tangent at $\p'$. Three regions are nested:
 \begin{itemize}
-  \item the triangle $\p\,\p'\,\bm q$, with base $\|\p-\bm q\|=s$ and height
-    $s\sin x$ (the distance from $\p'$ to the line $\p\bm q$), so area
+  \item the triangle $\p\,\p'\,\bm r$, with base $\|\p-\bm r\|=s$ and height
+    $s\sin x$ (the distance from $\p'$ to the line $\p\bm r$), so area
     $\tfrac12 s^2\sin x$;
-  \item the circular sector $\p\,\p'\,\bm q$, a fraction $x/(2\pi)$ of the
+  \item the circular sector $\p\,\p'\,\bm r$, a fraction $x/(2\pi)$ of the
     disc of area $\pi s^2$, so area $\tfrac12 s^2 x$;
   \item the triangle $\p\,\p'\,\bm t$, right-angled at $\p'$ with legs $s$
     and $s\tan x$, so area $\tfrac12 s^2\tan x$.
 \end{itemize}
 The first is inside the second because the sector is convex (its angle is
-less than $\pi$) and contains the three vertices $\p,\p',\bm q$. The second
+less than $\pi$) and contains the three vertices $\p,\p',\bm r$. The second
 is inside the third because the whole disc lies on the same side of the
 tangent as $\p$: any point $\bm y\ne\p'$ of the tangent satisfies
 $\|\bm y-\p\|^2=s^2+\|\bm y-\p'\|^2>s^2$ (Pythagoras, the tangent being
