@@ -23,6 +23,7 @@ from bayesian_filters import (EKF, UKF, CompassGpsKF, GridFilter, ParticleFilter
                               nees, nees_bounds, position_error, run_filter, sigma_points, simulate,
                               systematic_resample, unscented_transform, viz)
 from bayesian_filters.ukf import pose_mean, pose_residual
+from bayesian_filters.world import wrap_angle
 
 viz.style()
 plt.rcParams.update({"font.size": 9, "savefig.bbox": "tight", "savefig.pad_inches": 0.03})
@@ -219,6 +220,39 @@ def fig_arc(with_ut, name):
     ax.set_aspect("equal"); ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=7.5)
     ax.set_xlabel("$x$"); ax.set_ylabel("$y$")
     save(fig, name)
+
+
+def fig_ekf_track():
+    """The EKF on the standard run: the lawn, and one error component inside its 2-sigma band."""
+    world = World.default()
+    run = simulate(world, seed=1)
+    f = EKF.from_world(world, run.truth[0], np.diag([1.0, 1.0, 0.05]))
+    rr = run_filter(f, run)
+    err = rr.means - run.truth
+    err[:, 2] = wrap_angle(err[:, 2])
+    sd = np.sqrt(np.einsum("tii->ti", rr.covs))
+    inside = np.mean(np.abs(err[1:]) <= 2 * sd[1:], axis=0)
+    print("ekf track: RMSE %.2f, inside 2 sigma (x, y, theta): %s"
+          % (np.sqrt(np.mean(np.sum(err[1:, :2] ** 2, axis=1))), np.round(inside, 3)))
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(W, W * 0.42), gridspec_kw=dict(width_ratios=[1, 1.3]))
+    n = 150
+    a1.plot(run.truth[: n + 1, 0], run.truth[: n + 1, 1], color=viz.INK, lw=1.2, label="true path")
+    a1.plot(rr.means[: n + 1, 0], rr.means[: n + 1, 1], color=viz.COLORS["EKF"], lw=1.2, ls="--", label="EKF")
+    lm = np.asarray(world.landmarks)
+    a1.scatter(lm[:, 0], lm[:, 1], marker="*", s=70, color=viz.COLORS["UKF"], zorder=5, label="landmarks")
+    a1.set_aspect("equal"); a1.set_xlabel("$x$"); a1.set_ylabel("$y$")
+    a1.set_title("first %d steps" % n, fontsize=8.5)
+    a1.legend(fontsize=7, loc="center")
+    steps = np.arange(len(err))
+    a2.fill_between(steps, -2 * sd[:, 0], 2 * sd[:, 0], color=viz.COLORS["EKF"], alpha=0.18, lw=0,
+                    label=r"$\pm2\sigma$ claimed by the filter")
+    a2.plot(steps, err[:, 0], color=viz.COLORS["EKF"], lw=0.9, label="error on $p^x$")
+    a2.axhline(0, color=viz.INK_2, lw=0.5)
+    a2.set_xlabel("step"); a2.set_ylabel("error on $p^x$")
+    a2.set_title("whole run", fontsize=8.5)
+    a2.legend(fontsize=7, loc="upper right")
+    plt.tight_layout()
+    save(fig, "ch04_ekf_track")
 
 
 def fig_ekf_banana():
@@ -674,6 +708,7 @@ if __name__ == "__main__":
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()
+    fig_ekf_track()
     fig_ekf_banana()
     fig_arc(False, "ch04_arc")
     fig_arc(True, "ch05_arc")

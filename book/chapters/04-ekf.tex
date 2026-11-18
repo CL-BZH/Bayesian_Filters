@@ -63,7 +63,38 @@ towards the landmark shortens the range by the same amount, and that the
 range does not depend on the heading. The second row says that moving
 across the line of sight changes the bearing by the displacement divided
 by the distance ($1/\sqrt q$ per unit), and that turning by an angle
-changes the bearing by the opposite angle.
+changes the bearing by the opposite angle (\cref{fig:hgeom}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.15,>=Stealth]
+  \coordinate (P) at (0,0);
+  \coordinate (L) at (5.2,2.2);
+  \pgfmathsetmacro{\la}{atan2(2.2,5.2)}
+  % line of sight
+  \draw[black!60] (P) -- (L) node[pos=0.6,below,sloped,font=\small]
+    {range $r=\sqrt q$};
+  \fill[orange!85!black] (L) circle (2.2pt) node[above right,font=\small]
+    {$\bell$};
+  % displacement along the line of sight
+  \draw[->,very thick,blue!70!black] (P) -- (\la:1.3)
+    node[pos=0.3,below right=1pt,font=\small,align=left]
+    {along: $r$ decreases\\by the same amount};
+  % displacement across the line of sight
+  \coordinate (Pa) at (\la+90:1.3);
+  \draw[->,very thick,red!70!black] (P) -- (Pa)
+    node[pos=0.5,left=2pt,font=\small] {across: $a$};
+  \draw[black!60,dashed] (Pa) -- (L) node[pos=0.5,above,sloped,
+    font=\small,red!70!black] {line of sight turned by $\approx a/r$};
+  \fill (P) circle (1.6pt) node[below left,font=\small] {$\p$};
+\end{tikzpicture}
+\caption{Reading the rows of $H$. Moving the mower towards the landmark
+(blue) shortens the range by the distance moved and leaves the direction
+of the line of sight unchanged. Moving it by $a$ across the line of sight
+(red) leaves the range unchanged to first order and turns the line of
+sight by about $a/r$.}
+\label{fig:hgeom}
+\end{figure}
 
 Hand-derived Jacobians are a classic source of bugs. The notebook and the
 tests compare them with central finite differences; the largest
@@ -122,12 +153,24 @@ common EKF bug in localisation. If the predicted bearing is $3.10$ and the
 measured one is $-3.12$, the raw innovation is $-6.22$ instead of $+0.063$
 (\cref{lem:wrap}), and the update throws the mower across the lawn.
 
-On the standard run with four landmarks always in view, the EKF's position
-RMSE is $1.13$, well below the range noise $\sigma_r=5$ and the
-$\approx5$ units of position uncertainty that a bearing error of
-$0.05$\,rad produces at 100 units. Each error component stays inside its
-own $\pm2\sigma$ band about $95\%$ of the time: the filter is accurate and
-honest.
+\Cref{fig:ekftrack} shows the filter on the standard run, with four
+landmarks always in view. The EKF's position RMSE is $1.13$, well below the
+range noise $\sigma_r=5$ and the $\approx5$ units of position uncertainty
+that a bearing error of $0.05$\,rad produces at 100 units: combining four
+landmarks and the motion model over time pays off. Each error component
+stays inside its own $\pm2\sigma$ band about $95\%$ of the time, as it
+should for a Gaussian: the filter is accurate and honest.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/ch04_ekf_track.pdf}
+\caption{The EKF on the standard run (seed 1), with identified landmarks.
+Left: the true path, the estimate (dashed, almost on top of it) and the
+four landmarks. Right: the error on $p^x$, and the band of plus or minus
+two standard deviations taken from the filter's own covariance. The error
+stays inside the band about $95\%$ of the time.}
+\label{fig:ekftrack}
+\end{figure}
 
 \section{What linearisation throws away}
 
@@ -245,14 +288,22 @@ to hundreds of times more precision than it has.}
 \label{fig:ekftransient}
 \end{figure}
 
-The mechanism is easy to see. The Jacobian $H$ is evaluated at the
-estimate $\bx$, which is tens of units and up to a radian away from the
-truth. The update then treats the measurement as a linear function of the
-state with \emph{that} slope, and $H\T R^{-1}H$ (\cref{prop:information})
-adds information along directions computed at the wrong place. The
-covariance shrinks as if the measurement had pinned the state down, while
-the estimate has only moved part of the way. The next update, with a
-small $\bar P$, then gives the new measurements little weight. If the error
+The mechanism has three steps.
+\begin{enumerate}[nosep]
+  \item The Jacobian $H$ is evaluated at the estimate $\bx$, which is tens
+    of units and up to a radian away from the truth. It describes how the
+    measurement would change around the \emph{wrong} place.
+  \item The covariance update depends only on $H$ and $R$, not on the
+    measurement: in information form it adds $H\T R^{-1}H$
+    (\cref{prop:information}), whatever the innovation. So the covariance
+    shrinks as much as if the linear model were exact, as if the
+    measurement had pinned the state down.
+  \item The mean, meanwhile, has moved along a straight line computed
+    from the wrong slopes, and has only gone part of the way to the truth.
+\end{enumerate}
+The filter now claims a small uncertainty around an estimate that is still
+far off. The next update, with its small $\bar P$, gives the new
+measurements little weight, and the correction is slow. If the error
 had been larger, that false confidence could have made the filter reject
 (by gating, \cref{sec:ekf-association}) the very measurements that would
 have corrected it.
@@ -331,9 +382,51 @@ follows a $\chi^2_2$ distribution (this is the NIS of
 even the best Mahalanobis distance exceeds a high quantile of $\chi^2_2$:
 such a measurement is too surprising to come from any known landmark.
 
-This works as long as the estimate is good. Once it is off by more than
-about half the spacing between landmarks, the nearest landmark is the
-wrong one. The update then pulls the estimate \emph{further} in the wrong
+This works as long as the estimate is good (\cref{fig:nnfail}). A
+measurement says where a landmark is \emph{relative to the mower}. The
+filter attaches this relative position to its \emph{estimated} pose to
+find where the landmark should be on the lawn, and picks the known
+landmark closest to that point. If the estimate is off, that point is off
+by the same amount. Once the error exceeds about half the spacing between
+landmarks, the nearest landmark is the wrong one.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.0,>=Stealth,
+    mower/.style={line width=0.5pt}]
+  \coordinate (A) at (0.9,3.3);
+  \coordinate (B) at (5.0,2.5);
+  \coordinate (T) at (0.2,0);      % true position
+  \coordinate (E) at (3.3,0);      % estimated position
+  \coordinate (G) at ($(E)+(A)-(T)$); % where the estimate puts the landmark
+  \fill[orange!85!black] (A) circle (2.4pt) node[above left,font=\small,
+    align=right] {landmark 1\\(the one seen)};
+  \fill[orange!85!black] (B) circle (2.4pt) node[right=3pt,font=\small]
+    {landmark 2};
+  \draw[->,thick,green!45!black] (T) -- (A) node[pos=0.5,left=1pt,
+    font=\small,align=right] {what the\\sensor measures};
+  \draw[->,thick,blue!70!black] (E) -- (G) node[pos=0.35,right=3pt,
+    font=\small,align=left] {the same measurement,\\attached to the\\estimate};
+  \draw[blue!70!black] (G) circle (3.5pt);
+  \draw[densely dotted,blue!70!black] (G) -- (B) node[pos=0.5,
+    above right=-2pt,font=\small] {near};
+  \draw[densely dotted,blue!70!black] (G) -- (A) node[pos=0.5,above,
+    font=\small] {far};
+  \fill[green!45!black] (T) circle (2.2pt) node[below,font=\small,
+    align=center] {true\\position};
+  \fill[blue!70!black] (E) circle (2.2pt) node[below,font=\small,
+    align=center] {estimated\\position};
+  \draw[<->,black!60] ($(T)+(0,-1.0)$) -- ($(E)+(0,-1.0)$)
+    node[pos=0.5,below,font=\small] {error of the estimate};
+\end{tikzpicture}
+\caption{Why nearest-neighbour association fails when the estimate is far
+off. The mower sees landmark 1 (green arrow). The filter attaches the same
+relative measurement to its estimated position (blue arrow) and lands at
+the blue circle, which is closer to landmark 2. It concludes that it has
+seen landmark 2.}
+\label{fig:nnfail}
+\end{figure}
+ The update then pulls the estimate \emph{further} in the wrong
 direction and shrinks its covariance, which makes the next wrong
 association even more likely. In the showdown of
 Chapter~\ref{ch:choosing}, an EKF with nearest-neighbour association loses
