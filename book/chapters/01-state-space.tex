@@ -333,11 +333,70 @@ $V=\partial f/\partial\uu$ is the \emph{Jacobian matrix} of $f$ with
 respect to the control, and \eqref{eq:firstorder} is the first-order Taylor
 expansion of $f(\x_t,\uu_t+\bepsilon_t)$ in the noise.
 
-It is convenient to measure the pose error in the frame of the step. Let
-$e_\parallel$ be the component of $\q-\p'$ along the intended heading
-$(\cos\theta',\sin\theta')$, $e_\perp$ its component along the sideways
-direction $(-\sin\theta',\cos\theta')$, and $e_\theta=\varphi-\theta'$ the
-heading error.
+It is convenient to measure the pose error in a frame attached to the
+step (\cref{fig:frame}): its origin is the intended end position $\p'$,
+its first axis points along the intended heading
+$(\cos\theta',\sin\theta')$, and its second axis points sideways, to the
+left, along $(-\sin\theta',\cos\theta')$. Let $e_\parallel$ and $e_\perp$
+be the coordinates of the actual position $\q$ in this frame, that is, the
+components of $\q-\p'$ along the two axes, and let
+$e_\theta=\varphi-\theta'$ be the heading error.
+
+This frame is not fixed on the lawn: it travels and turns with the
+intended path, and each step has its own. It is the frame of the tangent
+and the normal to the intended path (its Frenet frame). Errors are
+expressed in it because the two control errors act along its axes, as the
+next proposition shows; in the lawn's fixed $x$ and $y$ axes the same
+errors would be mixed by $\cos\theta'$ and $\sin\theta'$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.45,>=Stealth]
+  \def\th{20}\def\s{4.0}\def\dth{18}\def\d{4.9}
+  \coordinate (P) at (0,0);
+  \coordinate (Pp) at (\th:\s);
+  \coordinate (Q) at (\th+\dth:\d);
+  \pgfmathsetmacro{\epar}{\d*cos(\dth)-\s}
+  \pgfmathsetmacro{\eperp}{\d*sin(\dth)}
+  \coordinate (F) at ($(Pp)+(\th:\epar)$);
+  % intended and actual steps
+  \draw[->,thick,black!80] (P) -- (Pp) node[pos=0.5,below right=-1pt,
+    font=\small] {$s$};
+  \draw[->,thick,blue!70!black] (P) -- (Q) node[pos=0.5,above left=-1pt,
+    font=\small] {$d$};
+  % axes of the frame at p'
+  \draw[->,black!55] (Pp) -- ++(\th:2.3) node[right,font=\small,align=left]
+    {along the\\intended heading};
+  \draw[->,black!55] (Pp) -- ++(\th+90:2.3) node[above,font=\small]
+    {sideways};
+  % components of the error
+  \draw[very thick,orange!85!black] (Pp) -- (F)
+    node[pos=0.6,above left=-1pt,font=\small] {$e_\parallel$};
+  \draw[very thick,orange!85!black] (F) -- (Q)
+    node[pos=0.5,right=1pt,font=\small] {$e_\perp$};
+  \draw[black!60] (F) ++(\th+180:0.16) -- ++(\th+90:0.16) -- ++(\th:0.16);
+  % headings at q
+  \draw[dashed,black!45] (Q) -- ++(\th:1.5);
+  \draw[->,thick,blue!70!black] (Q) -- ++(\th+\dth:1.5)
+    node[right,font=\small] {actual heading $\varphi$};
+  \draw[->,black!70] (Q) ++(\th:1.0) arc[start angle=\th,
+    end angle=\th+\dth,radius=1.0];
+  \node[font=\small] at ($(Q)+({\th+\dth/2}:1.25)$) {$e_\theta$};
+  \node[font=\small,black!55,anchor=west] at ($(Q)+(\th:1.5)$)
+    {direction $\theta'$};
+  \fill (P) circle (1.5pt) node[below left] {$\p$};
+  \fill (Pp) circle (1.5pt) node[below right] {$\p'$};
+  \fill[blue!70!black] (Q) circle (1.5pt) node[above left] {$\q$};
+\end{tikzpicture}
+\caption{The frame of the step. Black: the intended step, ending at $\p'$
+with heading $\theta'$. Blue: the actual step, ending at $\q$ with heading
+$\varphi$. The frame has its origin at $\p'$ and its axes along and across
+the intended heading. The position error $\q-\p'$ has the components
+$e_\parallel$ (along) and $e_\perp$ (sideways); the heading error
+$e_\theta$ is the angle from the intended to the actual heading. The
+errors are exaggerated.}
+\label{fig:frame}
+\end{figure}
 
 \begin{proposition}{The pose error to first order}{firstorder}
 To first order in the noise:
