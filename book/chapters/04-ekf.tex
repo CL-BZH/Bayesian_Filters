@@ -383,9 +383,16 @@ maximum-likelihood choice of \cref{ch:bayes} does not have.
       \qquad\text{that is,}\qquad p_X(x)=\frac{p_Z(\ln x)}{x}.
     \]
     The factor $1/x$ favours the small values of $x$ and pulls the maximum
-    below $e^\mu$. Precisely, with $z=\ln x$,
-    $\ln p_X=-\frac{(z-\mu)^2}{2\sigma^2}-z+\text{const}$, whose derivative
-    $-\frac{z-\mu}{\sigma^2}-1$ vanishes at $z=\mu-\sigma^2$. So intervals
+    below $e^\mu$. Precisely, take the logarithm of this relation and write
+    $z=\ln x$. The Gaussian density is
+    $p_Z(z)=\frac{1}{\sigma\sqrt{2\pi}}\,e^{-(z-\mu)^2/(2\sigma^2)}$, so
+    \[
+      \ln p_X(x)=\ln p_Z(z)-\ln x
+      =-\frac{(z-\mu)^2}{2\sigma^2}-z-\ln\bigl(\sigma\sqrt{2\pi}\bigr).
+    \]
+    The last term is a constant. The derivative with respect to $z$ is
+    $-(z-\mu)/\sigma^2-1$, which vanishes at $z=\mu-\sigma^2$, and the
+    maximum of $p_X$ is at $x=e^z=e^{\mu-\sigma^2}$. So intervals
     of equal length in $Z$ are not of equal length in $X$, and ``highest
     probability per unit volume'' does not designate the same point.
   \item \emph{The maximum of a likelihood does not.} A likelihood is not a
