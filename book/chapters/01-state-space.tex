@@ -620,13 +620,16 @@ $\varepsilon_{\delta,2}$ before the second (\cref{fig:twolegs}).
     $\varepsilon_{\delta,1}+\varepsilon_{\delta,2}$. The two errors count
     equally: one degree too much at the first turn or at the second gives
     the same final heading.
-  \item \emph{Final sideways error.} Here they do not count equally. The
-    first error is made before anything is driven, so \emph{both} legs are
-    driven in a wrong direction, and the mower ends
-    $2s\,\varepsilon_{\delta,1}$ to the side. The second error is made
-    after the first leg has been driven; it turns the second leg only, and
-    moves the end point by a further $s\,\varepsilon_{\delta,2}$ to the
-    side.
+  \item \emph{Final sideways error.} Here they do not count equally.
+    Recall that each step is a turn on the spot followed by a drive. The
+    first error happens during the first turn: when that turn is over, the
+    mower has not moved yet, so its position is still correct, but it is
+    facing a slightly wrong direction. The position error appears as it
+    drives. \emph{Both} legs are then driven in that wrong direction, and
+    the mower ends $2s\,\varepsilon_{\delta,1}$ to the side. The second
+    error happens during the second turn, after the first leg has been
+    driven; it turns the second leg only, and moves the end point by a
+    further $s\,\varepsilon_{\delta,2}$ to the side.
 \end{itemize}
 To first order, the sideways error is
 $2s\,\varepsilon_{\delta,1}+s\,\varepsilon_{\delta,2}$ and the heading error
