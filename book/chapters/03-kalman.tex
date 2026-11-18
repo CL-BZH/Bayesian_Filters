@@ -11,6 +11,19 @@ whether a filter is \emph{honest}: the NEES test.
 
 \section{Two facts about Gaussians}
 
+The Bayes filter does two things to a belief: it pushes it through the
+motion model, and it conditions it on a measurement. For Gaussians both
+operations have closed forms. A linear map of a Gaussian is Gaussian
+(\cref{lem:affine}), and a Gaussian conditioned on a linear measurement is
+Gaussian (\cref{thm:conditioning}). The Kalman filter is these two facts
+applied in turn.
+
+Notation: for random vectors $X$ and $Y$ with means $\bmu_x$ and $\bmu_y$,
+$\Cov(X,Y)=\E[(X-\bmu_x)(Y-\bmu_y)\T]$ is their \emph{cross-covariance}
+matrix, and $\Cov(X)=\Cov(X,X)$. For matrices $A$ and $B$,
+$\Cov(AX,BY)=A\Cov(X,Y)B\T$. Two vectors are \emph{uncorrelated} if
+$\Cov(X,Y)=0$.
+
 \begin{definition}{Multivariate Gaussian}{gaussian}
 A random vector $X\in\R^n$ is Gaussian, $X\sim\Normal(\bmu,\Sigma)$ with
 $\Sigma$ symmetric positive semi-definite, if every linear combination
@@ -38,6 +51,32 @@ affine map of it; its covariance is $A\Sigma A\T+Q$ because the cross
 covariance of $X$ and $W$ is zero.
 \end{proof}
 
+Independent random vectors are always uncorrelated. For jointly Gaussian
+vectors the converse holds, a fact used several times below.
+
+\begin{lemma}{Uncorrelated jointly Gaussian vectors are independent}{uncorr}
+If $(X,Y)$ is jointly Gaussian and $\Cov(X,Y)=0$, then $X$ and $Y$ are
+independent.
+\end{lemma}
+
+\begin{proof}
+A distribution is determined by its characteristic function
+$\E[e^{i\vect a\T X}]$, and for a scalar Gaussian $G$ with mean $m$ and
+variance $v$, $\E[e^{iG}]=e^{im-v/2}$. For any $\vect a,\vect b$, the
+scalar $\vect a\T X+\vect b\T Y$ is Gaussian with mean
+$\vect a\T\bmu_x+\vect b\T\bmu_y$ and variance
+$\vect a\T\Sigma_{xx}\vect a+\vect b\T\Sigma_{yy}\vect b$, the cross term
+$2\,\vect a\T\Cov(X,Y)\,\vect b$ being zero. Hence
+\[
+  \E\bigl[e^{i(\vect a\T X+\vect b\T Y)}\bigr]
+  =e^{i\vect a\T\bmu_x-\frac12\vect a\T\Sigma_{xx}\vect a}\;
+   e^{i\vect b\T\bmu_y-\frac12\vect b\T\Sigma_{yy}\vect b}
+  =\E\bigl[e^{i\vect a\T X}\bigr]\,\E\bigl[e^{i\vect b\T Y}\bigr].
+\]
+The joint characteristic function is the product of the two marginal ones,
+which is the characteristic function of independent $X$ and $Y$.
+\end{proof}
+
 The definition allows a covariance $\Sigma$ that is not invertible. The
 next lemma says what such a Gaussian looks like; it is not needed to
 derive the Kalman filter, but \cref{prop:degenerate} relies on it.
@@ -58,8 +97,7 @@ Let $X\sim\Normal(\bmu,\Sigma)$ in $\R^n$.
 (Cholesky). Let $Z=L^{-1}(X-\bmu)$. By \cref{lem:affine}, $Z$ is Gaussian
 with mean $\vect0$ and covariance $L^{-1}\Sigma L^{-\mathsf T}=I$. Its
 components are jointly Gaussian and uncorrelated, hence independent
-standard normals (the same fact is used in the proof of
-\cref{thm:conditioning}), so $Z$ has the density
+standard normals (\cref{lem:uncorr}), so $Z$ has the density
 $(2\pi)^{-n/2}\exp(-\tfrac12\norm{\vect z}^2)$. Since $X=\bmu+LZ$ is an
 invertible affine map of $Z$, the change-of-variables formula gives $X$
 the density
@@ -108,8 +146,7 @@ $(E,Y)$ is an affine map of $(X,Y)$, hence jointly Gaussian, and
 \[
   \Cov(E,Y)=\Sigma_{xy}-K\Sigma_{yy}=0 .
 \]
-Uncorrelated jointly Gaussian vectors are independent (their joint
-characteristic function factorises), so $E$ is independent of $Y$ and
+By \cref{lem:uncorr}, $E$ is independent of $Y$, and
 $E\sim\Normal(\vect0,\Sigma_{xx}-K\Sigma_{yx})$ by \cref{lem:affine}
 (expand $\Cov(E)=\Sigma_{xx}-K\Sigma_{yx}-\Sigma_{xy}K\T+K\Sigma_{yy}K\T$
 and use $K\Sigma_{yy}=\Sigma_{xy}$). Writing
@@ -139,6 +176,12 @@ to the more precise one, and is narrower than both.}
 
 \section{The filter}
 
+The Kalman filter applies to models in which the next state is a linear
+function of the current state and of the control, and the measurement is a
+linear function of the state, each with added Gaussian noise. The matrix
+$F_t$ says how the state evolves by itself, $B_t$ how the control acts on
+it, and $H_t$ which combination of the state the sensor sees.
+
 \begin{definition}{Linear-Gaussian model}{lgmodel}
 \begin{align*}
   \x_{t+1}&=F_t\x_t+B_t\uu_t+\w_t, & \w_t&\sim\Normal(\vect0,Q_t),\\
@@ -147,6 +190,10 @@ to the more precise one, and is narrower than both.}
 with $\x_0\sim\Normal(\hx_0,P_0)$ and all noises independent of each
 other and of $\x_0$.
 \end{definition}
+
+Two symbols are used throughout the book: a bar marks a \emph{predicted}
+quantity (before the measurement), $\bx$ and $\bar P$; a hat marks an
+\emph{updated} estimate (after it), $\hx$, with covariance $P$.
 
 \begin{theorem}{Kalman filter}{kf}
 Under \cref{def:lgmodel}, every belief is Gaussian,
@@ -187,6 +234,16 @@ update is a weighted average of prediction and measurement, with weights
 inversely proportional to their variances, and the posterior precision is
 the sum of the two precisions, $1/P=1/\bar P+1/R$
 (\cref{fig:gaussian}, right). That last fact holds in any dimension.
+
+\begin{example}{One update in one dimension}{scalarkf}
+The prediction is $\Normal(0,4)$: the filter expects $x$ near $0$, give or
+take $2$. A sensor with $H=1$ and noise variance $R=1$ reads $z=2$. Then
+$\y=2-0=2$, $S=4+1=5$ and $K=4/5=0.8$: the sensor is four times more
+precise than the prediction, so the estimate moves four fifths of the way
+towards the reading, $\hat x=0+0.8\times2=1.6$. Its variance is
+$P=(1-0.8)\times4=0.8$, smaller than both $4$ and $1$; in precisions,
+$1/0.8=1/4+1/1$. This is the example drawn in \cref{fig:gaussian}, right.
+\end{example}
 
 \begin{proposition}{Information form}{information}
 If $\bar P$ and $R$ are invertible, then
@@ -275,8 +332,11 @@ the raw GPS fixes: filtering divides the error by about five.
 $P_t$ and $K_t$ do not depend on the measurements: only on $F,H,Q,R$ and
 $P_0$. For a time-invariant model the predicted covariance obeys the
 \emph{Riccati recursion} $\bar P\mapsto F\bigl(\bar P-\bar PH\T(H\bar PH\T
-+R)^{-1}H\bar P\bigr)F\T+Q$, which converges, under mild conditions
-(detectability and stabilisability), to a unique fixed point.
++R)^{-1}H\bar P\bigr)F\T+Q$, which converges, under mild conditions, to a
+unique fixed point. (The conditions are called detectability and
+stabilisability. Roughly: the sensor sees every direction of the state in
+which the error would otherwise grow, and the noise $Q$ excites every such
+direction.) The scalar case can be solved by hand.
 
 \begin{proposition}{Steady state of a random walk observed in noise}{steady}
 For the scalar model $x_{t+1}=x_t+w_t$, $z_t=x_t+v_t$ with variances $q>0$
@@ -290,10 +350,14 @@ and $r>0$, the steady-state predicted and updated variances are
 \begin{proof}
 At a fixed point, $\bar P=P+q$ and $P=\bar Pr/(\bar P+r)$. Hence
 $\bar P(\bar P+r)=\bar Pr+q(\bar P+r)$, i.e.\
-$\bar P^2-q\bar P-qr=0$, whose positive root is the formula. Convergence
-from any $\bar P_0>0$ follows because the map $\bar P\mapsto
-\bar Pr/(\bar P+r)+q$ is increasing and concave, with derivative
-$r^2/(\bar P+r)^2<1$ at the fixed point.
+$\bar P^2-q\bar P-qr=0$, whose positive root is the formula. For the
+convergence, one cycle maps $\bar P$ to
+$g(\bar P)=\bar Pr/(\bar P+r)+q$, with derivative
+$g'(\bar P)=r^2/(\bar P+r)^2$. After the first cycle $\bar P\ge q$, and on
+$[q,\infty)$ we have $0<g'\le c$ with $c=r^2/(q+r)^2<1$. By the mean value
+theorem $\abs{g(a)-g(b)}\le c\,\abs{a-b}$ there, so the distance to the
+fixed point is multiplied by at most $c$ at each cycle: the recursion
+converges to $\bar P_\infty$ from any start.
 \end{proof}
 
 Along the heading, $q=\sigma_s^2=0.16$ and $r=64$ give $P_\infty=3.12$;
@@ -317,6 +381,12 @@ The \emph{normalised estimation error squared} at time $t$ is
   \NEES_t=(\x_t-\hx_t)\T P_t^{-1}(\x_t-\hx_t).
 \]
 \end{definition}
+
+The NEES is the squared error measured in units of the covariance the
+filter claims: in one dimension it is $(x-\hat x)^2/P$, which is $1$ on
+average when the claim is right. Recall that $\chi^2_n$ (chi-squared with
+$n$ degrees of freedom) is the distribution of the sum of the squares of
+$n$ independent standard normal variables; its mean is $n$.
 
 \begin{proposition}{NEES of a consistent filter}{neeschi2}
 If $\x_t-\hx_t\sim\Normal(\vect0,P_t)$ with $P_t\succ0$ in $\R^n$, then
@@ -385,6 +455,27 @@ with a fixed, optimistic $R$ is then the middle panel of
 the NIS and inflating $R$ (or rejecting the fix) when it leaves its band
 is a cheap and effective guard.
 \end{mower}
+
+\section*{What to remember from this chapter}
+\addcontentsline{toc}{section}{What to remember}
+
+\begin{enumerate}[nosep]
+  \item For a linear model with Gaussian noises, the belief is exactly
+    Gaussian, and the Bayes filter reduces to formulas on its mean and
+    covariance: the Kalman filter (\cref{thm:kf}).
+  \item Predict: the mean follows the model and the covariance grows,
+    $\bar P=FPF\T+Q$. Update: the mean moves by gain times innovation,
+    $\hx=\bx+K\y$, and the covariance shrinks.
+  \item The gain weighs the prediction against the measurement according
+    to their precisions. In information form, precisions add:
+    $P^{-1}=\bar P^{-1}+H\T R^{-1}H$.
+  \item The covariance and the gain do not depend on the measurements, and
+    for a time-invariant model they settle to constants.
+  \item A filter is \emph{consistent} when its errors are as large as its
+    covariance says. The NEES test checks this in simulation, the NIS test
+    on real data. A wrong $R$ or $Q$ makes the filter over-confident or
+    pessimistic.
+\end{enumerate}
 
 \FloatBarrier
 \section*{Exercises}
