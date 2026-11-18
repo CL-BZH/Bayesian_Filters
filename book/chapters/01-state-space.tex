@@ -791,29 +791,100 @@ errors across the path, along arcs, and the cloud of possible positions
 bends into a ``banana''. Position and heading are no longer tied exactly,
 but they stay strongly correlated (Exercise~\ref{ex:corr}).
 
-\paragraph{What the degeneracy means for the filters.} The formulas of the next
-chapters are written with densities, and the one-step transition has
-none. This does no harm, for two reasons.
+\paragraph{What the degeneracy means for the filters.} In short: nothing
+for the filters of this book, and something for the methods that must
+\emph{evaluate} the transition. Here is why.
+
+\emph{Two different questions} can be put to a motion model.
 \begin{itemize}[nosep]
-  \item \emph{A filter never starts a step from an exactly known pose.}
-    \Cref{prop:degenerate} is about the next pose given \emph{one} current
-    pose. What a filter carries is a belief about the current pose, spread
-    over a volume of the pose space, with a density. One noisy step sends
-    such a belief to a belief that again has a density: for each value of
-    the noise, the map $\x\mapsto f(\x,\uu+\bepsilon)$ only shifts and
-    turns the poses, without changing volumes, and the next belief is an
-    average of the results over the noise. The uncertainty on the current
-    pose fills the direction that the two noise variables cannot reach.
-  \item \emph{No filter of this book needs the value of the transition
-    density.} The Kalman-type filters use the covariance $Q_t=VMV\T$ only
-    added to another covariance, $FPF\T+Q_t$, which is invertible even
-    though $Q_t$ is not. The unscented and particle filters push the noise
-    through $f$ and never write the transition as a density.
+  \item ``The robot is at this pose. Where does one noisy step take it?''
+    This is answered by drawing a noise $\bepsilon$ and computing
+    $f(\x,\uu+\bepsilon)$, which is always possible.
+  \item ``How probable is it that one step leads from this pose $\x_t$ to
+    that pose $\x_{t+1}$?'' The answer expected is a number, the value of
+    a density $p(\x_{t+1}\mid\x_t,\uu_t)$. Here that number does not
+    exist. A pose $\x_{t+1}$ chosen freely is not on the surface of
+    \cref{prop:degenerate}: its heading is not the direction of its
+    displacement, and one step cannot reach it at all, however close to
+    the surface it is.
 \end{itemize}
-The degeneracy would matter for a method that must evaluate
-$p(\x_{t+1}\mid\x_t,\uu_t)$ as a number, or invert $Q_t$: such a method
-has to keep the control noise $\bepsilon_t$ itself as the unknown, instead
-of the pose error.
+
+\emph{The filters of this book ask only the first question.} All of them
+compute the prediction by pushing poses and noise through $f$.
+\begin{itemize}[nosep]
+  \item The particle filter moves each particle by
+    $f(\x^{(i)},\uu+\bepsilon^{(i)})$, with its own draw of the noise. The
+    unscented filter does the same with a few chosen values.
+  \item The Kalman-type filters move the mean by $f$ and the covariance by
+    $P\mapsto FPF\T+Q_t$, with $Q_t=VMV\T$. This $Q_t$ has rank $2$ and
+    cannot be inverted, but it never is: it is only added to $FPF\T$, and
+    the sum is invertible.
+\end{itemize}
+
+\emph{The belief that they carry keeps a density.}
+\Cref{prop:degenerate} is about the next pose from \emph{one} exactly
+known pose. A filter is never sure of the current pose: its belief is
+spread over a volume of the pose space. Each pose of that volume sends its
+own surface, and these surfaces, side by side, fill a volume again
+(\cref{fig:spread}). Precisely: for a fixed value of the noise, the map
+$\x\mapsto f(\x,\uu+\bepsilon)$ shifts and turns the poses without
+changing volumes, so it sends a density to a density, and the next belief
+is the average of these densities over the noise. So $\bel$ and $\belbar$
+are ordinary densities at every step, although the transition is not.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[>=Stealth]
+  \def\crv{plot[smooth] coordinates {(1.9,-1.15) (2.25,-0.6) (2.4,0)
+    (2.25,0.6) (1.9,1.15)}}
+  % left: one exactly known pose
+  \begin{scope}
+    \fill (0,0) circle (1.6pt);
+    \draw[very thick,blue!70!black] \crv;
+    \draw[->,black!55] (0.15,0) -- (2.25,0);
+    \node[font=\small,below,align=center] at (1.2,-1.5)
+      {from one exactly known pose:\\ a surface, no volume};
+  \end{scope}
+  % right: a belief spread over a volume
+  \begin{scope}[shift={(6.6,0)}]
+    \draw[line width=27pt,blue!14,line cap=round,line join=round] \crv;
+    \fill[black!18] (0,0) circle (0.47);
+    \foreach \dx/\dy in {-0.3/0.05, -0.12/0.33, 0.02/-0.36, 0.17/0.12,
+        0.32/-0.14, -0.2/-0.25, 0.1/0.38} {
+      \fill (\dx,\dy) circle (1.1pt);
+      \begin{scope}[shift={(\dx,\dy)}]
+        \draw[blue!70!black,line width=0.5pt] \crv;
+      \end{scope}
+    }
+    \draw[->,black!55] (0.6,0) -- (1.85,0);
+    \node[font=\small,below,align=center] at (1.2,-1.5)
+      {from a belief spread over a volume:\\ one surface per pose,
+       together a volume};
+  \end{scope}
+\end{tikzpicture}
+\caption{Why the belief keeps a density, drawn with one dimension less: a
+curve stands for the surface of \cref{prop:degenerate}, and an area for a
+volume of the pose space. Left: from a single pose, the next poses lie on
+the curve. Right: from a belief spread over the grey disc, each possible
+pose (dots) sends its own curve, and together the curves fill the blue
+region.}
+\label{fig:spread}
+\end{figure}
+
+\emph{Some methods ask the second question.} The smoother of
+\cref{sec:smoothing} is one: it gives a score to every candidate pair
+$(\x_t,\x_{t+1})$, through a term
+$\vect e\T Q_t^{-1}\vect e$ with $\vect e=\x_{t+1}-f(\x_t,\uu_t)$, which
+contains the inverse of $Q_t$. For such
+a method the remedy is to put the question to the noise instead of the
+pose. If $\x_{t+1}$ is on the surface, exactly one value of the noise
+leads to it from $\x_t$: by \eqref{eq:actual}, $\varepsilon_s=d-s$ and
+$\varepsilon_\delta=\varphi-\theta'$. And the noise does have an ordinary
+Gaussian density on $\R^2$, with the invertible covariance $M$. So ``how
+probable is this step?'' is answered by ``how probable is the noise that
+produces it?'': the term becomes $\bepsilon_t\T M^{-1}\bepsilon_t$, and the pose
+$\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ is computed from the noise instead of
+being a free unknown.
 
 \begin{figure}[ht]
 \centering
