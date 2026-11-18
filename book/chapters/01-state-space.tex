@@ -872,9 +872,9 @@ $[-\pi,\pi)$ by
 This is reduction modulo $2\pi$, with one important detail: the
 representative is taken in the interval \emph{centred on zero}. In code,
 $\wrap(a)=\bigl((a+\pi)\bmod2\pi\bigr)-\pi$, which is what
-\code{wrap\_angle} computes. Mathematically, angles live in the quotient
-$\R/2\pi\mathbb{Z}$ (the circle), and $\wrap$ picks the representative of
-each class that lies in $[-\pi,\pi)$.
+\code{wrap\_angle} computes. Two numbers that differ by a multiple of
+$2\pi$ describe the same direction; among all the numbers that describe a
+given direction, $\wrap$ picks the one that lies in $[-\pi,\pi)$.
 
 The choice of interval matters for \emph{differences} of angles, and the
 usual \code{mod} functions get them wrong. Python's \code{\%} returns
@@ -884,7 +884,36 @@ and a filter would treat a tiny correction as an almost complete turn. C's
 $(-2\pi,2\pi)$: it leaves $-0.1$ alone, but it also leaves the difference
 $3.10-(-3.12)=6.22$ unchanged, where the true rotation is $-0.063$. With
 the centred interval, small differences stay small and keep their sign:
-$\wrap(-0.1)=-0.1$ and $\wrap(6.22)=-0.063$.
+$\wrap(-0.1)=-0.1$ and $\wrap(6.22)=-0.063$ (\cref{fig:wrap}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.9,>=Stealth]
+  \draw[black!35] (0,0) circle (1);
+  \draw[black!35,->] (0,0) -- (1.5,0) node[right,font=\small] {$x$};
+  \draw[black!35,->] (0,-1.2) -- (0,1.25);
+  % the two directions (angles exaggerated for visibility)
+  \draw[->,thick,blue!70!black] (0,0) -- (165:1.0);
+  \draw[->,thick,black!80] (0,0) -- (-165:1.0);
+  \node[font=\small,blue!70!black,anchor=south east] at (158:1.05)
+    {$a=3.10$};
+  \node[font=\small,anchor=north east] at (-158:1.05) {$b=-3.12$};
+  % short rotation from b to a
+  \draw[->,very thick,orange!85!black] (-165:1.18) arc[start angle=195,
+    end angle=165,radius=1.18];
+  \node[font=\small,orange!85!black,anchor=east] at (-1.28,0)
+    {$\wrap(a-b)=-0.063$};
+  % the long way round
+  \draw[->,thick,red!70!black,densely dashed] (-165:0.55) arc[
+    start angle=-165,end angle=165,radius=0.55];
+  \node[font=\small,red!70!black,anchor=west] at (0.6,0.42) {$a-b=6.22$};
+\end{tikzpicture}
+\caption{Two headings on either side of the cut at $\pm\pi$ (the angles
+are exaggerated). The plain difference $a-b=6.22$ goes almost all the way
+round (red, dashed). The wrapped difference is the short rotation from
+$b$ to $a$ (orange): $-0.063$\,rad, a small clockwise turn.}
+\label{fig:wrap}
+\end{figure}
 
 \begin{lemma}{Angle differences}{wrap}
 For angles $a,b$, $\wrap(a-b)$ is the signed rotation of smallest
@@ -928,7 +957,12 @@ distance from the mower to the landmark. For the second,
 $\operatorname{atan2}(d_y,d_x)$ is the angle of the vector $\vect d$ from
 the $x$-axis, in $(-\pi,\pi]$: the direction of the landmark on the lawn.
 Subtracting the heading $\theta$ gives the direction as seen from the
-mower, and $\wrap$ keeps the result in $[-\pi,\pi)$. The real reading adds
+mower, and $\wrap$ keeps the result in $[-\pi,\pi)$: a positive bearing
+means that the landmark is to the left of the mower, a negative one that
+it is to the right, and $0$ that it is straight ahead. A landmark is
+``within range'' when it is closer than the maximum range of the sensor;
+by default the range is unlimited and every landmark is seen, and some
+experiments limit it. The real reading adds
 a noise $\vv_{t,j}$ with standard deviations $\sigma_r$ on the range and
 $\sigma_\phi$ on the bearing; the subscript of $R_1$ recalls that it is the
 covariance of the reading of \emph{one} landmark. In the simulations
@@ -1005,7 +1039,9 @@ Some notation first. A range of indices denotes a sequence:
 $\x_{0:t}=(\x_0,\x_1,\dots,\x_t)$, and likewise $\uu_{0:t}$ and
 $\z_{1:t}$. The letter $p$ denotes a probability density, and
 $p(a\mid b)$ the density of $a$ given $b$; which density is meant is told
-by its arguments.
+by its arguments. The indices follow the code: the control $\uu_t$ moves
+the mower from $\x_t$ to $\x_{t+1}$, and the measurement $\z_{t+1}$ is
+taken at $\x_{t+1}$. There is no measurement at the start pose $\x_0$.
 
 \begin{definition}{Markov state and conditionally independent measurements}{markov}
 \begin{enumerate}[label=(A\arabic*),nosep]
@@ -1018,9 +1054,6 @@ by its arguments.
   $p(\z_t\mid\x_{0:t},\uu_{0:t-1},\z_{1:t-1})=p(\z_t\mid\x_t)$.
 \end{enumerate}
 \end{definition}
-
-Indices follow the code: control $\uu_t$ moves the mower from $\x_t$ to
-$\x_{t+1}$, and $\z_{t+1}$ is measured at $\x_{t+1}$.
 
 Both assumptions hold for the model of this chapter, by construction. The
 past $(\x_{0:t},\z_{1:t})$ is computed from the start pose $\x_0$, the
@@ -1061,13 +1094,23 @@ Under \ref{A1}--\ref{A2}, for known controls $\uu_{0:T-1}$,
 \end{equation}
 \end{proposition}
 
+For $T=2$, for instance, the joint density is the product of five factors,
+\[
+  p(\x_0)\;\,p(\x_1\mid\x_0,\uu_0)\,p(\z_1\mid\x_1)\;\,
+  p(\x_2\mid\x_1,\uu_1)\,p(\z_2\mid\x_2):
+\]
+a start, then ``move, look'' twice.
+
 \begin{proof}
-Order the variables as $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ and apply the
-chain rule of probability, conditioning each variable on all the previous
-ones (and on the controls). The factor of $\x_{t+1}$ is
+The chain rule of probability writes any joint density as a product in
+which each variable is conditioned on those before it:
+$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$, and so on. Order the variables
+as $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ and apply it, every factor being also
+conditioned on the controls. The factor of $\x_{t+1}$ is
 $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. Future controls carry no
 information about the past motion (they are chosen in advance or from
-past data), so this equals $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$,
+past data; \cref{sec:bayesnet-mower}, statement~(c), checks it on the
+graph), so this equals $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$,
 which is $p(\x_{t+1}\mid\x_t,\uu_t)$ by \ref{A1}. The factor of
 $\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu)$, which is
 $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
@@ -1098,6 +1141,55 @@ The simplest estimator ignores the sensors and integrates the commands:
 $\hx_{t+1}=f(\hx_t,\uu_t)$ from the known start. This is \emph{dead
 reckoning}. Its error is driven by the control noise, and grows without
 bound.
+
+How fast? The answer can be computed on the simplest path, a straight
+line (\cref{fig:drsetup}). Dead reckoning believes the mower is at
+distance $st$ along the line after $t$ steps. The real mower is off to the
+side by some distance $e_t$, and has not come quite as far along the line,
+by some distance $a_t$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \coordinate (O) at (0,0);
+  \coordinate (D) at (9,0);
+  \draw[dashed,black!55,->] (O) -- (D);
+  \foreach \k in {1,...,5} \fill[black!55] (1.8*\k,0) circle (1.1pt);
+  % actual path: headings 8, 18, 14, 26, 32 degrees
+  \coordinate (Q0) at (0,0);
+  \coordinate (Q1) at ($(Q0)+(8:1.8)$);
+  \coordinate (Q2) at ($(Q1)+(18:1.8)$);
+  \coordinate (Q3) at ($(Q2)+(14:1.8)$);
+  \coordinate (Q4) at ($(Q3)+(26:1.8)$);
+  \coordinate (Q5) at ($(Q4)+(32:1.8)$);
+  \draw[thick,blue!70!black,->] (Q0) -- (Q1);
+  \draw[thick,blue!70!black,->] (Q1) -- (Q2);
+  \draw[thick,blue!70!black,->] (Q2) -- (Q3);
+  \draw[thick,blue!70!black,->] (Q3) -- (Q4);
+  \draw[thick,blue!70!black,->] (Q4) -- (Q5);
+  \foreach \k in {1,...,5} \fill[blue!70!black] (Q\k) circle (1.1pt);
+  \coordinate (F) at (Q5 |- O);
+  \draw[very thick,orange!85!black] (F) -- (Q5)
+    node[pos=0.5,left=1pt,font=\small] {$e_t$};
+  \draw[very thick,orange!60!red] (F) -- (D)
+    node[pos=0.5,above=1pt,font=\small] {$a_t$};
+  \draw[black!60] (F) ++(-0.16,0) -- ++(0,0.16) -- ++(0.16,0);
+  \fill (O) circle (1.5pt) node[below,font=\small] {start};
+  \node[below,font=\small,black!60,align=center] at ($(D)+(0,-0.1)$)
+    {dead reckoning:\\$(st,\,0)$};
+  \node[above,font=\small,blue!70!black] at ($(Q5)+(0,0.05)$)
+    {real mower: $(p^x_t,\,p^y_t)$};
+  \node[above left,font=\small,blue!70!black] at ($(Q2)!0.5!(Q3)$)
+    {leg $k$, along $\theta_k$};
+\end{tikzpicture}
+\caption{Dead reckoning on a straight path, after $t=5$ steps (errors
+exaggerated). Dashed: the commanded path, which dead reckoning takes to
+be the real one. Blue: the real path, each leg driven along the heading
+reached after that step's turn. The lateral error $e_t$ is the distance of
+the real mower from the line; the forward shortfall $a_t$ is how far
+behind it is along the line.}
+\label{fig:drsetup}
+\end{figure}
 
 \begin{proposition}{Dead-reckoning error on a straight path}{deadreckoning}
 Let the mower start at a known pose heading along the $x$-axis and receive
@@ -1137,7 +1229,10 @@ $\varepsilon_{s,k}\theta_k$ of two small terms. Summing over the steps,
 \]
 The last equality counts how many times each $\varepsilon_{\delta,j}$
 appears: it is part of $\theta_k$ for every $k\ge j$, that is, $t-j+1$
-times. The terms are independent, so
+times. In words, the turn error of step $j$ pushes the mower sideways over
+every leg from the $j$-th on. For $t=2$ this is the
+$2s\,\varepsilon_{\delta,1}+s\,\varepsilon_{\delta,2}$ of
+\cref{fig:twolegs}. The terms are independent, so
 $\Var(e_t)\approx s^2\sigma_\delta^2\sum_{j=1}^t(t-j+1)^2
 =s^2\sigma_\delta^2\sum_{m=1}^t m^2$, and
 $\sum_{m=1}^tm^2=t(t+1)(2t+1)/6$ gives \eqref{eq:drlateral}.
@@ -1176,8 +1271,8 @@ about 21; but it still grows without bound
 \centering
 \includegraphics[width=\linewidth]{figures/ch01_dead_reckoning.pdf}
 \caption{Dead reckoning on the standard run (seed 1). Left: the true path
-and the integrated commands. Right: the position error. It is a random
-walk, and nothing pulls it back.}
+and the integrated commands. Right: the position error. It wanders, and
+nothing pulls it back.}
 \label{fig:deadreckoning}
 \end{figure}
 
