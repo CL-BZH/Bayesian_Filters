@@ -8,7 +8,11 @@ as a cloud of weighted samples,
   \bel(\x_t)\approx\sum_{i=1}^Nw_t^{(i)}\,\delta_{\x_t^{(i)}},\qquad
   \sum_iw_t^{(i)}=1,
 \]
-and puts its effort where the probability is. The cloud can take any shape
+where $\delta_{\x}$ denotes a point mass at $\x$: the formula says that the
+pose is $\x_t^{(i)}$ with probability $w_t^{(i)}$. The average of any
+function $\varphi$ of the pose under the belief is then approximated by
+the weighted sum $\sum_iw_t^{(i)}\varphi(\x_t^{(i)})$. The filter puts its
+effort where the probability is. The cloud can take any shape
 (arcs, several separate bumps) and the models are used as they are,
 without linearisation; the motion model only needs to be \emph{sampled},
 which suits its degenerate transition (\cref{prop:degenerate}). Applied to
@@ -18,6 +22,23 @@ modes---weight degeneracy, sample impoverishment and mode collapse---and
 the standard remedies.
 
 \section{Importance sampling}
+
+The particle filter rests on one idea. We want averages under a
+distribution $\pi$ (the belief) from which we cannot sample directly, but
+we can sample from another distribution $q$. When both have densities,
+\[
+  \E_\pi[\varphi]=\int\varphi(x)\,\pi(x)\,\mathrm dx
+  =\int\varphi(x)\,\frac{\pi(x)}{q(x)}\,q(x)\,\mathrm dx
+  =\E_q\Bigl[\varphi\,\frac\pi q\Bigr].
+\]
+So an average under $\pi$ is an average under $q$ in which each sample $x$
+counts with the \emph{weight} $\pi(x)/q(x)$: more where $q$ proposes too
+rarely, less where it proposes too often. In a filter, $\pi$ is known only
+up to its normalising constant (the $\eta$ of \cref{thm:bayes}); dividing
+the weights by their sum removes the need for it.
+
+The definition below is stated for general distributions; with densities,
+$\mathrm d\pi/\mathrm dq$ is simply the ratio $\pi(x)/q(x)$.
 
 \begin{definition}{Importance sampling}{is}
 Let $\pi$ be a target distribution and $q$ a \emph{proposal} with
@@ -63,6 +84,18 @@ $\pi$. Samples where $q$ over-represents $\pi$ get small weights.}
 \label{fig:importance}
 \end{figure}
 
+\begin{example}{Two outcomes}{istwo}
+A target gives probability $0.2$ to $a$ and $0.8$ to $b$; the proposal
+gives $0.5$ to each. The weights are $\pi/q=0.4$ for $a$ and $1.6$ for $b$.
+Let $\varphi(a)=0$ and $\varphi(b)=10$, so that $\E_\pi[\varphi]=8$.
+Suppose ten draws from the proposal give $a$ six times and $b$ four times.
+The plain average of $\varphi$ over the draws is $4$, far from $8$. The
+weights sum to $6\times0.4+4\times1.6=8.8$, and the self-normalised
+estimate is $(4\times1.6\times10)/8.8=7.3$: the weights have corrected
+most of the mismatch between proposal and target, and the rest is sampling
+noise, which vanishes as the number of draws grows.
+\end{example}
+
 \Cref{fig:importance} shows the idea. The self-normalised estimate is
 biased for finite $N$
 (Exercise~\ref{ex:isbias}), but the bias is $O(1/N)$ and vanishes as $N$
@@ -70,8 +103,11 @@ grows.
 
 \section{From the Bayes filter to particles}
 
-Take the target to be the posterior over the whole path, which by
-\cref{prop:joint} is
+Take the target to be the posterior over the whole path,
+$\pi_t(\x_{0:t})=p(\x_{0:t}\mid\z_{1:t},\uu_{0:t-1})$. It is proportional
+to the joint density of \cref{prop:joint}, and going from $t$ to $t+1$
+multiplies that joint density by one motion factor and one measurement
+factor. So
 $\pi_{t+1}(\x_{0:t+1})\propto\pi_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)\,
 p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous weighted
 cloud, extended by the motion model'':
@@ -132,7 +168,8 @@ For normalised weights, $\ESS=1/\sum_i(w^{(i)})^2\in[1,N]$.
 $\ESS=N$ when all the weights are equal and $\ESS=1$ when one particle
 carries all the weight (Exercise~\ref{ex:ess}). It approximates the number
 of i.i.d.\ samples from the target that would give the same variance:
-a delta-method expansion gives $\Var(\hat\varphi_N)\approx\Var_\pi(
+a first-order expansion of the ratio that defines $\hat\varphi_N$ (the
+delta method) gives $\Var(\hat\varphi_N)\approx\Var_\pi(
 \varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
 variation of the unnormalised weights, and $N/(1+\mathrm{cv}^2)$ is
 estimated by the ESS.
@@ -323,6 +360,11 @@ mode that loses its last particle never comes back. With fewer particles
 it happens much sooner: with $N=2000$ only one mode is left by step 30 in
 each of three runs.
 
+The drift has a simple explanation, which needs one notion. A
+\emph{martingale} is a random process whose expected next value, given its
+present value, is the present value: it has no tendency to go up or down,
+but it does fluctuate.
+
 \begin{proposition}{Mode masses are martingales with absorbing ends}{wrightfisher}
 Idealise the situation: two modes $A$ and $B$ whose particles have equal
 likelihood in distribution, and multinomial resampling at every step. Let
@@ -338,8 +380,9 @@ $\operatorname{Bin}(N,m_t)$ (each draw lands in $A$ with probability
 $m_t$), which gives the mean and variance. The states $0$ and $1$ are
 absorbing (an empty mode receives no draws) and every other state reaches
 one of them with positive probability in a single step, so absorption
-happens almost surely; the martingale is bounded, so by optional stopping
-$\E[m_\tau]=m_0$, and $m_\tau\in\{0,1\}$ gives
+happens almost surely, at a random time $\tau$. The martingale is bounded,
+so its expectation is still $m_0$ at the time it stops (the optional
+stopping theorem): $\E[m_\tau]=m_0$, and $m_\tau\in\{0,1\}$ gives
 $\Pr(m_\tau=1)=m_0$.
 \end{proof}
 
@@ -421,10 +464,12 @@ $w_{\mathrm{fast}}<w_{\mathrm{slow}}$ (step 217), random particles are
 injected (bars), some land near the new pose, and the position error
 (dashed) drops back to a few units.}
 \label{fig:amcl}
-\end{figure} The implementation averages the
-\emph{per-landmark} likelihood (the geometric mean over the visible
-landmarks, $\hat\ell_t^{1/m}$), so that the scale of $\hat\ell$ does not
-jump when the number of visible landmarks changes.
+\end{figure}
+
+The implementation averages the \emph{per-landmark} likelihood (the
+geometric mean over the visible landmarks, $\hat\ell_t^{1/m}$), so that
+the scale of $\hat\ell$ does not jump when the number of visible landmarks
+changes.
 
 \begin{figure}[ht]
 \centering
@@ -461,6 +506,29 @@ a kidnapping happened and lets it re-initialise globally. Augmented MCL
 covers the cases a lift sensor misses, such as wheels sliding on a wet
 slope.
 \end{mower}
+
+\section*{What to remember from this chapter}
+\addcontentsline{toc}{section}{What to remember}
+
+\begin{enumerate}[nosep]
+  \item A particle filter represents the belief by weighted samples. One
+    cycle: move every particle with the noisy motion model, multiply its
+    weight by the likelihood of the measurement, and resample when the
+    weights become too uneven.
+  \item It is importance sampling applied step by step, with the motion
+    model as proposal; the motion model is only sampled, never evaluated.
+  \item Without resampling the weights degenerate: one particle ends up
+    with all the weight. The effective sample size measures this, and
+    systematic resampling is the low-noise way to resample.
+  \item The filter can start from a uniform belief and handle unknown
+    landmark identities and several hypotheses, which the Kalman filters
+    cannot.
+  \item Its weaknesses are sample impoverishment (a sharp likelihood that
+    no particle hits), the random loss of modes, and a cost that grows
+    quickly with the dimension of the state.
+  \item A kidnapped mower is detected by the collapse of the measurement
+    likelihood; augmented MCL then injects random particles.
+\end{enumerate}
 
 \FloatBarrier
 \section*{Exercises}
