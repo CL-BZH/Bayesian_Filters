@@ -38,6 +38,55 @@ affine map of it; its covariance is $A\Sigma A\T+Q$ because the cross
 covariance of $X$ and $W$ is zero.
 \end{proof}
 
+The definition allows a covariance $\Sigma$ that is not invertible. The
+next lemma says what such a Gaussian looks like; it is not needed to
+derive the Kalman filter, but \cref{prop:degenerate} relies on it.
+
+\begin{lemma}{A Gaussian has a density or lies in a subspace}{dichotomy}
+Let $X\sim\Normal(\bmu,\Sigma)$ in $\R^n$.
+\begin{enumerate}[label=(\roman*),nosep]
+\item If $\Sigma$ is invertible, $X$ has the density of
+  \cref{def:gaussian}.
+\item If $\Sigma$ is singular, then with probability one $X$ lies in the
+  affine subspace $\bmu+\operatorname{range}(\Sigma)$, of dimension
+  $\operatorname{rank}(\Sigma)<n$, and $X$ has no density on $\R^n$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) $\Sigma$ is positive definite, so $\Sigma=LL\T$ with $L$ invertible
+(Cholesky). Let $Z=L^{-1}(X-\bmu)$. By \cref{lem:affine}, $Z$ is Gaussian
+with mean $\vect0$ and covariance $L^{-1}\Sigma L^{-\mathsf T}=I$. Its
+components are jointly Gaussian and uncorrelated, hence independent
+standard normals (the same fact is used in the proof of
+\cref{thm:conditioning}), so $Z$ has the density
+$(2\pi)^{-n/2}\exp(-\tfrac12\norm{\vect z}^2)$. Since $X=\bmu+LZ$ is an
+invertible affine map of $Z$, the change-of-variables formula gives $X$
+the density
+$(2\pi)^{-n/2}\lvert\det L\rvert^{-1}\exp\bigl(-\tfrac12\norm{L^{-1}(\x-\bmu)}^2
+\bigr)$, which is the density of \cref{def:gaussian} because
+$\lvert\det L\rvert=\sqrt{\det\Sigma}$ and
+$\norm{L^{-1}(\x-\bmu)}^2=(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)$.
+
+(ii) Take $\vect n\neq\vect0$ with $\Sigma\vect n=\vect0$. The scalar
+$\vect n\T X$ has variance $\vect n\T\Sigma\vect n=0$, and a random
+variable with zero variance equals its mean with probability one:
+$\vect n\T(X-\bmu)=0$. So $X$ lies in the hyperplane through $\bmu$
+perpendicular to $\vect n$. Applying this to a basis
+$\vect n_1,\dots,\vect n_k$ of the null space of $\Sigma$, $X-\bmu$ is,
+with probability one, orthogonal to the whole null space. For a symmetric
+matrix the orthogonal complement of the null space is the range, so
+$X\in\bmu+\operatorname{range}(\Sigma)$, a subspace of dimension
+$n-k=\operatorname{rank}(\Sigma)$. A proper affine subspace has zero
+volume, and a distribution with a density gives probability zero to every
+set of zero volume: $X$ has no density.
+\end{proof}
+
+Part (ii) does not use the Gaussian assumption: any random vector with a
+singular covariance lies in an affine subspace. In $\R^3$ the lemma leaves
+four cases: a density (rank $3$), or a distribution carried by a plane
+(rank $2$), a line (rank $1$) or a single point (rank $0$).
+
 \begin{theorem}{Conditioning a Gaussian}{conditioning}
 Let $(X,Y)$ be jointly Gaussian,
 \[
