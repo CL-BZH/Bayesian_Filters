@@ -10,6 +10,11 @@ we cannot afford a grid in general.
 
 \section{Belief}
 
+The mower never knows its pose exactly. What it knows is described by a
+probability distribution over the possible poses: sharp when it is sure,
+spread out when it is not, with several bumps when several places fit what
+it has seen. This distribution is what a filter computes.
+
 \begin{definition}{Belief and predicted belief}{belief}
 The \emph{belief} at step $t$ is the posterior distribution of the
 current state given everything observed so far,
@@ -29,6 +34,20 @@ loses information, and some summaries can be badly misleading
 (\cref{sec:twobumps}).
 
 \section{The recursion}
+
+The belief can be computed step by step: the belief at step $t+1$ is
+obtained from the belief at step $t$, the control $\uu_t$ and the
+measurement $\z_{t+1}$, with no need to go back to older data. The
+derivation uses two rules of probability, recalled here for densities.
+\begin{itemize}[nosep]
+  \item \emph{Total probability}: $p(a)=\int p(a\mid b)\,p(b)\,\mathrm db$.
+    To find how likely $a$ is, go through every possible $b$.
+  \item \emph{Bayes' rule}: $p(b\mid a)=p(a\mid b)\,p(b)/p(a)$. It turns
+    ``how likely is this observation if the state is $b$'' into ``how
+    likely is the state $b$ given this observation''.
+\end{itemize}
+Both remain true when every term is conditioned on the same extra
+variables, which is how they are used below.
 
 \begin{theorem}{Bayes filter}{bayes}
 Under \ref{A1}--\ref{A2},
@@ -51,7 +70,9 @@ $\x_t$,
 \]
 In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$.
 In the second, the control $\uu_t$ is applied after $\x_t$ and carries no
-information about it, so it can be dropped, which leaves $\bel(\x_t)$.
+information about it, so it can be dropped, which leaves $\bel(\x_t)$
+(\cref{sec:bayesnet-mower}, panel~(c), checks this independence on the
+graph of the model).
 
 \emph{Update.} Bayes' rule with everything conditioned on
 $(\z_{1:t},\uu_{0:t})$ gives
@@ -63,8 +84,10 @@ $(\z_{1:t},\uu_{0:t})$ gives
 \]
 \ref{A2} reduces the first factor of the numerator to
 $p(\z_{t+1}\mid\x_{t+1})$, and the second is $\belbar(\x_{t+1})$. The
-denominator does not depend on $\x_{t+1}$; integrating the numerator
-over $\x_{t+1}$ shows it equals the integral in \eqref{eq:update}.
+denominator does not depend on $\x_{t+1}$. Since the left-hand side is a
+density in $\x_{t+1}$ and integrates to one, the denominator must be the
+integral of the numerator over $\x_{t+1}$, which is the integral in
+\eqref{eq:update}.
 \end{proof}
 
 \begin{inwords}
@@ -88,7 +111,31 @@ disappears.}
 \end{figure}
 
 \Cref{fig:bayescycle} shows one cycle on a one-dimensional example, where
-everything can be computed exactly.
+everything can be computed exactly. When the state takes finitely many
+values the integrals become sums, and a cycle can be done by hand.
+
+\begin{example}{A two-state filter}{grassgravel}
+The mower is either on the grass ($G$) or on the gravel path ($P$). At
+each step it stays on the same surface with probability $0.9$. A vibration
+sensor says ``rough'' with probability $0.8$ on gravel and $0.3$ on grass.
+The current belief is $\bel=(0.8,\,0.2)$ for $(G,P)$: the mower is
+probably on the grass.
+
+\emph{Predict.} The mower is on the grass at the next step if it was on
+the grass and stayed, or on the path and left it:
+$\belbar(G)=0.9\times0.8+0.1\times0.2=0.74$, and
+$\belbar(P)=0.1\times0.8+0.9\times0.2=0.26$. The belief has moved towards
+$(0.5,0.5)$: it is less sure than before.
+
+\emph{Update.} The sensor says ``rough''. Multiply each state by the
+probability that it gives this reading: $0.3\times0.74=0.222$ for $G$ and
+$0.8\times0.26=0.208$ for $P$. The sum is $\eta^{-1}=0.43$, and dividing by
+it gives $\bel=(0.516,\,0.484)$. One rough reading has almost cancelled
+the initial confidence in the grass.
+
+The number $0.43$ is the probability that the filter gave to the reading
+``rough'' before seeing it.
+\end{example}
 
 The normaliser has a meaning of its own, which the particle filter will
 use in \cref{sec:amcl}.
@@ -127,6 +174,12 @@ Partition the lawn into square cells $C_1,\dots,C_n$ of side $c$ and
 centres $\vect{c}_i$. The \emph{grid belief} is the vector
 $b_i\approx\Pr(\p_t\in C_i\mid\z_{1:t},\uu_{0:t-1})$, with $\sum_ib_i=1$.
 \end{definition}
+
+The \emph{convolution} of two functions on the plane is
+$(a\ast g)(\p)=\int a(\p-\vect q)\,g(\vect q)\,\mathrm d\vect q$. When $g$
+is a probability density concentrated around $\vect0$, $a\ast g$ is a
+blurred copy of $a$: each value is replaced by a weighted average of the
+values around it.
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}
 Suppose the heading $h_t$ is known and the position moves by
@@ -284,17 +337,35 @@ beacons. The ambiguity is real, and a localisation system must be able to
 carry several hypotheses until the motion resolves them.
 \end{mower}
 
+\section*{What to remember from this chapter}
+\addcontentsline{toc}{section}{What to remember}
+
+\begin{enumerate}[nosep]
+  \item The belief $\bel(\x_t)$ is the distribution of the current pose
+    given all controls and measurements so far. It is the complete answer
+    to ``where is the mower?''.
+  \item The Bayes filter updates it in two steps. \emph{Predict}
+    \eqref{eq:predict}: push the belief through the motion model; it
+    blurs. \emph{Update} \eqref{eq:update}: multiply by the likelihood of
+    the new measurement and renormalise; it sharpens.
+  \item The normaliser $\eta^{-1}$ is the probability the filter gave to
+    the measurement before seeing it: a measure of surprise.
+  \item The exact belief can have several bumps, and the right one is not
+    always the biggest.
+  \item A grid computes the recursion with no assumption on the shape of
+    the belief, but its cost grows exponentially with the dimension of the
+    state. Every other filter of the book is a cheaper approximation of
+    the same recursion.
+\end{enumerate}
+
 \FloatBarrier
 \section*{Exercises}
 \addcontentsline{toc}{section}{Exercises}
 
 \begin{enumerate}[label=\textbf{2.\arabic*},ref=2.\arabic*]
-\item\label{ex:twostate} \emph{A two-state filter.} The mower is either on
-  the grass ($G$) or on the gravel path ($P$). Each step it stays where it
-  is with probability $0.9$. A vibration sensor says ``rough'' with
-  probability $0.8$ on gravel and $0.3$ on grass. Starting from
-  $\bel=(0.5,0.5)$, compute the belief after the readings ``rough'',
-  ``rough''.
+\item\label{ex:twostate} \emph{A two-state filter.} In the setting of
+  \cref{ex:grassgravel}, start from $\bel=(0.5,0.5)$ and compute the belief
+  after the readings ``rough'', ``rough''.
 \item\label{ex:blur} Show that blurring with $\Normal(\vect0,\Sigma_1)$ and
   then with $\Normal(\vect0,\Sigma_2)$ is the same as blurring once with
   $\Normal(\vect0,\Sigma_1+\Sigma_2)$. What does it say about the width of
