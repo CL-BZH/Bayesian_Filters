@@ -628,85 +628,64 @@ does (\cref{sec:smoothing}).
 
 \subsection*{Complement: controls computed during the run}
 
-In the network of \cref{fig:bayesnet} no arrow enters a control: the
-controls are fixed in advance. A real robot computes them as it goes: it
-looks at its current estimate of the pose and steers accordingly. That
-estimate is itself computed from the measurements received so far, so in
-the end the control is computed from those measurements by some rule
-$\pi_t$: $\uu_t=\pi_t(\z_{1:t})$. Arrows then go from the measurements to
-the controls (in blue below; only the arrow from the latest measurement is
-drawn). Statements (a) and (b) still hold, by the argument of
-\cref{sec:assumptions}: each new noise is independent of everything that
-came before.
+A network is a picture of the \emph{model}: of how the poses, the
+measurements and the controls are produced. The filter is a computation
+derived from the model. In the network of \cref{fig:bayesnet} no arrow
+enters a control: it is the model of a robot whose controls are fixed in
+advance. A real robot computes them as it goes: it looks at its current
+estimate of the pose and steers accordingly. That estimate is itself
+computed from the measurements received so far, so in the end the control
+is computed from those measurements by some rule $\pi_t$:
+$\uu_t=\pi_t(\z_{1:t})$. The model of such a robot has arrows from the
+measurements to the controls (in blue below; only the arrow from the
+latest measurement is drawn).
 
 \begin{center}
 \input{figures/tikz/bn_fbz}
 \end{center}
 
-Statement (c) still holds. There is a new path from $\uu_t$ to $\x_t$,
-namely $\uu_t\leftarrow\z_t\leftarrow\x_t$, in which $\z_t$ is a chain
-node. It is given, so the path is blocked; the same holds for a path
-through an earlier measurement. The filter is therefore unchanged: it does
-not matter how the controls were chosen, as long as they are computed from
-measurements that the filter is given.
+Two questions arise: is the filter still correct, and what becomes of the
+factorisation \eqref{eq:joint}?
 
-One thing does change: the factorisation of \cref{prop:joint},
-\[
-  p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
-  p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}),
-\]
-was proved for controls fixed in advance, and its proof does not carry
-over. Here is the step that fails. The left side is conditioned on
-\emph{all} the controls. The proof applies the chain rule, in which the
-factor of $\x_{t+1}$ is
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It then simplifies this
-factor in two steps, each with its own justification.
-\begin{enumerate}[nosep]
-  \item It removes the \emph{later} controls
-    $\uu_{t+1},\dots,\uu_{T-1}$, which leaves
-    $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$. This is not \ref{A1}:
-    it is the fact that controls fixed in advance tell nothing about the
-    pose (statement (c), later controls).
-  \item It removes the \emph{past}, the earlier poses and controls and the
-    measurements, which leaves the transition
-    $p(\x_{t+1}\mid\x_t,\uu_t)$. This is \ref{A1}.
-\end{enumerate}
-The second step is still valid. The first is not: the path
-$\uu_{t+1}\leftarrow\z_{t+1}\leftarrow\x_{t+1}$ is open, because
-$\z_{t+1}$ is not among the given variables. In words, $\uu_{t+1}$ was
-computed from a measurement of $\x_{t+1}$, so it tells something about
-$\x_{t+1}$.
-
-What remains true, and what is lost?
+\emph{The filter is unchanged.} The recursion of \cref{thm:bayes} was
+derived from three facts, and all three still hold.
 \begin{itemize}[nosep]
-  \item \emph{The right side still describes how a run is produced.}
-    Apply the chain rule to the poses and the measurements alone, in the
-    order $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ The factor of $\x_{t+1}$ is
-    $p(\x_{t+1}\mid\x_{0:t},\z_{1:t})$. Given $\z_{1:t}$ the control
-    $\uu_t=\pi_t(\z_{1:t})$ is known, so by \ref{A1} this factor is the
-    transition with that control, and
-    \[
-      p(\x_{0:T},\z_{1:T})=p(\x_0)\prod_{t=0}^{T-1}
-      p\bigl(\x_{t+1}\mid\x_t,\pi_t(\z_{1:t})\bigr)\,
-      p(\z_{t+1}\mid\x_{t+1}).
-    \]
-    This is the same product, with each control replaced by the rule that
-    computes it.
-  \item \emph{The left side is no longer equal to it.} ``Given the
-    controls $\uu_{0:T-1}$'' now means ``knowing which commands the rule
-    issued'', and this is information about the measurements: only the
-    measurement sequences $\z_{1:T}$ for which the rule issues exactly
-    these commands remain possible. The distribution given the controls is
-    zero for all the other sequences. The product does not know this
-    restriction: it gives a positive value to every measurement sequence.
-    For example, if the rule commands a left turn exactly when the reading
-    places the robot to the right of its path, then being told that the
-    command was a left turn tells that the reading was on the right, and
-    hence where the robot probably was.
+  \item \ref{A1} and \ref{A2}, that is, statements (a) and (b): by the
+    argument of \cref{sec:assumptions}, each new noise is independent of
+    everything that came before, however the controls were computed.
+  \item Statement (c), that $\uu_t$ says nothing more about $\x_t$ once
+    $\z_{1:t}$ and $\uu_{0:t-1}$ are given. There is a new path from
+    $\uu_t$ to $\x_t$, namely $\uu_t\leftarrow\z_t\leftarrow\x_t$, in
+    which $\z_t$ is a chain node. It is given, so the path is blocked; the
+    same holds for a path through an earlier measurement.
 \end{itemize}
-The filter is not concerned, because it never conditions on a later
-control: at time $t$ it uses $\uu_{0:t}$ only, which are computed from
-measurements that it already has.
+So the prediction and the update are exactly those of \cref{thm:bayes}.
+It does not matter how the controls were chosen, as long as they are
+computed from measurements that the filter is given.
+
+\emph{The factorisation keeps its right side.} A run is still produced in
+the same way: a start, then alternately ``move'' and ``look''; the only
+difference is that each command is now issued by the rule. So the
+distribution of the poses and the measurements is the product of
+\eqref{eq:joint}, in which each $\uu_t$ stands for the command
+$\pi_t(\z_{1:t})$ computed by the rule:
+\[
+  p(\x_{0:T},\z_{1:T})=p(\x_0)\prod_{t=0}^{T-1}
+  p\bigl(\x_{t+1}\mid\x_t,\pi_t(\z_{1:t})\bigr)\,
+  p(\z_{t+1}\mid\x_{t+1}).
+\]
+To prove it, apply the chain rule to the poses and the measurements, in
+the order $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ The factor of $\x_{t+1}$ is
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t})$; given $\z_{1:t}$ the controls
+$\uu_{0:t}$ are known, so by \ref{A1} this factor is the transition with
+the control $\pi_t(\z_{1:t})$. The factor of $\z_{t+1}$ is
+$p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
+
+The left side differs from that of \cref{prop:joint}: it is no longer
+written ``given the controls''. With controls fixed in advance, the
+controls are free inputs, and \eqref{eq:joint} gives the distribution of
+the run for each choice of them. Here they are not inputs any more: they
+are determined by the measurements, and there is nothing left to choose.
 
 \emph{A warning for simulations.} In a simulation the true pose is at
 hand, and it is tempting to compute the controls from it, for instance to
