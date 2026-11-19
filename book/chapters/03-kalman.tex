@@ -29,20 +29,25 @@ $\vect a\T\Sigma\vect a\ge0$ for every vector $\vect a$, and
 $\vect a\T\Sigma\vect a>0$ for every $\vect a\neq\vect0$. Every covariance
 matrix is positive semi-definite, because $\vect a\T\Cov(X)\,\vect a$ is
 the variance of the number $\vect a\T X$. It is positive definite when no
-combination of the coordinates of $X$ is known exactly.
+combination of the coordinates of $X$ is known exactly. Finally, two
+vectors $X$ and $Y$ are called \emph{jointly Gaussian} when the vector
+$(X,Y)$ obtained by stacking them is Gaussian in the sense of the next
+definition.
 
 \begin{definition}{Multivariate Gaussian}{gaussian}
 A random vector $X\in\R^n$ is Gaussian, $X\sim\Normal(\bmu,\Sigma)$ with
 $\Sigma$ symmetric positive semi-definite, if every linear combination
 $\vect{a}\T X$ is a Gaussian (possibly with variance zero, that is, a
 constant) with mean
-$\vect{a}\T\bmu$ and variance $\vect{a}\T\Sigma\vect{a}$. When $\Sigma$ is
-positive definite it has the density
-\[
+$\vect{a}\T\bmu$ and variance $\vect{a}\T\Sigma\vect{a}$.
+\end{definition}
+
+When $\Sigma$ is positive definite, such a vector has the density
+\begin{equation}\label{eq:gaussdensity}
   \Normal(\x;\bmu,\Sigma)=\det(2\pi\Sigma)^{-1/2}
   \exp\bigl(-\tfrac12(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)\bigr).
-\]
-\end{definition}
+\end{equation}
+This is a consequence of the definition, proved in \cref{lem:dichotomy}.
 
 The level sets of this density are ellipsoids centred at $\bmu$
 (ellipses in the plane, \cref{fig:gaussian}, left). Their axes point along
@@ -61,8 +66,11 @@ $X$, then $AX+\vect{b}+W\sim\Normal(A\bmu+\vect{b},A\Sigma A\T+Q)$.
 \begin{proof}
 For any $\vect{a}$, $\vect{a}\T(AX+\vect{b})=(A\T\vect{a})\T X+\vect{a}\T
 \vect{b}$ is Gaussian with mean $\vect{a}\T(A\bmu+\vect{b})$ and variance
-$\vect{a}\T A\Sigma A\T\vect{a}$. For the sum, $(X,W)$ is jointly Gaussian
-(independent Gaussians), and $AX+\vect{b}+W=[A\ \,I](X,W)\T+\vect{b}$ is an
+$\vect{a}\T A\Sigma A\T\vect{a}$. For the sum, $(X,W)$ is jointly
+Gaussian: a combination $\vect a\T X+\vect c\T W$ is the sum of two
+independent scalar Gaussians, which is Gaussian with the means and the
+variances added (its characteristic function, recalled in the next proof,
+is the product of theirs). And $AX+\vect{b}+W=[A\ \,I](X,W)\T+\vect{b}$ is an
 affine map of it; its covariance is $A\Sigma A\T+Q$ because the cross
 covariance of $X$ and $W$ is zero.
 \end{proof}
@@ -100,8 +108,8 @@ derive the Kalman filter, but \cref{prop:degenerate} relies on it.
 \begin{lemma}{A Gaussian has a density or lies in a subspace}{dichotomy}
 Let $X\sim\Normal(\bmu,\Sigma)$ in $\R^n$.
 \begin{enumerate}[label=(\roman*),nosep]
-\item If $\Sigma$ is invertible, $X$ has the density of
-  \cref{def:gaussian}.
+\item If $\Sigma$ is invertible, $X$ has the density
+  \eqref{eq:gaussdensity}.
 \item If $\Sigma$ is singular, then with probability one $X$ lies in the
   affine subspace $\bmu+\operatorname{range}(\Sigma)$, of dimension
   $\operatorname{rank}(\Sigma)<n$, and $X$ has no density on $\R^n$.
@@ -118,7 +126,7 @@ $(2\pi)^{-n/2}\exp(-\tfrac12\norm{\vect z}^2)$. Since $X=\bmu+LZ$ is an
 invertible affine map of $Z$, the change-of-variables formula gives $X$
 the density
 $(2\pi)^{-n/2}\lvert\det L\rvert^{-1}\exp\bigl(-\tfrac12\norm{L^{-1}(\x-\bmu)}^2
-\bigr)$, which is the density of \cref{def:gaussian} because
+\bigr)$, which is the density \eqref{eq:gaussdensity} because
 $\lvert\det L\rvert=\sqrt{\det\Sigma}$ and
 $\norm{L^{-1}(\x-\bmu)}^2=(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)$.
 
@@ -360,7 +368,9 @@ compass. The robot drives from $\p_t$ to $\p_{t+1}$ along the heading
 $\theta_{t+1}$ that it has after its turn. Let
 $c_{t+1}=\wrap(\theta_{t+1}+\nu_{t+1})$ be the compass reading of that
 heading (\cref{sec:sensors}). With the heading read off the compass, the
-displacement is a \emph{known input}, and the position obeys
+displacement is a \emph{known input}. The turn error $\varepsilon_\delta$
+no longer matters: whatever heading the robot ends up with, the compass
+reads it. The position obeys
 \begin{equation}\label{eq:linmower}
   \p_{t+1}=\p_t+s_t\begin{pmatrix}\cos c_{t+1}\\\sin c_{t+1}\end{pmatrix}
   +\w_t,\qquad\z_{t+1}=\p_{t+1}+\vv_{t+1},
@@ -405,7 +415,8 @@ $P_0$. For a time-invariant model the predicted covariance obeys the
 unique fixed point. (The conditions are called detectability and
 stabilisability. Roughly: the sensor sees every direction of the state in
 which the error would otherwise grow, and the noise $Q$ excites every such
-direction.) The scalar case can be solved by hand, and
+direction. The general result is not proved here; see Bar-Shalom, Li and
+Kirubarajan in the references.) The scalar case can be solved by hand, and
 \cref{fig:riccati} shows the convergence.
 
 \begin{proposition}{Steady state of a random walk observed in noise}{steady}
@@ -514,8 +525,10 @@ NEES asks: ``are the errors as big as the filter says they are?'' A
 filter that believes its sensor too much is jumpy \emph{and} certain; one
 that believes it too little is sluggish and doubtful. NEES needs the
 truth, so it is a simulation tool. On real data the same idea is applied
-to the innovations: for a correct filter $\y\T S^{-1}\y\sim\chi^2_{\dim\z}$
-(the \emph{NIS} test), and that one only needs the data.
+to the innovations: for a correct filter the innovation is
+$\Normal(\vect0,S)$ (Exercise~\ref{ex:innov}), so
+$\y\T S^{-1}\y\sim\chi^2_{\dim\z}$ by the same argument (the \emph{NIS}
+test), and that one only needs the data.
 \end{inwords}
 
 \begin{practice}[\nb{02\_kalman\_filter.ipynb}, \code{kf.py}, \code{metrics.py}]
