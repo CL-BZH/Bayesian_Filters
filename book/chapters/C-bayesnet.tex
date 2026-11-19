@@ -759,6 +759,13 @@ a turn added.
     moves what is left.
   \item The filter moves the whole belief.
 \end{itemize}
+The filter does so because that is all its prediction step contains: the
+command enters it through the motion model $p(\x_{t+1}\mid\x_t,\uu_t)$,
+which says where a pose goes under that command, and nowhere else. The
+step was derived under statement (c), for commands that reveal nothing
+about the pose. To use what the command reveals, the filter would need one
+more ingredient, the rule $g$ itself, in the form of a model
+$p(\uu_t\mid\x_t)$ of how commands are issued.
 
 \begin{figure}[ht]
 \centering
