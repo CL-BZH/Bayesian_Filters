@@ -214,6 +214,14 @@ arrows can be oriented in three essentially different ways
 (\cref{fig:connections}). In each case the question is the same: are $A$
 and $C$ independent, and does the answer change when $B$ is known?
 
+With three variables only, part of each answer is not a consequence of the
+network but the assumption that the network makes: a missing arrow
+\emph{is} a variable removed from a factor of the chain rule, as in
+\cref{ex:garden}. Each case below therefore says first what the network
+assumes, and then what follows from it. The real gain comes in
+\cref{sec:dsep}, where the three patterns are combined along longer
+paths and give independences that nobody assumed.
+
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[>=Stealth,
@@ -255,24 +263,29 @@ the wet grass.
 \emph{Statement.} In a chain, $A$ and $C$ are in general dependent, and
 $A\indep C\mid B$.
 
-\emph{Proof.} What must be shown is $p(c\mid a,b)=p(c\mid b)$, the
-definition of $C\indep A\mid B$ (\cref{sec:condind}). Three steps.
+\emph{What the network assumes.} The chain rule, always true, is
+$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$. The factorisation of the chain
+is $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$. The two differ by their last
+factor: drawing no arrow from $A$ to $C$ \emph{is} assuming
+$p(c\mid a,b)=p(c\mid b)$, which is the definition of $C\indep A\mid B$.
+There is nothing to prove here; it is what the network says.
+
+\emph{What follows.} Two facts that are not written in the factorisation.
 \begin{itemize}[nosep]
-  \item By the definition of a conditional distribution,
-    $p(c\mid a,b)=p(a,b,c)/p(a,b)$.
-  \item The numerator is given by the factorisation \eqref{eq:bnfactor}
-    of the chain: $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$.
-  \item The denominator is $p(a,b)=p(a)\,p(b\mid a)$, by the product
-    rule.
+  \item The same independence read against the arrows:
+    $p(a\mid b,c)=p(a\mid b)$. Once we know that the grass is wet, seeing
+    someone slip tells nothing more about rain. To check it, sum the
+    factorisation over $a$: $p(b,c)=\sum_ap(a)\,p(b\mid a)\,p(c\mid b)
+    =p(b)\,p(c\mid b)$. Then
+    \[
+      p(a\mid b,c)=\frac{p(a,b,c)}{p(b,c)}
+      =\frac{p(a)\,p(b\mid a)\,p(c\mid b)}{p(b)\,p(c\mid b)}
+      =\frac{p(a,b)}{p(b)}=p(a\mid b).
+    \]
+  \item Without $B$, $A$ and $C$ are in general dependent:
+    $p(c\mid a)=\sum_bp(c\mid b)\,p(b\mid a)$, which changes with $a$ as
+    soon as $B$ depends on $A$ and $C$ on $B$.
 \end{itemize}
-The factors $p(a)\,p(b\mid a)$ are common to the numerator and the
-denominator and cancel:
-\[
-  p(c\mid a,b)=\frac{p(a)\,p(b\mid a)\,p(c\mid b)}{p(a)\,p(b\mid a)}
-  =p(c\mid b).
-\]
-The left side could depend on $a$; the right side does not. Given $B$,
-the value of $A$ does not change the distribution of $C$.
 
 \subsection*{Fork: $A\leftarrow B\rightarrow C$}
 
@@ -284,15 +297,18 @@ patients known to have the flu, a fever says nothing more about a cough.
 \emph{Statement.} In a fork, $A$ and $C$ are in general dependent, and
 $A\indep C\mid B$.
 
-\emph{Proof.} What must be shown is
-$p(a,c\mid b)=p(a\mid b)\,p(c\mid b)$, the second form of the definition
-of $A\indep C\mid B$. By the definition of a conditional distribution,
-$p(a,c\mid b)=p(a,b,c)/p(b)$, and the factorisation of the fork is
-$p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$. The factor $p(b)$ cancels:
-\[
-  p(a,c\mid b)=\frac{p(b)\,p(a\mid b)\,p(c\mid b)}{p(b)}
-  =p(a\mid b)\,p(c\mid b).
-\]
+\emph{What the network assumes.} In the order $B$, $A$, $C$ the chain
+rule is $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid a,b)$, and the factorisation
+of the fork is $p(b)\,p(a\mid b)\,p(c\mid b)$. Again the missing arrow
+between $A$ and $C$ is the assumption $p(c\mid a,b)=p(c\mid b)$, that is,
+$A\indep C\mid B$. Dividing the factorisation by $p(b)$ gives it in its
+symmetric form, $p(a,c\mid b)=p(a\mid b)\,p(c\mid b)$.
+
+\emph{What follows.} Without $B$, $A$ and $C$ are in general dependent:
+$p(a,c)=\sum_bp(b)\,p(a\mid b)\,p(c\mid b)$, which is not
+$p(a)\,p(c)$ in general. In the example, fever and cough are both more
+frequent among the patients who have the flu, so they go together in the
+population.
 
 In both cases the given middle node is said to \emph{screen off} $A$ from
 $C$.
@@ -310,16 +326,16 @@ away}.
 \emph{Statement.} In a collider, $A\indep C$, and in general $A$ and $C$
 are dependent given $B$.
 
-\emph{Proof.} The factorisation of the collider is
-$p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$. The distribution of $(A,C)$ alone is
-obtained by summing over all the values of $b$, and
-$\sum_bp(b\mid a,c)=1$ because a distribution sums to one:
-\[
-  p(a,c)=\sum_bp(a,b,c)=p(a)\,p(c)\sum_bp(b\mid a,c)=p(a)\,p(c).
-\]
-This is the definition of $A\indep C$. Given $B$, however,
-$p(a,c\mid b)=p(a,b,c)/p(b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$. This is not a
-product of a function of $a$ and a function of $c$: the factor
+\emph{What the network assumes.} In the order $A$, $C$, $B$ the chain
+rule is $p(a,b,c)=p(a)\,p(c\mid a)\,p(b\mid a,c)$, and the factorisation
+of the collider is $p(a)\,p(c)\,p(b\mid a,c)$. The missing arrow between
+$A$ and $C$ is the assumption $p(c\mid a)=p(c)$: the two causes are
+independent. (Summing the factorisation over $b$ confirms it:
+$p(a,c)=p(a)\,p(c)\sum_bp(b\mid a,c)=p(a)\,p(c)$.)
+
+\emph{What follows.} Given $B$, $A$ and $C$ are in general dependent.
+Indeed $p(a,c\mid b)=p(a,b,c)/p(b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, which is
+not a product of a function of $a$ and a function of $c$: the factor
 $p(b\mid a,c)$ ties $a$ and $c$ together; the next example shows that the
 dependence is real.
 
