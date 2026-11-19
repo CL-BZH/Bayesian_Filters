@@ -1454,8 +1454,11 @@ advance, and what remains is $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
 
 The controls were assumed fixed in advance. A real robot computes them
 during the run, from its current estimate of the pose, that is, from the
-measurements received so far. \Cref{sec:bayesnet-mower} ends with this
-case: the filter is unchanged.
+measurements received so far: $\uu_t=\pi_t(\z_{1:t})$ for some rule
+$\pi_t$. \Cref{sec:bayesnet-mower} ends with this case. The filter is
+unchanged, and a run is still described by the right side of
+\eqref{eq:joint}, in which each $\uu_t$ now stands for the command
+$\pi_t(\z_{1:t})$ computed by the rule.
 
 \begin{inwords}
 The whole story, every pose and every measurement, is a chain of small
