@@ -255,13 +255,24 @@ the wet grass.
 \emph{Statement.} In a chain, $A$ and $C$ are in general dependent, and
 $A\indep C\mid B$.
 
-\emph{Proof.} The factorisation \eqref{eq:bnfactor} is
-$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$. Its first two factors multiply to
-$p(a,b)$, so
+\emph{Proof.} What must be shown is $p(c\mid a,b)=p(c\mid b)$, the
+definition of $C\indep A\mid B$ (\cref{sec:condind}). Three steps.
+\begin{itemize}[nosep]
+  \item By the definition of a conditional distribution,
+    $p(c\mid a,b)=p(a,b,c)/p(a,b)$.
+  \item The numerator is given by the factorisation \eqref{eq:bnfactor}
+    of the chain: $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$.
+  \item The denominator is $p(a,b)=p(a)\,p(b\mid a)$, by the product
+    rule.
+\end{itemize}
+The factors $p(a)\,p(b\mid a)$ are common to the numerator and the
+denominator and cancel:
 \[
-  p(c\mid a,b)=\frac{p(a,b,c)}{p(a,b)}=p(c\mid b).
+  p(c\mid a,b)=\frac{p(a)\,p(b\mid a)\,p(c\mid b)}{p(a)\,p(b\mid a)}
+  =p(c\mid b).
 \]
-Given $B$, the value of $A$ does not change the distribution of $C$.
+The left side could depend on $a$; the right side does not. Given $B$,
+the value of $A$ does not change the distribution of $C$.
 
 \subsection*{Fork: $A\leftarrow B\rightarrow C$}
 
@@ -273,10 +284,14 @@ patients known to have the flu, a fever says nothing more about a cough.
 \emph{Statement.} In a fork, $A$ and $C$ are in general dependent, and
 $A\indep C\mid B$.
 
-\emph{Proof.} The factorisation is $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$.
-Dividing by $p(b)$,
+\emph{Proof.} What must be shown is
+$p(a,c\mid b)=p(a\mid b)\,p(c\mid b)$, the second form of the definition
+of $A\indep C\mid B$. By the definition of a conditional distribution,
+$p(a,c\mid b)=p(a,b,c)/p(b)$, and the factorisation of the fork is
+$p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$. The factor $p(b)$ cancels:
 \[
-  p(a,c\mid b)=p(a\mid b)\,p(c\mid b).
+  p(a,c\mid b)=\frac{p(b)\,p(a\mid b)\,p(c\mid b)}{p(b)}
+  =p(a\mid b)\,p(c\mid b).
 \]
 
 In both cases the given middle node is said to \emph{screen off} $A$ from
@@ -295,13 +310,16 @@ away}.
 \emph{Statement.} In a collider, $A\indep C$, and in general $A$ and $C$
 are dependent given $B$.
 
-\emph{Proof.} The factorisation is $p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$.
-Summing over $b$, and using $\sum_bp(b\mid a,c)=1$,
+\emph{Proof.} The factorisation of the collider is
+$p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$. The distribution of $(A,C)$ alone is
+obtained by summing over all the values of $b$, and
+$\sum_bp(b\mid a,c)=1$ because a distribution sums to one:
 \[
-  p(a,c)=p(a)\,p(c):
+  p(a,c)=\sum_bp(a,b,c)=p(a)\,p(c)\sum_bp(b\mid a,c)=p(a)\,p(c).
 \]
-$A$ and $C$ are independent. Given $B$, however,
-$p(a,c\mid b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, and the factor
+This is the definition of $A\indep C$. Given $B$, however,
+$p(a,c\mid b)=p(a,b,c)/p(b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$. This is not a
+product of a function of $a$ and a function of $c$: the factor
 $p(b\mid a,c)$ ties $a$ and $c$ together; the next example shows that the
 dependence is real.
 
