@@ -70,12 +70,24 @@ A variable without parents contributes its plain distribution $p(v_k)$.
 Four variables: it rained ($R$), the sprinkler was on ($S$), the grass is
 wet ($W$), someone slips on the grass ($L$). Rain and sprinkler each make
 the grass wet, and wet grass makes people slip (\cref{fig:garden}). The
+sprinkler is on a timer and runs whether it rains or not. The
 parents are $\mathrm{pa}(W)=\{R,S\}$ and $\mathrm{pa}(L)=\{W\}$; $R$ and
 $S$ have none. The descendants of $R$ are $W$ and $L$. The factorisation
 \eqref{eq:bnfactor} reads
 \[
   p(r,s,w,l)=p(r)\,p(s)\,p(w\mid r,s)\,p(l\mid w).
 \]
+It comes from the product rule applied in the order $R$, $S$, $W$, $L$,
+which is always true,
+\[
+  p(r,s,w,l)=p(r)\,p(s\mid r)\,p(w\mid r,s)\,p(l\mid r,s,w),
+\]
+and from two facts about this garden: $p(s\mid r)=p(s)$, because the timer
+does not look at the weather, and $p(l\mid r,s,w)=p(l\mid w)$, because
+slipping depends only on whether the grass is wet, not on what made it
+wet. Each missing arrow is such a simplification. With a sprinkler that
+switches off when it rains, $p(s\mid r)$ could not be simplified, and the
+network would have an arrow $R\rightarrow S$.
 \end{example}
 
 \begin{figure}[ht]
@@ -117,7 +129,9 @@ cannot be removed, and draw an arrow from each of them. Two examples
     $p(\x,\z)=p(\x)\,p(\z\mid\x)$, the network $\x\rightarrow\z$, and also
     $p(\x,\z)=p(\z)\,p(\x\mid\z)$, the network $\z\rightarrow\x$. Same
     distribution, opposite arrows.
-  \item The garden without $L$, in the order $W$, $R$, $S$:
+  \item The garden without $L$. In the order $R$, $S$, $W$ the chain rule
+    gives $p(r)\,p(s\mid r)\,p(w\mid r,s)$, and $p(s\mid r)=p(s)$ as in
+    \cref{ex:garden}: two arrows. In the order $W$, $R$, $S$ it gives
     $p(w,r,s)=p(w)\,p(r\mid w)\,p(s\mid r,w)$. Nothing can be removed from
     the last factor: once the state of the grass is known, rain and
     sprinkler are no longer independent (\cref{ex:explain}). This network
@@ -147,7 +161,8 @@ cannot be removed, and draw an arrow from each of them. Two examples
     \node[var] (W) at (1,-0.4) {$W$};
     \draw[->,thick] (R) -- (W);
     \draw[->,thick] (S) -- (W);
-    \node[font=\small] at (1,-1.45) {$p(r)\,p(s)\,p(w\mid r,s)$};
+    \node[font=\small,align=center] at (1,-1.7)
+      {$p(r)\,p(s\mid r)\,p(w\mid r,s)$\\with $p(s\mid r)=p(s)$};
   \end{scope}
   \begin{scope}[shift={(10.4,0)}]
     \node[var] (R) at (0,1.2) {$R$};
@@ -156,9 +171,10 @@ cannot be removed, and draw an arrow from each of them. Two examples
     \draw[->,thick] (W) -- (R);
     \draw[->,thick] (W) -- (S);
     \draw[->,thick] (R) -- (S);
-    \node[font=\small] at (1,-1.45) {$p(w)\,p(r\mid w)\,p(s\mid r,w)$};
+    \node[font=\small,align=center] at (1,-1.7)
+      {$p(w)\,p(r\mid w)\,p(s\mid r,w)$\\nothing to remove};
   \end{scope}
-  \draw[black!30] (4.4,-1.8) -- (4.4,1.8);
+  \draw[black!30] (4.4,-2.1) -- (4.4,1.8);
 \end{tikzpicture}
 \caption{One distribution, several networks. Left: a pose and its
 measurement, factorised in the two possible orders. Right: rain,
