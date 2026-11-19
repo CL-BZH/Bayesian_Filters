@@ -227,7 +227,7 @@ For normalised weights, $\ESS=1/\sum_i(w^{(i)})^2\in[1,N]$.
 $\ESS=N$ when all the weights are equal and $\ESS=1$ when one particle
 carries all the weight (Exercise~\ref{ex:ess}). It approximates the number
 of independent samples drawn directly from the target that would give the
-same variance:
+same variance (Kong, Liu and Wong, in the references):
 a first-order expansion of the ratio that defines $\hat\varphi_N$ (the
 delta method) gives $\Var(\hat\varphi_N)\approx\Var_\pi(
 \varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
@@ -370,10 +370,12 @@ slowly spreads them onto the robot.}
 
 After the first measurement the ESS is $1.0$ out of $5\,000$
 (\cref{fig:global}). The reason is a matter of volumes. The prior covers
-$320\times320\times2\pi\approx6\times10^5$ units of pose space; the
-posterior after four ranges and four bearings is roughly a box of
-$1.6\times1.6\times0.04$, about $0.1$. The expected number of uniform
-particles inside the posterior's $1\sigma$ region is therefore about
+$320\times320\times2\pi\approx6\times10^5$ units of pose space. After
+four ranges and four bearings the posterior has standard deviations of
+about $2.6$ and $1.6$ in position and $0.026$\,rad in heading (the
+information form of \cref{prop:information}, evaluated at the start
+pose): a box of volume $2.6\times1.6\times0.026\approx0.1$. The expected
+number of uniform particles inside such a box is therefore about
 $N\times10^{-7}$: far below one for any affordable $N$. The best particle
 is a few units from the truth, and the filter must then crawl to it
 through the motion noise. This is \emph{sample impoverishment}: the

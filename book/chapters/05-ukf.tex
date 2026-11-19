@@ -121,7 +121,9 @@ curvature show up in the results.
 
 The covariance $P_y$ is correct to first order, like the EKF's, and
 captures part of the higher-order terms; $\beta$ adds information about
-the fourth moment. For $y=x^2$ with $x\sim\Normal(\mu,\sigma^2)$, the
+the fourth moment. (These statements are not proved here; see Julier and
+Uhlmann, and Wan and van der Merwe, in the references. The next example
+can be checked by hand.) For $y=x^2$ with $x\sim\Normal(\mu,\sigma^2)$, the
 choice $\alpha=1$, $\beta=2$, $\kappa=0$ gives both the mean
 $\mu^2+\sigma^2$ and the variance $4\mu^2\sigma^2+2\sigma^4$
 \emph{exactly}, where linearisation gives $\mu^2$ and $4\mu^2\sigma^2$
@@ -210,7 +212,8 @@ its tangent at the mean. The UKF never computes a slope, but its update
 behaves as if $h$ had been replaced by another straight line: the one that
 fits the values of $h$ at the sigma points best, in the least-squares
 sense. This is a \emph{regression} line, and its slope is
-$\Cov(\z,\x)\Cov(\x)^{-1}$, here $\tilde H=P_{xz}\T\bar P^{-1}$. Because
+$\Cov(\z,\x)\Cov(\x)^{-1}$, the regression coefficient already met in
+\cref{thm:conditioning}; here it is $\tilde H=P_{xz}\T\bar P^{-1}$. Because
 $h$ is curved, the sigma points do not lie exactly on that line. Their
 scatter around it is what a straight line cannot explain, and the UKF
 counts it as extra measurement noise. The next theorem states this
@@ -319,7 +322,8 @@ natural ``squared distance'' on the circle.
 With four landmarks in view and a good start, the UKF and the EKF are
 indistinguishable on the standard run (RMSE $0.99$ against $1.01$): the
 models are nearly linear over the small uncertainty. The UKF costs about
-50\% more per step here ($0.15$ against $0.10$\,ms, vectorised), for
+50\% more per step ($0.16$ against $0.11$\,ms in the comparison of
+\cref{ch:choosing}; the exact figures depend on the machine), for
 $11+7$ model evaluations and two Cholesky factorisations instead of two
 Jacobians.
 

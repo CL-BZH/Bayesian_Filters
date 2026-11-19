@@ -130,7 +130,7 @@ $\z-h(\bx)$.
 $P=(I-KH)\bar P(I-KH)\T+KRK\T$, with $F,V$ evaluated at $(\hx,\uu)$ and
 $H$ at $\bx$. With several visible landmarks, the measurements and the
 rows of $H$ are stacked, and $R$ is block diagonal, with one copy of $R_1$
-per landmark ($R=I\otimes R_1$).
+per landmark.
 \end{definition}
 
 The \emph{mean} goes through the true non-linear functions; only the
@@ -306,9 +306,10 @@ The mechanism has three steps.
 The filter now claims a small uncertainty around an estimate that is still
 far off. The next update, with its small $\bar P$, gives the new
 measurements little weight, and the correction is slow. If the error
-had been larger, that false confidence could have made the filter reject
-(by gating, \cref{sec:ekf-association}) the very measurements that would
-have corrected it.
+had been larger, that false confidence could have made the filter reject,
+as too far from what it expects (the gate of
+\cref{sec:ekf-association}), the very measurements that would have
+corrected it.
 
 Common remedies: inflate $Q$ or $R$ while the uncertainty is large (cheap
 and ad hoc); propagate the uncertainty without linearising (the UKF,
@@ -320,7 +321,8 @@ There is another way to look at the update. The posterior density is the
 product of the predicted belief and the likelihood; its \emph{mode} is the
 pose at which this density is highest, also called the \emph{maximum a
 posteriori} (MAP) estimate. Maximising a product of Gaussian densities is the same
-as minimising the sum of their exponents, a least-squares problem.
+as minimising the sum of their exponents with the sign changed, a
+least-squares problem.
 \emph{Gauss--Newton} is the standard method for non-linear least squares:
 linearise the non-linear residual at the current point, solve the
 resulting linear least-squares problem exactly, and repeat from the
