@@ -1355,14 +1355,14 @@ variable, given its parents.}
 \paragraph{Information, not influence.} The network of
 \cref{fig:bayesnet} was drawn by following the model, so its arrows show
 \emph{influence}: what each variable is computed from (\cref{sec:bn} says
-what an arrow means in general). They all point forwards in time. A conditional density is about
+what an arrow means in general). They all point forwards in time. A conditional distribution is about
 something else. $p(a\mid b)$ describes what is known about $a$ once $b$ is
 known: it is about \emph{information}, and information has no direction.
 The product rule shows it:
 \[
   p(a,b)=p(a\mid b)\,p(b)=p(b\mid a)\,p(a).
 \]
-The same joint density is written with $a$ given $b$, or with $b$ given
+The same joint distribution is written with $a$ given $b$, or with $b$ given
 $a$. Dividing by $p(a)\,p(b)$ gives $p(a\mid b)/p(a)=p(b\mid a)/p(b)$:
 knowing $b$ changes the distribution of $a$ exactly when knowing $a$
 changes that of $b$.
@@ -1405,7 +1405,7 @@ something about the earlier pose.}
 \end{figure}
 
 \begin{pitfall}
-A variable may be removed from behind the bar of a conditional density
+A variable may be removed from behind the bar of a conditional distribution
 only when it carries no \emph{information} about the variable in front of
 the bar, given the variables that stay behind it. That it comes later in
 time, or that it cannot influence that variable, is not a valid reason.
@@ -1717,7 +1717,7 @@ RTK-GNSS or a camera.
     neither does the current measurement \ref{A2}. They give the
     factorisation \eqref{eq:joint}, drawn as the network of
     \cref{fig:bayesnet}.
-  \item A conditional density is about information, not influence: a
+  \item A conditional distribution is about information, not influence: a
     later variable can tell something about an earlier one. A variable is
     removed from behind the bar only on the strength of an independence,
     never because it comes later.
