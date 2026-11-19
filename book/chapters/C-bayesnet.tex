@@ -1,94 +1,126 @@
 \chapter{Bayesian networks and d-separation}
 \label{app:bayesnet}
 
-The derivations of \cref{ch:statespace,ch:bayes} repeatedly drop variables
-from a conditioning: ``given the current pose, the past does not matter'',
-``the next control says nothing about the current pose''. Each of these is
-a statement of \emph{conditional independence}. This appendix explains a
-way to check such statements without any computation: draw the model as a
-graph, and read the independences off the graph.
+The derivations of \cref{ch:statespace,ch:bayes} repeatedly remove
+variables from behind the bar of a conditional distribution: ``given the
+current pose, the past does not matter'', ``the next control says nothing
+about the current pose''. Each removal is a statement of \emph{conditional
+independence}. Some of these statements are assumptions of the model.
+Others are consequences of the assumptions, and it is not always easy to
+see which ones follow. This appendix gives a way to find the consequences
+without computation: draw the assumptions as a graph, and read the
+consequences off the graph.
 
-It proceeds in four steps: what conditional independence means
-(\cref{sec:condind}); how a model is drawn as a graph
-(\cref{sec:bn}); the three situations that can occur along a path of the
-graph, each proved from the definition (\cref{sec:three}); and the
-general rule, called \emph{d-separation}, with a recipe to apply it
-(\cref{sec:dsep}). \Cref{sec:bayesnet-mower} then applies the recipe to
-the robot.
+\Cref{sec:condind} defines conditional independence. \Cref{sec:bn} shows
+how the assumptions of a model are drawn as a graph, the Bayesian network.
+\Cref{sec:three} studies the three smallest networks. \Cref{sec:dsep}
+gives the general rule, called d-separation, with a recipe.
+\Cref{sec:bayesnet-mower} applies the recipe to the robot.
+
+Every statement of this appendix is of one of three kinds, and the text
+says which: a \emph{definition}, an \emph{assumption} made by a model, or a
+\emph{consequence}, which needs a proof.
 
 \section{Conditional independence}
 \label{sec:condind}
 
-Let $A$, $B$ and $C$ be random variables. $A$ and $B$ are
-\emph{independent} if knowing one says nothing about the other:
-$p(a\mid b)=p(a)$, or equivalently $p(a,b)=p(a)\,p(b)$. We write
-$A\indep B$.
+Let $A$, $B$ and $C$ be random variables. The letter $p$ is used as in
+\cref{sec:assumptions}; a sum $\sum_b$ runs over the values of $B$, and is
+to be read as an integral when $B$ is continuous.
 
-They are \emph{conditionally independent given $C$} if, \emph{once $C$ is
-known}, knowing $B$ says nothing more about $A$:
+\begin{definition}{Independence, conditional independence}{condind}
+$A$ and $B$ are \emph{independent}, written $A\indep B$, if knowing one
+says nothing about the other:
+\[
+  p(a\mid b)=p(a),\qquad\text{or equivalently}\qquad p(a,b)=p(a)\,p(b).
+\]
+They are \emph{conditionally independent given $C$}, written
+$A\indep B\mid C$, if, \emph{once $C$ is known}, knowing $B$ says nothing
+more about $A$:
 \[
   p(a\mid b,c)=p(a\mid c),\qquad\text{or equivalently}\qquad
   p(a,b\mid c)=p(a\mid c)\,p(b\mid c).
 \]
-We write $A\indep B\mid C$. This is exactly what allows a variable to be
-dropped from a conditioning.
+\end{definition}
 
-Independence is symmetric: the second form of the definition treats $A$
-and $B$ alike, so $A\indep B\mid C$ and $B\indep A\mid C$ are the same
-statement. It is a statement about \emph{information}, what one variable
-tells about another, and not about which variable acts on which
+The first form says what the statement is used for: $B$ can be removed
+from behind the bar. The second form treats $A$ and $B$ alike, so
+independence is symmetric: $A\indep B\mid C$ and $B\indep A\mid C$ are the
+same statement. It is a statement about \emph{information}, what one
+variable tells about another, and not about which variable acts on which
 (\cref{sec:assumptions}, ``Information, not influence'').
 
-The two notions are different, and neither implies the other. Two
-variables can be dependent and become independent once a third is known;
-two variables can be independent and become dependent once a third is
-known. \Cref{sec:three} gives an example of each.
+Independence and conditional independence are different, and neither
+implies the other. Two variables can be dependent and become independent
+once a third is known; two variables can be independent and become
+dependent once a third is known. \Cref{sec:three} has an example of each.
 
-\section{Bayesian networks}
+\section{From the chain rule to a network}
 \label{sec:bn}
 
-A model is often described by saying, for each variable, which other
-variables it is computed from. A \emph{Bayesian network} draws this
-description: one node per variable, and an arrow $A\rightarrow B$ when $A$
-is one of the variables that $B$ is computed from. The arrows must not
-form a cycle.
-
-Some vocabulary. In $A\rightarrow B$, $A$ is a \emph{parent} of $B$ and
-$B$ a \emph{child} of $A$. The set of parents of a node $v$ is written
-$\mathrm{pa}(v)$. The \emph{descendants} of $v$ are its children, their
-children, and so on: every node that can be reached from $v$ by following
-arrows forwards.
-
-The graph stands for a factorisation of the joint distribution, with one
-factor per variable, the distribution of that variable given its parents:
-\begin{equation}\label{eq:bnfactor}
-  p(v_1,\dots,v_n)=\prod_{k=1}^n p\bigl(v_k\mid\mathrm{pa}(v_k)\bigr).
+\paragraph{The chain rule: always true.} Take any variables
+$v_1,\dots,v_n$, in any order. Applying the product rule repeatedly,
+\begin{equation}\label{eq:chainrule}
+  p(v_1,\dots,v_n)=p(v_1)\,p(v_2\mid v_1)\,p(v_3\mid v_1,v_2)\cdots
+  p(v_n\mid v_1,\dots,v_{n-1}).
 \end{equation}
-A variable without parents contributes its plain distribution $p(v_k)$.
+Each variable has one factor: its distribution given all the variables
+before it. This holds for every joint distribution, and assumes nothing.
+
+\paragraph{A model: variables removed from the factors.} A model says
+more. It says that in some factors, some of the variables behind the bar
+can be removed. Each removal is a conditional independence, and it is an
+\emph{assumption}: it comes from what is known of the situation, not from
+a computation.
 
 \begin{example}{A garden}{garden}
 Four variables: it rained ($R$), the sprinkler was on ($S$), the grass is
-wet ($W$), someone slips on the grass ($L$). Rain and sprinkler each make
-the grass wet, and wet grass makes people slip (\cref{fig:garden}). The
-sprinkler is on a timer and runs whether it rains or not. The
-parents are $\mathrm{pa}(W)=\{R,S\}$ and $\mathrm{pa}(L)=\{W\}$; $R$ and
-$S$ have none. The descendants of $R$ are $W$ and $L$. The factorisation
-\eqref{eq:bnfactor} reads
+wet ($W$), someone slips on the grass ($L$). In this order the chain rule
+reads
+\[
+  p(r,s,w,l)=p(r)\,p(s\mid r)\,p(w\mid r,s)\,p(l\mid r,s,w).
+\]
+Here is what is known of this garden.
+\begin{itemize}[nosep]
+  \item The sprinkler is on a timer and runs whether it rains or not:
+    $p(s\mid r)=p(s)$, that is, $S\indep R$.
+  \item Rain and sprinkler each make the grass wet: nothing can be removed
+    from $p(w\mid r,s)$.
+  \item Slipping depends only on whether the grass is wet, not on what
+    made it wet: $p(l\mid r,s,w)=p(l\mid w)$, that is,
+    $L\indep(R,S)\mid W$.
+\end{itemize}
+The model of the garden is therefore
 \[
   p(r,s,w,l)=p(r)\,p(s)\,p(w\mid r,s)\,p(l\mid w).
 \]
-It comes from the product rule applied in the order $R$, $S$, $W$, $L$,
-which is always true,
-\[
-  p(r,s,w,l)=p(r)\,p(s\mid r)\,p(w\mid r,s)\,p(l\mid r,s,w),
-\]
-and from two facts about this garden: $p(s\mid r)=p(s)$, because the timer
-does not look at the weather, and $p(l\mid r,s,w)=p(l\mid w)$, because
-slipping depends only on whether the grass is wet, not on what made it
-wet. Each missing arrow is such a simplification. With a sprinkler that
-switches off when it rains, $p(s\mid r)$ could not be simplified, and the
-network would have an arrow $R\rightarrow S$.
+With a sprinkler that switches off when it rains, the first removal would
+not be allowed, and $p(s\mid r)$ would stay.
 \end{example}
+
+\begin{definition}{Bayesian network}{bn}
+Take the variables of a model in a given order. The \emph{parents} of a
+variable $v$, written $\mathrm{pa}(v)$, are the variables that remain
+behind the bar in its factor after the removals. The \emph{Bayesian
+network} of the model is the graph with one node per variable and an arrow
+into each variable from each of its parents. It stands for the
+factorisation
+\begin{equation}\label{eq:bnfactor}
+  p(v_1,\dots,v_n)=\prod_{k=1}^n p\bigl(v_k\mid\mathrm{pa}(v_k)\bigr),
+\end{equation}
+in which a variable without parents contributes its plain distribution
+$p(v_k)$.
+\end{definition}
+
+The parents of a variable come before it in the order, so the arrows never
+form a cycle. Some more vocabulary: in $A\rightarrow B$, $B$ is a
+\emph{child} of $A$. The \emph{descendants} of a node are its children,
+their children, and so on: every node that can be reached from it by
+following arrows forwards.
+
+For the garden, $\mathrm{pa}(W)=\{R,S\}$, $\mathrm{pa}(L)=\{W\}$, and $R$
+and $S$ have no parents (\cref{fig:garden}). The descendants of $R$ are
+$W$ and $L$.
 
 \begin{figure}[ht]
 \centering
@@ -110,35 +142,32 @@ network would have an arrow $R\rightarrow S$.
 \label{fig:garden}
 \end{figure}
 
-\paragraph{What an arrow means, and what it does not.} Mathematically a
-Bayesian network says one thing only: the joint distribution factorises as
-\eqref{eq:bnfactor}. An arrow $A\rightarrow B$ says that $A$ stands behind
-the bar in the factor of $B$. By itself it says nothing about causes.
+\paragraph{What a network says, exactly.} It says what was assumed, one
+statement per variable: \emph{given its parents, a variable is independent
+of all the other variables that come before it in the order}. For the
+garden these are $S\indep R$ and $L\indep(R,S)\mid W$, and nothing else. A
+\emph{missing} arrow is an assumption. An arrow that is present assumes
+nothing.
 
-The same joint distribution has several networks. The chain rule
-\[
-  p(v_1,\dots,v_n)=p(v_1)\,p(v_2\mid v_1)\,p(v_3\mid v_1,v_2)\cdots
-  p(v_n\mid v_1,\dots,v_{n-1})
-\]
-holds for the variables taken in \emph{any} order. Each order gives a
-network: in each factor, keep behind the bar only the variables that
-cannot be removed, and draw an arrow from each of them. Two examples
-(\cref{fig:orders}).
+\paragraph{What an arrow means, and what it does not.} An arrow
+$A\rightarrow B$ says that $A$ remains behind the bar in the factor of
+$B$. By itself it says nothing about causes, and it depends on the order
+in which the variables were taken. The same joint distribution, taken in
+another order, gives another network (\cref{fig:orders}).
 \begin{itemize}[nosep]
-  \item A pose $\x$ and a measurement $\z$ of it. The product rule gives
-    $p(\x,\z)=p(\x)\,p(\z\mid\x)$, the network $\x\rightarrow\z$, and also
-    $p(\x,\z)=p(\z)\,p(\x\mid\z)$, the network $\z\rightarrow\x$. Same
+  \item A pose $\x$ and a measurement $\z$ of it. In the order $\x$, $\z$
+    the chain rule is $p(\x)\,p(\z\mid\x)$, the network
+    $\x\rightarrow\z$. In the order $\z$, $\x$ it is
+    $p(\z)\,p(\x\mid\z)$, the network $\z\rightarrow\x$. Same
     distribution, opposite arrows.
   \item The garden without $L$. In the order $R$, $S$, $W$ the chain rule
-    gives $p(r)\,p(s\mid r)\,p(w\mid r,s)$, and $p(s\mid r)=p(s)$ as in
-    \cref{ex:garden}: two arrows. In the order $W$, $R$, $S$ it gives
-    $p(w,r,s)=p(w)\,p(r\mid w)\,p(s\mid r,w)$. Nothing can be removed from
-    the last factor: once the state of the grass is known, rain and
-    sprinkler are no longer independent (\cref{ex:explain}). This network
-    has three arrows, $W\rightarrow R$, $W\rightarrow S$ and
-    $R\rightarrow S$. It is a correct description of the same
-    distribution, but it has one arrow more, and the independence of rain
-    and sprinkler can no longer be read off it.
+    is $p(r)\,p(s\mid r)\,p(w\mid r,s)$, and $p(s\mid r)=p(s)$: two
+    arrows. In the order $W$, $R$, $S$ it is
+    $p(w)\,p(r\mid w)\,p(s\mid r,w)$, and nothing can be removed: once the
+    state of the grass is known, rain and sprinkler are no longer
+    independent (\cref{ex:explain}). This second network has three arrows.
+    It describes the same distribution correctly, but the independence of
+    rain and sprinkler can no longer be read off it.
 \end{itemize}
 
 \begin{figure}[ht]
@@ -183,44 +212,51 @@ $W$) and in the order $W$, $R$, $S$, which needs a third arrow.}
 \label{fig:orders}
 \end{figure}
 
-Where does the idea of influence come from, then? From the way the
-network is built. In this book the variables are always taken in the
-order in which the model produces them: each variable is computed from
-earlier ones and from a fresh noise, independent of everything before it.
-In that order the parents of a variable are exactly the variables it is
-computed from, so the arrows show the influences as well, and the network
-is usually the one with the fewest arrows. This is a choice made by the
-person who draws the network. It is not a property of the distribution,
-which cannot tell $\x\rightarrow\z$ from $\z\rightarrow\x$.
+In this book the variables are always taken in the order in which the
+model produces them: each variable is computed from earlier ones and from
+a fresh noise, independent of everything before it. In that order the
+parents of a variable are exactly the variables it is computed from, so
+the arrows show the influences as well, and the network usually has the
+fewest arrows. This is a choice made by the person who draws the network.
+It is not a property of the distribution, which cannot tell
+$\x\rightarrow\z$ from $\z\rightarrow\x$.
 
-The rules of the next sections use the factorisation and nothing else.
-They are valid for any network of the distribution, whatever its arrows
-are taken to mean.
+\paragraph{The robot.} The model produces its variables in the order
+$\x_0,\uu_0,\x_1,\z_1,\uu_1,\x_2,\z_2,\dots$ Its assumptions are \ref{A1}
+and \ref{A2} of \cref{sec:assumptions}, which have exactly the form above.
+Given $\x_t$ and $\uu_t$, the pose $\x_{t+1}$ is independent of everything
+before it: $\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$. Given $\x_t$, the
+measurement $\z_t$ is independent of everything before it:
+$\mathrm{pa}(\z_t)=\{\x_t\}$. The controls are fixed in advance: they
+depend on nothing and have no parents (the end of
+\cref{sec:bayesnet-mower} looks at controls computed during the run). The
+network is that of \cref{fig:bayesnet}, and the factorisation
+\eqref{eq:bnfactor} is \eqref{eq:joint}, with the controls kept behind the
+bar.
 
-For the robot (\cref{fig:bayesnet}), the pose $\x_{t+1}$ is computed from
-$\x_t$ and $\uu_t$, and the measurement $\z_t$ from $\x_t$:
-$\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$ and $\mathrm{pa}(\z_t)=\{\x_t\}$.
-The factorisation \eqref{eq:bnfactor} is then \eqref{eq:joint}. The
-controls are inputs fixed in advance. They are drawn as nodes without
-parents and handled like the other variables; the end of
-\cref{sec:bayesnet-mower} looks at controls computed during the run.
-
-\section{The three building blocks}
+\section{Three small networks}
 \label{sec:three}
 
-Take three variables $A$, $B$, $C$ with an arrow between $A$ and $B$ and
-an arrow between $B$ and $C$, and no arrow between $A$ and $C$. The two
-arrows can be oriented in three essentially different ways
-(\cref{fig:connections}). In each case the question is the same: are $A$
-and $C$ independent, and does the answer change when $B$ is known?
+A network displays the assumptions of a model. But a model also has
+\emph{consequences} that are not among its assumptions. Nothing was
+assumed in the garden about the following two questions, and yet each has
+an answer.
+\begin{itemize}[nosep]
+  \item Are rain and slipping independent?
+  \item Once we know that someone slipped, are rain and sprinkler still
+    independent?
+\end{itemize}
+Such answers are found by following the paths of the graph from one
+variable to the other, and along a path only three situations can occur.
+They are the three ways of joining three variables $A$, $B$, $C$ by an
+arrow between $A$ and $B$ and an arrow between $B$ and $C$, with no arrow
+between $A$ and $C$ (\cref{fig:connections}). For each of them there are
+two questions: are $A$ and $C$ independent when nothing is given, and when
+$B$ is given?
 
-With three variables only, part of each answer is not a consequence of the
-network but the assumption that the network makes: a missing arrow
-\emph{is} a variable removed from a factor of the chain rule, as in
-\cref{ex:garden}. Each case below therefore says first what the network
-assumes, and then what follows from it. The real gain comes in
-\cref{sec:dsep}, where the three patterns are combined along longer
-paths and give independences that nobody assumed.
+In each of the three networks, one of the two answers is the assumption
+that the network itself makes by having no arrow between $A$ and $C$. The
+other answer is a consequence.
 
 \begin{figure}[ht]
 \centering
@@ -254,90 +290,67 @@ is given; a collider is the other way round.}
 
 \subsection*{Chain: $A\rightarrow B\rightarrow C$}
 
-\emph{Example.} It rains ($A$), so the grass is wet ($B$), so someone slips
-($C$). Rain makes slipping more likely: $A$ and $C$ are dependent. But if
-we already know whether the grass is wet, learning that it rained tells
-nothing more about slipping, because rain acts on slipping only through
-the wet grass.
+\emph{Example.} It rains ($A$), so the grass is wet ($B$), so someone
+slips ($C$).
 
-\emph{Statement.} In a chain, $A$ and $C$ are in general dependent, and
-$A\indep C\mid B$.
-
-\emph{What the network assumes.} The chain rule, always true, is
-$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$. The factorisation of the chain
-is $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$. The two differ by their last
-factor: drawing no arrow from $A$ to $C$ \emph{is} assuming
-$p(c\mid a,b)=p(c\mid b)$, which is the definition of $C\indep A\mid B$.
-There is nothing to prove here; it is what the network says.
-
-\emph{What follows.} Two facts that are not written in the factorisation.
+\emph{Network.} $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$.
 \begin{itemize}[nosep]
-  \item The same independence read against the arrows:
-    $p(a\mid b,c)=p(a\mid b)$. Once we know that the grass is wet, seeing
-    someone slip tells nothing more about rain. To check it, sum the
-    factorisation over $a$: $p(b,c)=\sum_ap(a)\,p(b\mid a)\,p(c\mid b)
-    =p(b)\,p(c\mid b)$. Then
-    \[
-      p(a\mid b,c)=\frac{p(a,b,c)}{p(b,c)}
-      =\frac{p(a)\,p(b\mid a)\,p(c\mid b)}{p(b)\,p(c\mid b)}
-      =\frac{p(a,b)}{p(b)}=p(a\mid b).
-    \]
-  \item Without $B$, $A$ and $C$ are in general dependent:
+  \item \emph{Given $B$: independent.} This is the assumption. The chain
+    rule is $p(a)\,p(b\mid a)\,p(c\mid a,b)$, and the network has removed
+    $a$ from the last factor: $p(c\mid a,b)=p(c\mid b)$, which is
+    $A\indep C\mid B$. If we know whether the grass is wet, learning that
+    it rained tells nothing more about slipping. By the symmetry of
+    independence, a slip then tells nothing more about rain either:
+    $p(a\mid b,c)=p(a\mid b)$.
+  \item \emph{Nothing given: dependent in general.} This is a consequence.
+    Summing the network over $b$ and dividing by $p(a)$,
     $p(c\mid a)=\sum_bp(c\mid b)\,p(b\mid a)$, which changes with $a$ as
-    soon as $B$ depends on $A$ and $C$ on $B$.
+    soon as $B$ depends on $A$ and $C$ on $B$. Rain makes slipping more
+    likely.
 \end{itemize}
 
 \subsection*{Fork: $A\leftarrow B\rightarrow C$}
 
 \emph{Example.} A patient has the flu ($B$), which causes fever ($A$) and
-cough ($C$). In the population, fever and cough go together: seeing one
-makes the other more likely, because it makes the flu more likely. Among
-patients known to have the flu, a fever says nothing more about a cough.
+cough ($C$).
 
-\emph{Statement.} In a fork, $A$ and $C$ are in general dependent, and
-$A\indep C\mid B$.
-
-\emph{What the network assumes.} In the order $B$, $A$, $C$ the chain
-rule is $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid a,b)$, and the factorisation
-of the fork is $p(b)\,p(a\mid b)\,p(c\mid b)$. Again the missing arrow
-between $A$ and $C$ is the assumption $p(c\mid a,b)=p(c\mid b)$, that is,
-$A\indep C\mid B$. Dividing the factorisation by $p(b)$ gives it in its
-symmetric form, $p(a,c\mid b)=p(a\mid b)\,p(c\mid b)$.
-
-\emph{What follows.} Without $B$, $A$ and $C$ are in general dependent:
-$p(a,c)=\sum_bp(b)\,p(a\mid b)\,p(c\mid b)$, which is not
-$p(a)\,p(c)$ in general. In the example, fever and cough are both more
-frequent among the patients who have the flu, so they go together in the
-population.
-
-In both cases the given middle node is said to \emph{screen off} $A$ from
-$C$.
+\emph{Network.} $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$.
+\begin{itemize}[nosep]
+  \item \emph{Given $B$: independent.} This is the assumption. In the
+    order $B$, $A$, $C$ the chain rule is
+    $p(b)\,p(a\mid b)\,p(c\mid a,b)$, and the network has removed $a$ from
+    the last factor: $A\indep C\mid B$. Among patients known to have the
+    flu, a fever says nothing more about a cough.
+  \item \emph{Nothing given: dependent in general.} This is a consequence.
+    Summing over $b$, $p(a,c)=\sum_bp(b)\,p(a\mid b)\,p(c\mid b)$, which
+    is not $p(a)\,p(c)$ in general. In the population, fever and cough go
+    together: seeing one makes the flu more likely, hence the other.
+\end{itemize}
+In the chain and in the fork, the given middle node is said to
+\emph{screen off} $A$ from $C$.
 
 \subsection*{Collider: $A\rightarrow B\leftarrow C$}
 
 \emph{Example.} Rain ($A$) and the sprinkler ($C$) both wet the grass
-($B$). Rain and sprinkler have nothing to do with each other: they are
-independent. Now suppose we see that the grass is wet. If we then learn
-that the sprinkler was on, rain becomes \emph{less} likely, because the
-sprinkler already explains the wet grass. Once the common effect is known,
-its two causes are no longer independent. This is called \emph{explaining
-away}.
+($B$).
 
-\emph{Statement.} In a collider, $A\indep C$, and in general $A$ and $C$
-are dependent given $B$.
-
-\emph{What the network assumes.} In the order $A$, $C$, $B$ the chain
-rule is $p(a,b,c)=p(a)\,p(c\mid a)\,p(b\mid a,c)$, and the factorisation
-of the collider is $p(a)\,p(c)\,p(b\mid a,c)$. The missing arrow between
-$A$ and $C$ is the assumption $p(c\mid a)=p(c)$: the two causes are
-independent. (Summing the factorisation over $b$ confirms it:
-$p(a,c)=p(a)\,p(c)\sum_bp(b\mid a,c)=p(a)\,p(c)$.)
-
-\emph{What follows.} Given $B$, $A$ and $C$ are in general dependent.
-Indeed $p(a,c\mid b)=p(a,b,c)/p(b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, which is
-not a product of a function of $a$ and a function of $c$: the factor
-$p(b\mid a,c)$ ties $a$ and $c$ together; the next example shows that the
-dependence is real.
+\emph{Network.} $p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$.
+\begin{itemize}[nosep]
+  \item \emph{Nothing given: independent.} This is the assumption. In the
+    order $A$, $C$, $B$ the chain rule is
+    $p(a)\,p(c\mid a)\,p(b\mid a,c)$, and the network has removed $a$ from
+    the second factor: $p(c\mid a)=p(c)$, which is $A\indep C$. Rain and
+    sprinkler have nothing to do with each other.
+  \item \emph{Given $B$: dependent in general.} This is a consequence, and
+    the surprising one. Dividing the network by $p(b)$,
+    $p(a,c\mid b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, which is not the product
+    of a function of $a$ and a function of $c$: the factor
+    $p(b\mid a,c)$ ties $a$ and $c$ together. Suppose we see that the
+    grass is wet. If we then learn that the sprinkler was on, rain becomes
+    \emph{less} likely, because the sprinkler already explains the wet
+    grass. This is called \emph{explaining away}; the next example puts
+    numbers on it.
+\end{itemize}
 
 \begin{example}{Explaining away, with numbers}{explain}
 It rains with probability $0.2$, the sprinkler is on with probability
@@ -362,7 +375,7 @@ sprinkler become dependent again.
 \begin{inwords}
 Information flows through a chain or a fork, unless the middle node is
 known. Information does not flow through a collider, unless the collider,
-or something it causes, is known.
+or one of its descendants, is known.
 \end{inwords}
 
 \section{d-separation}
@@ -370,7 +383,8 @@ or something it causes, is known.
 
 In a larger graph, two variables can be connected by several routes, each
 made of chains, forks and colliders. The rule of d-separation (``d'' for
-\emph{directional}) combines the three building blocks.
+\emph{directional}) combines the three patterns, and gives independences
+that are consequences of the model without being among its assumptions.
 
 A \emph{path} between two nodes is a sequence of nodes in which each one is
 joined to the next by an arrow, \emph{whatever the direction of the
@@ -405,9 +419,13 @@ $X\indep Y\mid\mathcal S$ for every distribution that factorises as
 \eqref{eq:bnfactor}.
 \end{theorem}
 
-The proofs of \cref{sec:three} are the three smallest cases of this
-theorem. The general proof extends the same computations to any graph;
-it can be found in Koller and Friedman (see the references).
+This is a consequence of the factorisation, and it needs a proof. The
+three small networks of \cref{sec:three} are its smallest cases; the
+general proof extends the same computations to any graph and can be found
+in Koller and Friedman (see the references). The theorem goes one way
+only: when a path is open, the graph does not guarantee independence, and
+the variables are in fact dependent except for special choices of the
+factors.
 
 \paragraph{A recipe.} To decide whether $X\indep Y\mid\mathcal S$:
 \begin{enumerate}[nosep]
@@ -421,28 +439,40 @@ it can be found in Koller and Friedman (see the references).
     guarantee independence.
 \end{enumerate}
 
-\begin{example}{Three questions about the garden}{gardenq}
+\begin{example}{Four questions about the garden}{gardenq}
 In \cref{fig:garden}:
 \begin{itemize}[nosep]
+  \item \emph{Is $R\indep L$, with nothing given?} The only path is
+    $R\rightarrow W\rightarrow L$, a chain whose middle node $W$ is not
+    given. The path is open: independence is not guaranteed, and indeed
+    rain makes slipping more likely.
+  \item \emph{Is $R\indep L\mid W$?} Same path, but now $W$ is given. The
+    path is blocked: yes. Once the state of the grass is known, rain says
+    nothing more about slipping.
   \item \emph{Is $R\indep S$, with nothing given?} The only path is
     $R\rightarrow W\leftarrow S$. Its middle node $W$ is a collider; it is
     not given, and neither is its descendant $L$. The path is blocked:
-    yes, rain and sprinkler are independent.
+    yes.
   \item \emph{Is $R\indep S\mid L$?} Same path, but now $L$, a descendant
-    of the collider $W$, is given. The path is open: no.
-  \item \emph{Is $R\indep L\mid W$?} The only path is
-    $R\rightarrow W\rightarrow L$, a chain whose middle node $W$ is given.
-    The path is blocked: yes. Once the state of the grass is known, rain
-    says nothing more about slipping.
+    of the collider $W$, is given. The path is open: no. Knowing that
+    someone slipped, learning that the sprinkler was on makes rain less
+    likely.
 \end{itemize}
+The second and third answers are the assumptions of \cref{ex:garden},
+which the rule gives back. The first and the fourth are the two questions
+asked at the start of \cref{sec:three}: nobody assumed them.
 \end{example}
 
 \section{Reading the robot's network}
 \label{sec:bayesnet-mower}
 
-The recipe is now applied to the four statements that the book relies on.
-The first three have the same form: some variables are removed from behind
-the bar,
+The recipe is now applied to four statements about the robot. Statements
+(a) and (b) are the assumptions \ref{A2} and \ref{A1}, from which the
+network was drawn: the recipe must give them back, and they serve as a
+first exercise. Statements (c) and (d) are consequences: nothing in the
+model states them, and the proofs of \cref{ch:statespace,ch:bayes} rely on
+them. The first three statements have the same form: some variables are
+removed from behind the bar,
 \[
   p(X\mid Y,\mathcal S)=p(X\mid\mathcal S),\qquad\text{that is,}\qquad
   X\indep Y\mid\mathcal S .

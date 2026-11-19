@@ -1334,10 +1334,10 @@ per variable, and an arrow into each variable from the variables it is
 computed from. The pose $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$ has the
 parents $\x_t$ and $\uu_t$; the measurement $\z_t$ has the single parent
 $\x_t$. The noises are not drawn: each one feeds a single variable, and
-is independent of everything else. \Cref{app:bayesnet} shows how to read
-conditional independences off such a graph, and checks with it every
-independence used in this chapter and the next, including
-\ref{A1}--\ref{A2}.
+is independent of everything else. The network is a picture of the two assumptions
+\ref{A1}--\ref{A2}. \Cref{app:bayesnet} shows how to read off such a
+graph the independences that \emph{follow} from the assumptions, and
+derives in this way the ones used in this chapter and the next.
 
 \begin{figure}[ht]
 \centering
