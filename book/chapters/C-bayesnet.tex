@@ -659,11 +659,19 @@ was proved for controls fixed in advance, and its proof does not carry
 over. Here is the step that fails. The left side is conditioned on
 \emph{all} the controls. The proof applies the chain rule, in which the
 factor of $\x_{t+1}$ is
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$, and then removes from it
-the later controls $\uu_{t+1},\dots,\uu_{T-1}$, to be left with
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$, which is the transition by
-\ref{A1}. With controls fixed in advance the removal is allowed
-(statement (c), later controls). Now it is not: the path
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It then simplifies this
+factor in two steps, each with its own justification.
+\begin{enumerate}[nosep]
+  \item It removes the \emph{later} controls
+    $\uu_{t+1},\dots,\uu_{T-1}$, which leaves
+    $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$. This is not \ref{A1}:
+    it is the fact that controls fixed in advance tell nothing about the
+    pose (statement (c), later controls).
+  \item It removes the \emph{past}, the earlier poses and controls and the
+    measurements, which leaves the transition
+    $p(\x_{t+1}\mid\x_t,\uu_t)$. This is \ref{A1}.
+\end{enumerate}
+The second step is still valid. The first is not: the path
 $\uu_{t+1}\leftarrow\z_{t+1}\leftarrow\x_{t+1}$ is open, because
 $\z_{t+1}$ is not among the given variables. In words, $\uu_{t+1}$ was
 computed from a measurement of $\x_{t+1}$, so it tells something about

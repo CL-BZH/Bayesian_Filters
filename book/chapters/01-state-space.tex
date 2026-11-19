@@ -1432,19 +1432,24 @@ which each variable is conditioned on those before it:
 $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$, and so on. Order the variables
 as $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ and apply it, every factor being also
 conditioned on the controls. The factor of $\x_{t+1}$ is
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It is conditioned on all
-the controls, including the later ones $\uu_{t+1},\dots,\uu_{T-1}$, which
-must be removed before \ref{A1} can be used. That they come later is not
-a reason (see the trap above). The reason is that the controls are fixed
-in advance: they are not computed from anything that
-happens during the run, so the later controls tell nothing about
-$\x_{t+1}$ (statement~(c) of \cref{sec:bayesnet-mower} checks it on the
-graph). The factor therefore equals
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$,
-which is $p(\x_{t+1}\mid\x_t,\uu_t)$ by \ref{A1}. The factor of
-$\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu_{0:T-1})$. The later
-controls are removed in the same way, and what remains is
-$p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It is simplified in two
+steps, each with its own justification.
+\begin{enumerate}[nosep]
+  \item \emph{The later controls $\uu_{t+1},\dots,\uu_{T-1}$ are
+    removed.} \ref{A1} says nothing about them: it only speaks of what
+    comes before $\x_{t+1}$. That they come later is not a reason either
+    (see the trap above). The reason is that the controls are fixed in
+    advance: they are not computed from anything that happens during the
+    run, so the later controls tell nothing about $\x_{t+1}$
+    (statement~(c) of \cref{sec:bayesnet-mower} checks it on the graph).
+    The factor is now $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$.
+  \item \emph{The past is removed.} By \ref{A1}, this is
+    $p(\x_{t+1}\mid\x_t,\uu_t)$.
+\end{enumerate}
+The factor of
+$\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu_{0:T-1})$. The same
+two steps apply: the later controls are removed because they are fixed in
+advance, and what remains is $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
 \end{proof}
 
 The controls were assumed fixed in advance. A real robot computes them
