@@ -641,9 +641,10 @@ blue. Statements (a) and (b) hold in both cases, by the argument of
 \cref{sec:assumptions}: each new noise is independent of everything that
 came before.
 
-\emph{From the past measurements.} If $\uu_t$ is computed from
-$\z_{1:t}$, arrows go from the measurements to the controls (only the
-arrow from the latest measurement is drawn).
+\emph{From the past measurements.} Suppose that the control is computed
+from the measurements received so far by some rule $\pi_t$:
+$\uu_t=\pi_t(\z_{1:t})$. Arrows then go from the measurements to the
+controls (only the arrow from the latest measurement is drawn).
 
 \begin{center}
 \input{figures/tikz/bn_fbz}
@@ -656,14 +657,55 @@ through an earlier measurement. The filter is therefore unchanged: it does
 not matter how the controls were chosen, as long as they are computed from
 measurements that the filter is given.
 
-One thing does change. A \emph{later} control now carries information
-about the past: the path $\uu_{t+1}\leftarrow\z_{t+1}\leftarrow\x_{t+1}$
-is open as long as $\z_{t+1}$ is not given. The step of the proof of
-\cref{prop:joint} that removes the later controls is then not valid. The
-product \eqref{eq:joint} is still the joint density of the poses and the
-measurements, with each $\uu_t$ replaced by its expression in terms of
-$\z_{1:t}$, but it can no longer be read as a density given the whole
-sequence of controls.
+One thing does change: the factorisation of \cref{prop:joint},
+\[
+  p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
+  p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}),
+\]
+was proved for controls fixed in advance, and its proof does not carry
+over. Here is the step that fails. The left side is conditioned on
+\emph{all} the controls. The proof applies the chain rule, in which the
+factor of $\x_{t+1}$ is
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$, and then removes from it
+the later controls $\uu_{t+1},\dots,\uu_{T-1}$, to be left with
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$, which is the transition by
+\ref{A1}. With controls fixed in advance the removal is allowed
+(statement (c), later controls). Now it is not: the path
+$\uu_{t+1}\leftarrow\z_{t+1}\leftarrow\x_{t+1}$ is open, because
+$\z_{t+1}$ is not among the given variables. In words, $\uu_{t+1}$ was
+computed from a measurement of $\x_{t+1}$, so it tells something about
+$\x_{t+1}$.
+
+What remains true, and what is lost?
+\begin{itemize}[nosep]
+  \item \emph{The right side still describes how a run is produced.}
+    Apply the chain rule to the poses and the measurements alone, in the
+    order $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ The factor of $\x_{t+1}$ is
+    $p(\x_{t+1}\mid\x_{0:t},\z_{1:t})$. Given $\z_{1:t}$ the control
+    $\uu_t=\pi_t(\z_{1:t})$ is known, so by \ref{A1} this factor is the
+    transition with that control, and
+    \[
+      p(\x_{0:T},\z_{1:T})=p(\x_0)\prod_{t=0}^{T-1}
+      p\bigl(\x_{t+1}\mid\x_t,\pi_t(\z_{1:t})\bigr)\,
+      p(\z_{t+1}\mid\x_{t+1}).
+    \]
+    This is the same product, with each control replaced by the rule that
+    computes it.
+  \item \emph{The left side is no longer equal to it.} ``Given the
+    controls $\uu_{0:T-1}$'' now means ``knowing which commands the rule
+    issued'', and this is information about the measurements: only the
+    measurement sequences $\z_{1:T}$ for which the rule issues exactly
+    these commands remain possible. The distribution given the controls is
+    zero for all the other sequences. The product does not know this
+    restriction: it gives a positive value to every measurement sequence.
+    For example, if the rule commands a left turn exactly when the reading
+    places the robot to the right of its path, then being told that the
+    command was a left turn tells that the reading was on the right, and
+    hence where the robot probably was.
+\end{itemize}
+The filter is not concerned, because it never conditions on a later
+control: at time $t$ it uses $\uu_{0:t}$ only, which are computed from
+measurements that it already has.
 
 \emph{From the true pose.} If $\uu_t$ is computed from $\x_t$ itself,
 there is an arrow $\x_t\rightarrow\uu_t$.
