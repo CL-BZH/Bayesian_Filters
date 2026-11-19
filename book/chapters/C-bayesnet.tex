@@ -295,14 +295,14 @@ slips ($C$).
 
 \emph{Network.} $p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid b)$.
 \begin{itemize}[nosep]
-  \item \emph{Given $B$: independent.} This is the assumption. The chain
+  \item \emph{Given $B$: $A$ and $C$ are independent.} This is the assumption. The chain
     rule is $p(a)\,p(b\mid a)\,p(c\mid a,b)$, and the network has removed
     $a$ from the last factor: $p(c\mid a,b)=p(c\mid b)$, which is
     $A\indep C\mid B$. If we know whether the grass is wet, learning that
     it rained tells nothing more about slipping. By the symmetry of
     independence, a slip then tells nothing more about rain either:
     $p(a\mid b,c)=p(a\mid b)$.
-  \item \emph{Nothing given: dependent in general.} This is a consequence.
+  \item \emph{Nothing given: $A$ and $C$ are dependent in general.} This is a consequence.
     Summing the network over $b$ and dividing by $p(a)$,
     $p(c\mid a)=\sum_bp(c\mid b)\,p(b\mid a)$, which changes with $a$ as
     soon as $B$ depends on $A$ and $C$ on $B$. Rain makes slipping more
@@ -316,12 +316,12 @@ cough ($C$).
 
 \emph{Network.} $p(a,b,c)=p(b)\,p(a\mid b)\,p(c\mid b)$.
 \begin{itemize}[nosep]
-  \item \emph{Given $B$: independent.} This is the assumption. In the
+  \item \emph{Given $B$: $A$ and $C$ are independent.} This is the assumption. In the
     order $B$, $A$, $C$ the chain rule is
     $p(b)\,p(a\mid b)\,p(c\mid a,b)$, and the network has removed $a$ from
     the last factor: $A\indep C\mid B$. Among patients known to have the
     flu, a fever says nothing more about a cough.
-  \item \emph{Nothing given: dependent in general.} This is a consequence.
+  \item \emph{Nothing given: $A$ and $C$ are dependent in general.} This is a consequence.
     Summing over $b$, $p(a,c)=\sum_bp(b)\,p(a\mid b)\,p(c\mid b)$, which
     is not $p(a)\,p(c)$ in general. In the population, fever and cough go
     together: seeing one makes the flu more likely, hence the other.
@@ -336,12 +336,12 @@ In the chain and in the fork, the given middle node is said to
 
 \emph{Network.} $p(a,b,c)=p(a)\,p(c)\,p(b\mid a,c)$.
 \begin{itemize}[nosep]
-  \item \emph{Nothing given: independent.} This is the assumption. In the
+  \item \emph{Nothing given: $A$ and $C$ are independent.} This is the assumption. In the
     order $A$, $C$, $B$ the chain rule is
     $p(a)\,p(c\mid a)\,p(b\mid a,c)$, and the network has removed $a$ from
     the second factor: $p(c\mid a)=p(c)$, which is $A\indep C$. Rain and
     sprinkler have nothing to do with each other.
-  \item \emph{Given $B$: dependent in general.} This is a consequence, and
+  \item \emph{Given $B$: $A$ and $C$ are dependent in general.} This is a consequence, and
     the surprising one. Dividing the network by $p(b)$,
     $p(a,c\mid b)=p(a)\,p(c)\,p(b\mid a,c)/p(b)$, which is not the product
     of a function of $a$ and a function of $c$: the factor
