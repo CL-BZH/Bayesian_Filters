@@ -422,10 +422,19 @@ $X\indep Y\mid\mathcal S$ for every distribution that factorises as
 This is a consequence of the factorisation, and it needs a proof. The
 three small networks of \cref{sec:three} are its smallest cases; the
 general proof extends the same computations to any graph and can be found
-in Koller and Friedman (see the references). The theorem goes one way
-only: when a path is open, the graph does not guarantee independence, and
-the variables are in fact dependent except for special choices of the
-factors.
+in Koller and Friedman (see the references).
+
+The theorem has no converse. If every path is blocked, $X$ and $Y$ are
+independent given $\mathcal S$, whatever the factors are. If some path is
+open, the theorem says nothing: $X$ and $Y$ are then usually dependent,
+but whether they are depends on the factors themselves, which the graph
+does not show. Take the chain $A\rightarrow B\rightarrow C$ with nothing
+given. The path is open, and in general $A$ and $C$ are dependent. But if
+the factor $p(c\mid b)$ happens not to change with $b$, then $C$ is
+independent of $A$ although both arrows are drawn. This is the remark of
+\cref{sec:bn} again: a missing arrow is an assumption, an arrow that is
+present assumes nothing. So a graph can prove an independence, and never a
+dependence.
 
 \paragraph{A recipe.} To decide whether $X\indep Y\mid\mathcal S$:
 \begin{enumerate}[nosep]
