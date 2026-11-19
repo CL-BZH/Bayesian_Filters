@@ -75,9 +75,6 @@ panels['fbz'] = net(T, given={Z(0), Z(1), U(0)}, query={X(1)}, drop={U(1)},
     pre=[r"  \draw[line width=5pt,red!70,opacity=0.35,line cap=round,line join=round] "
          r"(%.3f,%.3f) -- (%.3f,%.3f) %s (%.3f,%.3f);" % (*pos('x', 1), *pos('z', 1), BEND, *pos('u', 1))],
     extra=[r"  %s (z%d) %s (u%d);" % (FB, k, BEND, k) for k in range(3)])
-panels['fbx'] = net(T, given={Z(0), Z(1), U(0)}, query={X(1)}, drop={U(1)},
-    red=[[X(1), X(2), U(1)]], green=[[X(1), U(1)]],
-    extra=[r"  %s (x%d) -- (u%d);" % (FB, k, k) for k in range(3)])
 main = net(['0', '1', '2', '3'], given={Z(1), Z(2), Z(3), U(0), U(1), U(2)},
            zobs=[1, 2, 3], dots=False, scale=1.3)
 import os, sys

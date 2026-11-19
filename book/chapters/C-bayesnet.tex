@@ -632,19 +632,12 @@ In the network of \cref{fig:bayesnet} no arrow enters a control: the
 controls are fixed in advance. A real robot computes them as it goes: it
 looks at its current estimate of the pose and steers accordingly. That
 estimate is itself computed from the measurements received so far, so in
-the end $\uu_t$ is computed from $\z_{1:t}$. This is the first case
-below. The second case, a control computed from the \emph{true} pose,
-cannot occur on a real robot, which does not know its true pose; it is
-an easy mistake to make in a simulation, where the true pose is at hand.
-In the two drawings the new arrows are
-blue. Statements (a) and (b) hold in both cases, by the argument of
+the end the control is computed from those measurements by some rule
+$\pi_t$: $\uu_t=\pi_t(\z_{1:t})$. Arrows then go from the measurements to
+the controls (in blue below; only the arrow from the latest measurement is
+drawn). Statements (a) and (b) still hold, by the argument of
 \cref{sec:assumptions}: each new noise is independent of everything that
 came before.
-
-\emph{From the past measurements.} Suppose that the control is computed
-from the measurements received so far by some rule $\pi_t$:
-$\uu_t=\pi_t(\z_{1:t})$. Arrows then go from the measurements to the
-controls (only the arrow from the latest measurement is drawn).
 
 \begin{center}
 \input{figures/tikz/bn_fbz}
@@ -707,117 +700,22 @@ The filter is not concerned, because it never conditions on a later
 control: at time $t$ it uses $\uu_{0:t}$ only, which are computed from
 measurements that it already has.
 
-\emph{From the true pose.} Suppose now that the control is computed from
-the true pose by some rule $g$: $\uu_t=g(\x_t)$. There is then an arrow
-$\x_t\rightarrow\uu_t$.
-
-\begin{center}
-\input{figures/tikz/bn_fbx}
-\end{center}
-
-Recall statement (c): the control $\uu_t$ can be removed from behind the
-bar,
-\[
-  p(\x_t\mid\z_{1:t},\uu_{0:t})=p(\x_t\mid\z_{1:t},\uu_{0:t-1})
-  =\bel(\x_t),
-\]
-because it says nothing about the current pose $\x_t$. The prediction
-step of the Bayes filter rests on it: the predicted belief is
-\[
-  \belbar(\x_{t+1})=\int p(\x_{t+1}\mid\x_t,\uu_t)\;
-  p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t ,
-\]
-and statement (c) is what allows the second factor to be replaced by
-$\bel(\x_t)$, the belief that the filter already has.
-
-With the arrow $\x_t\rightarrow\uu_t$, statement (c) is false. On the
-graph: a path is blocked by one of its intermediate nodes, and the path
-$\x_t\rightarrow\uu_t$ has none, so it is open whatever is given. In
-words: $\uu_t$ is computed from $\x_t$, so knowing $\uu_t$ tells
-something about $\x_t$. For example, if the rule adds a turn only when
-the robot is near the edge of the lawn, then seeing that a turn was added
-tells that the robot is near the edge.
-
-The second factor of the prediction is then not $\bel(\x_t)$. By Bayes'
-rule it is $\bel(\x_t)$ corrected by what the control reveals,
-\[
-  p(\x_t\mid\z_{1:t},\uu_{0:t})\;\propto\;p(\uu_t\mid\x_t)\,\bel(\x_t),
-\]
-exactly as if $\uu_t$ were one more measurement of the pose.
-
-What happens if a filter does not make this correction, and uses
-$\bel(\x_t)$ in its prediction step as before? It uses the command for
-what it \emph{does}, which is to move the belief, and ignores what it
-\emph{reveals}, which is where the robot must have been for this command
-to be issued. Take the rule that adds a turn only in a zone near the edge
-(\cref{fig:reveals}). Before the command, the belief is a region that
-lies partly inside the zone and partly outside. The command arrives, with
-a turn added.
-\begin{itemize}[nosep]
-  \item The exact reasoning says: a turn was added, so the robot is in the
-    zone. It discards the part of the belief outside the zone, and then
-    moves what is left.
-  \item The filter moves the whole belief.
-\end{itemize}
-The filter does so because that is all its prediction step contains: the
-command enters it through the motion model $p(\x_{t+1}\mid\x_t,\uu_t)$,
-which says where a pose goes under that command, and nowhere else. The
-step was derived under statement (c), for commands that reveal nothing
-about the pose. To use what the command reveals, the filter would need one
-more ingredient, the rule $g$ itself, in the form of a model
-$p(\uu_t\mid\x_t)$ of how commands are issued.
-
-\begin{figure}[ht]
-\centering
-\begin{tikzpicture}[>=Stealth]
-  \foreach \dx in {0,6.6} {
-    \begin{scope}[shift={(\dx,0)}]
-      \fill[black!10] (2.1,-1.25) rectangle (3.2,1.25);
-      \draw[very thick,green!35!black] (3.2,-1.25) -- (3.2,1.25);
-      \node[font=\small,rotate=90,green!35!black] at (3.45,0)
-        {edge of the lawn};
-      \node[font=\small,black!60] at (2.65,1.45) {zone};
-    \end{scope}
-  }
-  % left: the whole belief
-  \fill[blue!30] (1.7,0) ellipse [x radius=1.05,y radius=0.65];
-  \draw[blue!60!black,thick] (1.7,0) ellipse [x radius=1.05,y radius=0.65];
-  \node[font=\small] at (1.8,-1.7) {the filter keeps the whole belief};
-  % right: only the part inside the zone
-  \begin{scope}[shift={(6.6,0)}]
-    \begin{scope}
-      \clip (2.1,-1.25) rectangle (3.2,1.25);
-      \fill[blue!30] (1.7,0) ellipse [x radius=1.05,y radius=0.65];
-    \end{scope}
-    \draw[blue!60!black,dashed] (1.7,0) ellipse [x radius=1.05,y radius=0.65];
-    \node[font=\small] at (1.8,-1.7) {the command reveals: only this part};
-  \end{scope}
-\end{tikzpicture}
-\caption{A rule that adds a turn only in a zone near the edge (grey), and
-a belief $\bel(\x_t)$ that lies partly in the zone (blue). A turn has been
-added. Left: the filter of the book keeps the whole belief and moves it.
-Right: the exact reasoning keeps only the part inside the zone, since from
-outside it no turn would have been added.}
-\label{fig:reveals}
-\end{figure}
-
-The result of the filter is not absurd. It is the belief that would be
-exact if the same commands had been fixed in advance. But it is wider
-than it could be, and it is not $p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})$, the
-distribution of the pose given everything that the filter was told. That
-distribution is what the Bayes filter is, by definition
-(\cref{thm:bayes}); in this sense the filter is no longer the Bayes
-filter.
+\emph{A warning for simulations.} In a simulation the true pose is at
+hand, and it is tempting to compute the controls from it, for instance to
+keep the robot inside the picture. No real robot can do this, and it
+breaks statement (c): a control computed from $\x_t$ tells something about
+$\x_t$, and the filter does not use that information. The controls of a
+simulation should be computed as on a robot, from the measurements.
 
 \begin{mower}
 In the simulations of this book the controls are always computed from
 measurements, never from the true pose. In the closed-loop experiment of
 \cref{sec:closedloop} the controller steers from the filter's own
-estimate: this is the first case, exactly. In the recorded runs of the
+estimate: this is exactly the situation above. In the recorded runs of the
 other chapters a pilot follows a path fixed in advance and, near the edge
 of the lawn, adds a turn towards the centre computed from the latest GPS
 fix and compass reading. A filter that reads those two sensors is again in
-the first case. The filters of \cref{ch:ekf,ch:ukf,ch:particle} read the
+that situation. The filters of \cref{ch:ekf,ch:ukf,ch:particle} read the
 landmarks instead. For them the recorded commands depend on readings that
 they are not given, as happens whenever a filter replays the log of a
 robot that was driven by something else, and those commands carry a little
