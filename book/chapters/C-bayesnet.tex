@@ -707,18 +707,46 @@ The filter is not concerned, because it never conditions on a later
 control: at time $t$ it uses $\uu_{0:t}$ only, which are computed from
 measurements that it already has.
 
-\emph{From the true pose.} If $\uu_t$ is computed from $\x_t$ itself,
-there is an arrow $\x_t\rightarrow\uu_t$.
+\emph{From the true pose.} Suppose now that the control is computed from
+the true pose by some rule $g$: $\uu_t=g(\x_t)$. There is then an arrow
+$\x_t\rightarrow\uu_t$.
 
 \begin{center}
 \input{figures/tikz/bn_fbx}
 \end{center}
 
-This arrow is a path between $\x_t$ and $\uu_t$ with no node in between,
-so nothing can block it: statement (c) fails. The control is then a kind
-of measurement of the pose, and a filter that drops $\uu_t$ in its
-prediction step, as in the proof of \cref{thm:bayes}, leaves that
-information unused.
+Recall statement (c): the control $\uu_t$ can be removed from behind the
+bar,
+\[
+  p(\x_t\mid\z_{1:t},\uu_{0:t})=p(\x_t\mid\z_{1:t},\uu_{0:t-1})
+  =\bel(\x_t),
+\]
+because it says nothing about the current pose $\x_t$. The prediction
+step of the Bayes filter rests on it: the predicted belief is
+\[
+  \belbar(\x_{t+1})=\int p(\x_{t+1}\mid\x_t,\uu_t)\;
+  p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t ,
+\]
+and statement (c) is what allows the second factor to be replaced by
+$\bel(\x_t)$, the belief that the filter already has.
+
+With the arrow $\x_t\rightarrow\uu_t$, statement (c) is false. On the
+graph: a path is blocked by one of its intermediate nodes, and the path
+$\x_t\rightarrow\uu_t$ has none, so it is open whatever is given. In
+words: $\uu_t$ is computed from $\x_t$, so knowing $\uu_t$ tells
+something about $\x_t$. For example, if the rule adds a turn only when
+the robot is near the edge of the lawn, then seeing that a turn was added
+tells that the robot is near the edge.
+
+The second factor of the prediction is then not $\bel(\x_t)$. By Bayes'
+rule it is $\bel(\x_t)$ corrected by what the control reveals,
+\[
+  p(\x_t\mid\z_{1:t},\uu_{0:t})\;\propto\;p(\uu_t\mid\x_t)\,\bel(\x_t),
+\]
+exactly as if $\uu_t$ were one more measurement of the pose. A filter
+that keeps $\bel(\x_t)$ in its prediction step still runs, but it is no
+longer the Bayes filter: it ignores a piece of information that it was
+given.
 
 \begin{mower}
 In the simulations of this book the controls are always computed from
