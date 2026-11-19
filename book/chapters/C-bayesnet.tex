@@ -644,8 +644,10 @@ latest measurement is drawn).
 \input{figures/tikz/bn_fbz}
 \end{center}
 
-Two questions arise: is the filter still correct, and what becomes of the
-factorisation \eqref{eq:joint}?
+This is case (ii) of \cref{prop:joint}, which gives the distribution of a
+run: the same product as with controls fixed in advance, each $\uu_t$
+being now the command computed by the rule. It remains to see that the
+filter is still correct.
 
 \emph{The filter is unchanged.} The recursion of \cref{thm:bayes} was
 derived from three facts, and all three still hold.
@@ -662,30 +664,6 @@ derived from three facts, and all three still hold.
 So the prediction and the update are exactly those of \cref{thm:bayes}.
 It does not matter how the controls were chosen, as long as they are
 computed from measurements that the filter is given.
-
-\emph{The factorisation keeps its right side.} A run is still produced in
-the same way: a start, then alternately ``move'' and ``look''; the only
-difference is that each command is now issued by the rule. So the
-distribution of the poses and the measurements is the product of
-\eqref{eq:joint}, in which each $\uu_t$ stands for the command
-$\pi_t(\z_{1:t})$ computed by the rule:
-\[
-  p(\x_{0:T},\z_{1:T})=p(\x_0)\prod_{t=0}^{T-1}
-  p\bigl(\x_{t+1}\mid\x_t,\pi_t(\z_{1:t})\bigr)\,
-  p(\z_{t+1}\mid\x_{t+1}).
-\]
-To prove it, apply the chain rule to the poses and the measurements, in
-the order $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ The factor of $\x_{t+1}$ is
-$p(\x_{t+1}\mid\x_{0:t},\z_{1:t})$; given $\z_{1:t}$ the controls
-$\uu_{0:t}$ are known, so by \ref{A1} this factor is the transition with
-the control $\pi_t(\z_{1:t})$. The factor of $\z_{t+1}$ is
-$p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
-
-The left side differs from that of \cref{prop:joint}: it is no longer
-written ``given the controls''. With controls fixed in advance, the
-controls are free inputs, and \eqref{eq:joint} gives the distribution of
-the run for each choice of them. Here they are not inputs any more: they
-are determined by the measurements, and there is nothing left to choose.
 
 \emph{A warning for simulations.} In a simulation the true pose is at
 hand, and it is tempting to compute the controls from it, for instance to

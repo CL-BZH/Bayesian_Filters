@@ -1322,7 +1322,9 @@ taken at $\x_{t+1}$. There is no measurement at the start pose $\x_0$.
 Both assumptions hold for the model of this chapter, by construction. The
 past $(\x_{0:t},\z_{1:t})$ is computed from the start pose $\x_0$, the
 motion noises $\bepsilon_0,\dots,\bepsilon_{t-1}$ and the sensor noises
-$\vv_1,\dots,\vv_t$. The next pose is $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$,
+$\vv_1,\dots,\vv_t$; so are the controls $\uu_{0:t}$, when the robot
+computes them from its measurements instead of receiving them fixed in
+advance. The next pose is $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$,
 and the new noise $\bepsilon_t$ is independent of all of these. So once
 $\x_t$ and $\uu_t$ are fixed, the distribution of $\x_{t+1}$ is that of
 $f(\x_t,\uu_t+\bepsilon_t)$ whatever the rest of the past was: this is
@@ -1412,26 +1414,47 @@ In this book every such removal rests on an independence: \ref{A1},
 \end{pitfall}
 
 \begin{proposition}{Factorisation of the joint distribution}{joint}
-Under \ref{A1}--\ref{A2}, for controls $\uu_{0:T-1}$ fixed in advance,
-\begin{equation}\label{eq:joint}
-  p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
-  p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}).
-\end{equation}
+Assume \ref{A1}--\ref{A2}.
+\begin{enumerate}[label=(\roman*),nosep]
+  \item If the controls $\uu_{0:T-1}$ are fixed in advance, the
+    distribution of the poses and the measurements, for these controls,
+    is
+    \begin{equation}\label{eq:joint}
+      p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
+      p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}).
+    \end{equation}
+  \item If each control is computed during the run from the measurements
+    received so far, $\uu_t=\pi_t(\z_{1:t})$ for some rule $\pi_t$, the
+    distribution of the poses and the measurements is
+    \begin{equation}\label{eq:jointfb}
+      p(\x_{0:T},\z_{1:T})=p(\x_0)\prod_{t=0}^{T-1}
+      p\bigl(\x_{t+1}\mid\x_t,\pi_t(\z_{1:t})\bigr)\,
+      p(\z_{t+1}\mid\x_{t+1}).
+    \end{equation}
+\end{enumerate}
+The right side is the same product in both cases; in (ii) each $\uu_t$ is
+the command computed by the rule.
 \end{proposition}
 
-For $T=2$, for instance, the joint density is the product of five factors,
+For $T=2$, for instance, the product has five factors,
 \[
   p(\x_0)\;\,p(\x_1\mid\x_0,\uu_0)\,p(\z_1\mid\x_1)\;\,
   p(\x_2\mid\x_1,\uu_1)\,p(\z_2\mid\x_2):
 \]
-a start, then ``move, look'' twice.
+a start, then ``move, look'' twice. Case (i) is that of a recorded
+sequence of commands. Case (ii) is that of a robot at work, which steers
+from its current estimate of the pose, itself computed from the
+measurements received so far.
 
 \begin{proof}
-The chain rule of probability writes any joint density as a product in
-which each variable is conditioned on those before it:
-$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$, and so on. Order the variables
-as $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$ and apply it, every factor being also
-conditioned on the controls. The factor of $\x_{t+1}$ is
+The chain rule of probability writes any joint distribution as a product
+in which each variable is conditioned on those before it:
+$p(a,b,c)=p(a)\,p(b\mid a)\,p(c\mid a,b)$, and so on. In both cases it is
+applied to the poses and the measurements, in the order
+$\x_0,\x_1,\z_1,\x_2,\z_2,\dots$
+
+\emph{Case (i).} Every factor is also conditioned on all the controls.
+The factor of $\x_{t+1}$ is
 $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It is simplified in two
 steps, each with its own justification.
 \begin{enumerate}[nosep]
@@ -1450,15 +1473,28 @@ The factor of
 $\z_{t+1}$ is $p(\z_{t+1}\mid\x_{0:t+1},\z_{1:t},\uu_{0:T-1})$. The same
 two steps apply: the later controls are removed because they are fixed in
 advance, and what remains is $p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}.
+
+\emph{Case (ii).} The controls are not among the given variables: the
+factor of $\x_{t+1}$ is $p(\x_{t+1}\mid\x_{0:t},\z_{1:t})$. But once
+$\z_{1:t}$ is given, the controls $\uu_{0:t}$ are known, since the rule
+computes them from $\z_{1:t}$. Adding them behind the bar changes
+nothing, so the factor is
+$p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:t})$, which by \ref{A1} is the
+transition $p(\x_{t+1}\mid\x_t,\uu_t)$ with
+$\uu_t=\pi_t(\z_{1:t})$. In the same way the factor of $\z_{t+1}$ is
+$p(\z_{t+1}\mid\x_{t+1})$ by \ref{A2}. No later control has to be
+removed, because none was put behind the bar.
 \end{proof}
 
-The controls were assumed fixed in advance. A real robot computes them
-during the run, from its current estimate of the pose, that is, from the
-measurements received so far: $\uu_t=\pi_t(\z_{1:t})$ for some rule
-$\pi_t$. \Cref{sec:bayesnet-mower} ends with this case. The filter is
-unchanged, and a run is still described by the right side of
-\eqref{eq:joint}, in which each $\uu_t$ now stands for the command
-$\pi_t(\z_{1:t})$ computed by the rule.
+The two left sides differ, and for a reason. In case (i) the controls are
+free inputs: \eqref{eq:joint} gives the distribution of the run for each
+choice of them, which is what ``given $\uu_{0:T-1}$'' says. In case (ii)
+they are not inputs any more. They are determined by the measurements,
+there is nothing left to choose, and the left side has no ``given the
+controls''. What the filters use is the right side, which is the same.
+The network of \cref{fig:bayesnet} is that of case (i); in case (ii) it
+has, in addition, arrows from the measurements to the controls
+(\cref{sec:bayesnet-mower}).
 
 \begin{inwords}
 The whole story, every pose and every measurement, is a chain of small
