@@ -52,7 +52,8 @@ PF ($N=5000$, uniform prior) & 2.13 & 11.3 & 0/10\\
 \end{tabular}
 \end{center}
 Everybody converges. The EKF's over-confident transient
-(\cref{fig:ekftransient}) is over by step 20. The particle filter, starting
+(\cref{fig:ekftransient}) dies out soon after step 20, and the NEES of the
+table, averaged over the steps after 20, no longer shows it. The particle filter, starting
 from nothing, takes longer to settle, and its NEES of $11.3$ (against $3$)
 is the price of sample impoverishment: after the first update collapsed
 the cloud (\cref{fig:global}), the particles are too few and too alike,
@@ -252,8 +253,16 @@ has $\x^\star_T=\hx_T$, the Kalman filter's estimate at time $T$.
 \end{proposition}
 
 \begin{proof}
-By \cref{prop:joint}, $-\log p(\x_{0:T}\mid\z_{1:T},\uu)=J(\x_{0:T})
-+\text{const}$, and $J$ is a positive definite quadratic, so the posterior
+Assume $P_0$, the $Q_t$ and the $R_t$ invertible, so that every factor
+below has a density. By Bayes' rule the posterior of the trajectory,
+$p(\x_{0:T}\mid\z_{1:T},\uu)$, is the joint density
+$p(\x_{0:T},\z_{1:T}\mid\uu)$ divided by a number that does not depend on
+the trajectory. By \cref{prop:joint} that joint density is a product of
+Gaussian densities: the prior, one per motion step and one per
+measurement. The logarithm of a Gaussian density
+$\Normal(\vect e;\vect0,A)$ is $-\tfrac12\norm{\vect e}_A^2$ plus a
+constant, so $-\log p(\x_{0:T}\mid\z_{1:T},\uu)=J(\x_{0:T})
++\text{const}$. $J$ is a positive definite quadratic, so the posterior
 over the whole trajectory is Gaussian and its mode $\x^\star_{0:T}$ is its
 mean. The mean of a marginal is the marginal of the mean, so
 $\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
