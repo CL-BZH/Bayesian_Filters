@@ -1772,7 +1772,11 @@ $\vect{n}\T\Delta\x=0$, i.e.\ $\Delta_{\perp}=s\,\Delta\theta$, where
 $\Delta_\perp=-\sin\theta'\Delta p^x+\cos\theta'\Delta p^y$ is the
 sideways position error: a sideways error can only come from having turned
 wrongly, and the two are tied. A sideways jump with the right heading is
-impossible.
+impossible \emph{in this model}, where the robot moves only along its
+heading and the only errors are those of the distance and of the turn. A
+real robot can also slide sideways, on a slope or on wet grass; the model
+has no noise for that, and a filter built on it would need a third noise
+term to account for it.
 
 \textbf{1.2.} $\E[e^{i\theta}]=e^{-\sigma^2/2}$ is the characteristic
 function of $\Normal(0,\sigma^2)$ at $1$. Its real and imaginary parts
