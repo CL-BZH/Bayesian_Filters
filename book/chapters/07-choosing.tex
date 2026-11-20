@@ -13,8 +13,8 @@ Each scenario is repeated over several random seeds. A filter is
 10 units. The EKF, UKF and particle filter use the range--bearing sensor;
 the KF uses the compass and the GPS (Chapter~\ref{ch:kalman}), so its
 numbers measure a different sensor suite. The figures below are averages
-over several runs, each started from an initial estimate drawn at random
-around the truth. They therefore differ slightly from those quoted in the
+over several runs; in the tracking and uncertain-start scenarios each run
+is started from an initial estimate drawn at random around the truth. They therefore differ slightly from those quoted in the
 previous chapters, which were for the single standard run started from
 the exact pose (for the EKF, $1.16$ here against $1.01$ there).
 
@@ -54,10 +54,11 @@ PF ($N=5000$, uniform prior) & 2.13 & 11.3 & 0/10\\
 Everybody converges. The EKF's over-confident transient
 (\cref{fig:ekftransient}) dies out soon after step 20, and the NEES of the
 table, averaged over the steps after 20, no longer shows it. The particle filter, starting
-from nothing, takes longer to settle, and its NEES of $11.3$ (against $3$)
-is the price of sample impoverishment: after the first update collapsed
-the cloud (\cref{fig:global}), the particles are too few and too alike,
-and the cloud claims more precision than it has.
+from nothing, takes longer to settle. Its mean NEES of $11.3$ (against
+$3$) comes from two of the ten runs, in which the first update left the
+cloud on a wrong spot about 17 units away for some thirty steps, the
+sample impoverishment of \cref{fig:global}; in the other eight runs it is
+between $2.2$ and $3.1$.
 
 \paragraph{Kidnapped, landmarks identified.} At step 200 the robot is
 moved to $(100,-100)$ and turned to face west; 8 runs. Steps until the
@@ -117,7 +118,8 @@ needs & linear models & Jacobians & model evaluations &
   a likelihood to evaluate\\
 tracking & good & good, cheapest & good & good, $7$ to $8\times$ the cost\\
 uncertain start & --- & converges, over-confident at first &
-  converges, consistent & no guess needed; slower, over-confident cloud\\
+  converges, consistent & no guess needed; slower, sometimes stuck for a
+  while on a wrong spot\\
 kidnapped, identified landmarks & --- & recovers slowly & recovers
   slowly & recovers fast (injection)\\
 unknown association & --- & often lost & (same problem) & recovers\\
@@ -174,8 +176,9 @@ turn limited to $0.5$\,rad per step.
 \includegraphics[width=\linewidth]{figures/ch07_closed_loop.pdf}
 \caption{The filter in the loop, on a mowing pattern (seed 1). Grey: the
 planned stripes. Colour: where the robot believes it is. Black: where it
-really is. Left: with dead reckoning the believed path lies exactly on
-the plan, while the true robot drifts and leaves the lawn. Right: with the
+really is. Left: with dead reckoning the believed path lies on the plan
+(up to the corners, which the controller cuts by up to 3 units), while the
+true robot drifts and leaves the lawn. Right: with the
 EKF the estimate follows the truth, so correcting the estimate corrects
 the robot.}
 \label{fig:closedloop}
@@ -322,8 +325,8 @@ control noise as the unknown, $\tfrac12\norm{\bepsilon_t}_M^2$ subject to
 $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$, which is the case announced at the
 end of \cref{sec:shape}.
 
-In the non-linear case
-the equivalence between filtering and smoothing breaks. The EKF linearises
+In the non-linear case this equivalence breaks: the last pose of the
+minimiser of $J$ is no longer the filter's estimate. The EKF linearises
 each
 measurement once, at the estimate available \emph{at that time}, and
 never revisits that decision, even after later measurements have shown the
@@ -388,10 +391,12 @@ place, or localising with a camera, is a smoothing problem.
 
 \textbf{7.1.} The filtered variance in steady state is
 $P_\infty=\bar P_\infty-q$ (\cref{prop:steady}). The smoothed estimate
-combines two independent sources of information about $x_t$: the past
-(the filter, variance $P_\infty$, including $z_t$) and the future (a
-backward filter that has not seen $z_t$; by time-reversal symmetry of the
-random walk, its prediction of $x_t$ has variance $\bar P_\infty$).
+combines two sources of information about $x_t$ that are conditionally
+independent given $x_t$: the past (the filter, variance $P_\infty$,
+including $z_t$) and the future (a backward filter that has not seen
+$z_t$ and uses no prior on $x_t$, so that it is a pure likelihood; by
+time-reversal symmetry of the random walk, it has variance
+$\bar P_\infty$).
 Information adds (\cref{prop:information}):
 $1/P^{\mathrm{s}}=1/P_\infty+1/\bar P_\infty$. With $q=0.16$ and $r=64$:
 $P_\infty=3.12$, $\bar P_\infty=3.28$, and $P^{\mathrm s}=1.60$: the
@@ -408,14 +413,15 @@ identified kidnapping. It will not fix unknown data association: the
 association is decided before the iterations and stays wrong, and the
 belief is still a single Gaussian.
 
-\textbf{7.3.} One possible design: compute the weighted mean and
-covariance of the cloud, and the fraction of the weight within a
-Mahalanobis distance $\chi^2_3(0.99)$ of the mean. If that fraction is
-above, say, $0.99$ for several consecutive steps and the cloud's NEES-like
-spread is stable, initialise the EKF with the cloud's mean and covariance
-and stop the particle filter. When the EKF's NIS exceeds its band for
+\textbf{7.3.} One possible design: split the cloud into two clusters
+with a few iterations of weighted $k$-means ($k=2$), and call it unimodal
+when the lighter cluster carries little weight (say under $1\%$) or the
+two cluster means are within a few standard deviations of each other. If
+that holds for several consecutive steps, initialise the EKF with the
+cloud's mean and covariance and stop the particle filter. When the EKF's NIS exceeds its band for
 several steps (or a lift sensor fires), re-initialise the particle filter,
-globally or from a wide Gaussian around the EKF's estimate. A
-covariance-based test can miss two close modes; clustering the particles
-(e.g.\ with a few iterations of $k$-means with $k=2$) is a more reliable,
-if costlier, check.
+globally or from a wide Gaussian around the EKF's estimate. A test
+based on the mean and covariance alone does not work: with two distant,
+equally heavy modes, every particle is at a squared Mahalanobis distance
+of about $1$ from the mean, and the cloud looks compact in its own
+units.

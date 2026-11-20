@@ -148,14 +148,14 @@ to the joint distribution of \cref{prop:joint}, and going from $t$ to
 $t+1$ multiplies it by one motion factor and one measurement
 factor. So
 $\pi_{t+1}(\x_{0:t+1})\propto\pi_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)\,
-p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous weighted
-cloud, extended by the motion model'':
+p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous proposal,
+extended by the motion model'':
 $q_{t+1}(\x_{0:t+1})=q_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)$.
 
 \begin{proposition}{Sequential importance sampling with the motion proposal}{sis}
 With this proposal, the weights obey
 \[
-  \tilde w_{t+1}(\x_{0:t+1})=\tilde w_t(\x_{0:t})\;
+  \tilde w_{t+1}(\x_{0:t+1})\propto\tilde w_t(\x_{0:t})\;
   p(\z_{t+1}\mid\x_{t+1}).
 \]
 \end{proposition}
@@ -198,6 +198,15 @@ The estimate is the weighted mean (with a circular mean for the heading)
 and the weighted covariance of the cloud.
 \end{definition}
 
+The implementation departs from this definition in two ways, both common
+in practice. It propagates the particles with a motion noise inflated by
+$1.5$ in standard deviation (covariance $2.25M$, option
+\code{motion\_inflation}), which keeps the cloud from becoming too
+narrow; and it gives the likelihood $0$ to a particle more than 5 units
+outside the lawn. With the inflation the filter no longer samples the
+exact transition, so its cloud is somewhat wider than the true belief.
+All the particle-filter results of this book use these settings.
+
 \begin{inwords}
 \emph{Simulate} the motion for every particle, \emph{score} each one
 against the measurement, \emph{clone} the good ones and \emph{drop} the
@@ -229,8 +238,9 @@ carries all the weight (Exercise~\ref{ex:ess}). It approximates the number
 of independent samples drawn directly from the target that would give the
 same variance (Kong, Liu and Wong, in the references):
 a first-order expansion of the ratio that defines $\hat\varphi_N$ (the
-delta method) gives $\Var(\hat\varphi_N)\approx\Var_\pi(
-\varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
+delta method), together with the further approximation that the weights
+are uncorrelated with $(\varphi-\E_\pi\varphi)^2$, gives
+$\Var(\hat\varphi_N)\approx\Var_\pi(\varphi)\,(1+\mathrm{cv}^2)/N$, where $\mathrm{cv}$ is the coefficient of
 variation of the unnormalised weights (their standard deviation divided
 by their mean), and $N/(1+\mathrm{cv}^2)$ is
 estimated by the ESS.
@@ -239,8 +249,9 @@ Run without resampling, sequential importance sampling degenerates
 quickly (\cref{fig:ess}). Starting from a Gaussian around the truth with
 $N=1000$, the ESS falls below $2$ at step 5: one particle carries all the
 weight, the other 999 are wasted computation, and the estimate drifts away
-with that single survivor. The variance of the weights can only grow over
-time (Kong, Liu and Wong, 1994). Resampling is what makes the method
+with that single survivor. The variance of the unnormalised weights, with
+the measurements treated as random, can only grow over time (Kong, Liu
+and Wong, 1994); in a given run it can occasionally decrease. Resampling is what makes the method
 work.
 
 \begin{figure}[ht]
@@ -410,12 +421,13 @@ association, and no decision is ever taken. Attributing each measurement
 to the nearest landmark, as an EKF must, amounts to replacing the sum by
 its largest term.
 
-With the four landmarks on a square, the lawn is symmetric under rotations
-by $90^\circ$ and, without identities, four poses explain the
+Take a different world for this experiment: four landmarks on a square,
+at $(\pm80,\pm80)$. The lawn is then symmetric under rotations by
+$90^\circ$ and, without identities, four poses explain the
 measurements equally well forever. The true posterior has four bumps of
 mass $1/4$ each. \Cref{fig:modes} shows what the particle filter does with
-it (the noise is raised so that $20\,000$ particles resolve all four modes
-from a uniform start).
+it (the noise is raised to $\sigma_r=15$ and $\sigma_\phi=0.25$, so that
+$20\,000$ particles resolve all four modes from a uniform start).
 
 \begin{figure}[ht]
 \centering
@@ -440,8 +452,9 @@ present value, is the present value: it has no tendency to go up or down,
 but it does fluctuate.
 
 \begin{proposition}{Mode masses are martingales with absorbing ends}{wrightfisher}
-Idealise the situation: two modes $A$ and $B$ whose particles have equal
-likelihood in distribution, and multinomial resampling at every step. Let
+Idealise the situation: two modes $A$ and $B$ whose particles all have
+the same likelihood, so that the weights stay equal, and multinomial
+resampling at every step. Let
 $m_t$ be the fraction of particles in $A$. Then $(m_t)$ is a martingale,
 $\E[m_{t+1}\mid m_t]=m_t$ and $\Var(m_{t+1}\mid m_t)=m_t(1-m_t)/N$. It
 reaches $0$ or $1$ in finite time with probability one, and reaches $1$
@@ -464,9 +477,15 @@ $\Pr(m_\tau=1)=m_0$.
 This is the neutral Wright--Fisher model of population genetics: genetic
 drift. Without any evidence favouring one mode, the particle population
 still ``chooses'' one at random, and the filter ends up claiming a
-certainty that the data do not support. Systematic resampling reduces the
-resampling noise, but the weighting step adds its own Monte Carlo noise to
-the mode masses, so the drift remains. More particles slow it down
+certainty that the data do not support. The proposition isolates the
+noise of resampling. In \cref{fig:modes} the weighting step adds a
+larger Monte Carlo noise of its own: with random weights, the variance
+per step gains a term from the spread of the weight of each mode, and the
+drift is much faster than the resampling noise alone would give
+(Exercise~\ref{ex:fixation} predicts about $1\,400$ resamplings to halve
+the spread of a $50/50$ split with $N=2000$, against one mode left by step
+30 in the runs above). Systematic resampling reduces the resampling noise,
+but not the weighting noise, so the drift remains. More particles slow it down
 (the variance per step is $\propto1/N$); nothing stops it. The weighted
 mean is meaningless here; a multimodal belief should be reported by its
 modes.
@@ -498,13 +517,17 @@ $\belbar(\x_{t+1})$. Then
   \longrightarrow\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x=
   \eta_{t+1}^{-1}
 \]
-as $N\to\infty$.
+as $N\to\infty$, assuming that the predicted cloud is a consistent
+approximation of $\belbar$.
 \end{proposition}
 
 \begin{proof}
-This is \cref{prop:isconsistent} with $\varphi(\x)=p(\z_{t+1}\mid\x)$,
-which is bounded, and the target $\belbar$; the identification of the
-limit is \cref{prop:evidence}.
+For independent draws from a fixed proposal this is
+\cref{prop:isconsistent} with $\varphi(\x)=p(\z_{t+1}\mid\x)$, which is
+bounded, and the target $\belbar$; the identification of the limit is
+\cref{prop:evidence}. A resampled and propagated cloud is not a set of
+independent draws, and its consistency is a theorem of its own, not proved
+here (see Doucet and Johansen in the references).
 \end{proof}
 
 The idea of \emph{augmented} Monte Carlo localisation is to watch this
@@ -525,24 +548,28 @@ one ($0<\alpha_{\mathrm{slow}}\ll\alpha_{\mathrm{fast}}<1$):
   w_{\mathrm{fast}}\leftarrow w_{\mathrm{fast}}+\alpha_{\mathrm{fast}}
   (\hat\ell_t-w_{\mathrm{fast}}),
 \]
-and at each resampling replace each particle, with probability
-$\max(0,1-w_{\mathrm{fast}}/w_{\mathrm{slow}})$, by a pose drawn uniformly
-over the lawn.
+and, whenever $p=\max(0,1-w_{\mathrm{fast}}/w_{\mathrm{slow}})$ is
+positive, resample and replace each particle, with probability $p$, by a
+pose drawn uniformly over the lawn.
 \end{definition}
 
 When the measurements suddenly become hard to explain, the fast average
 drops below the slow one, and a fraction of the particles is scattered
 over the lawn; some land near the new pose and are quickly amplified by
-the next updates. While tracking normally, the two averages are close and
-almost nothing is injected. \Cref{fig:amcl} shows the mechanism on one
+the next updates. While tracking normally, $w_{\mathrm{fast}}$ stays
+above $w_{\mathrm{slow}}$ and nothing is injected. (In \cref{fig:amcl} it
+is about six times above, because both start from the first value of
+$\hat\ell$, after the global start, and $w_{\mathrm{slow}}$ still
+remembers those low values.) \Cref{fig:amcl} shows the mechanism on one
 kidnapping.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\linewidth]{figures/ch06_amcl.pdf}
 \caption{Augmented MCL around the kidnapping of \cref{fig:kidnap} (step
-200, dotted). Top: the fast average of the measurement likelihood
-collapses within a few steps; the slow one barely moves. Bottom: once
+200, dotted). Top: after the kidnapping the measurement likelihood is
+close to zero, so the fast average decays by the factor
+$1-\alpha_{\mathrm{fast}}=0.9$ per step; the slow one barely moves. Bottom: once
 $w_{\mathrm{fast}}<w_{\mathrm{slow}}$ (step 217), random particles are
 injected (bars), some land near the new pose, and the position error
 (dashed) drops back to a few units.}
@@ -567,7 +594,9 @@ augmented MCL it recovers within about 25 steps and stays locked.}
 Over eight kidnappings (unknown identities, $N=3000$), the number of steps
 until the error stays below 10 is $20$ to $41$ with augmented MCL.
 Without it, four of the eight runs never recovered within 200 steps, and
-the other four took $51$ to $113$ steps (\cref{fig:kidnap}).
+the other four took $51$ to $113$ steps (the run of \cref{fig:kidnap} is
+one of the eight). All the kidnapping runs use a roughening of $0.5$
+(below).
 
 \begin{practice}[\nb{05\_particle\_filter.ipynb}, \code{pf.py}]
 \code{ParticleFilter} stores the particles as an $(N,3)$ array and the
@@ -577,8 +606,9 @@ log-weights as an $N$-vector. Options: \code{init="global"} or a Gaussian;
 \code{multinomial\_resample}; \code{roughening}; and
 \code{recovery=(alpha\_slow, alpha\_fast)} for augmented MCL. The filter
 records its ESS, resampling and injection history. The notebook reproduces
-every figure of this chapter and counts the surviving modes for several
-$N$.
+\cref{fig:ess,fig:resampling,fig:global,fig:modes,fig:kidnap} and counts
+the surviving modes for several $N$; the other figures are produced by
+\code{book/figures/make\_figures.py}.
 \end{practice}
 
 \begin{mower}

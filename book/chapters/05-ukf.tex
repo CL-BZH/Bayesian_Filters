@@ -80,8 +80,9 @@ evaluations of the function have removed nine tenths of the error.
 
 \begin{proposition}{Sigma points match the first two moments}{moments}
 $\sum_jW^{(m)}_j=1$, $\sum_jW^{(m)}_j\chi_j=\bmu$ and
-$\sum_jW^{(c)}_j(\chi_j-\bmu)(\chi_j-\bmu)\T=\Sigma$. All odd central
-moments of the weighted points vanish.
+$\sum_jW^{(c)}_j(\chi_j-\bmu)(\chi_j-\bmu)\T=\Sigma$, and the same holds
+with the mean weights $W^{(m)}_j$. All odd central moments of the weighted
+points vanish.
 \end{proposition}
 
 \begin{proof}
@@ -139,9 +140,11 @@ $\alpha=1$, $\beta=2$, $\kappa=0$, so that $\lambda=0$, $W^{(m)}_0=0$ and
 $W^{(c)}_0=2$: every covariance weight is non-negative.
 
 \Cref{fig:utarc} replays the arc of \cref{fig:arc} with the unscented
-transform. The UKF's mean is $0.36$ units from the true mean (the EKF's:
-$11.05$), and its ellipse covers the arc, somewhat too wide across the
-direction of travel. Neither can represent the arc itself: both summarise
+transform. The exact mean is $(40e^{-0.32},0)=(29.05,0)$ (Exercise
+\ref{ex:ecos}); the UKF's mean is $0.08$ units from it, the EKF's about
+$11$. The UKF's ellipse covers the arc, but it is too wide along the
+direction of travel (standard deviation $21.8$ against $13.4$) and
+slightly too narrow across it ($22.7$ against $24.1$). Neither can represent the arc itself: both summarise
 it by a Gaussian.
 
 \begin{figure}[ht]
@@ -211,7 +214,8 @@ sigma-point estimates. What does that replacement do?
 its tangent at the mean. The UKF never computes a slope, but its update
 behaves as if $h$ had been replaced by another straight line: the one that
 fits the values of $h$ at the sigma points best, in the least-squares
-sense. This is a \emph{regression} line, and its slope is
+sense: among the lines through $(\bx,\hat\z)$, the one with the slope $A$
+that minimises $\sum_jW^{(c)}_j\norm{Z_j-\hat\z-A(\chi_j-\bx)}^2$. This is a \emph{regression} line, and its slope is
 $\Cov(\z,\x)\Cov(\x)^{-1}$, the regression coefficient already met in
 \cref{thm:conditioning}; here it is $\tilde H=P_{xz}\T\bar P^{-1}$. Because
 $h$ is curved, the sigma points do not lie exactly on that line. Their
@@ -226,8 +230,9 @@ obtained by regression instead of differentiation.
 \caption{The example of \cref{fig:linearisation} with the unscented
 transform. The UKF evaluates $\cos$ at three sigma points and fits a
 regression line through them (slope $\tilde H=-0.43$; the tangent's is
-$-0.48$). The points do not lie on that line; their scatter around it,
-$\Omega=0.14$, is added to the output variance. The UKF's mean ($0.61$) is
+$-0.48$). The two outer points lie on that line; the centre point is off
+it by $0.27$, and the weighted scatter, $\Omega=0.14$, is added to the
+output variance. The UKF's mean ($0.61$) is
 close to the true mean ($0.64$), and its spread covers the true
 distribution.}
 \label{fig:regression}
@@ -267,8 +272,8 @@ weighted least-squares regression, not a tangent at one point), and
 whatever that line cannot explain is added to the measurement noise. When
 $h$ is nearly linear over the uncertainty, $\Omega\approx0$ and the UKF is
 the EKF. When it is not, the UKF trusts the measurement less, exactly
-where the EKF trusted it too much. This is why it stays consistent after
-an uncertain start.
+where the EKF trusted it too much. This is why it is much less
+over-confident after an uncertain start (\cref{fig:ukftransient}).
 \end{inwords}
 
 

@@ -275,8 +275,8 @@ covariance through $F$.}
 Linearisation has a second effect, this time in the update: it makes the
 EKF \emph{over-confident} after an uncertain start. Twenty runs start from an estimate drawn from
 $\Normal(\x_0,P_0)$ with $\sigma_{xy}=30$ and $\sigma_\theta=0.8$; the
-sensor range is limited to 110 units, so that only one or two landmarks are
-seen at a time. The average NEES (\cref{fig:ekftransient}) is $297$ after
+sensor range is limited to 110 units, so that mostly two landmarks are
+seen at a time (between one and four). The average NEES (\cref{fig:ekftransient}) is $297$ after
 the first update, $63$ after five and $6.5$ after twenty, against an
 expected value of $3$.
 
@@ -285,8 +285,8 @@ expected value of $3$.
 \includegraphics[width=\linewidth]{figures/ch04_transient.pdf}
 \caption{EKF after an uncertain start (20 runs). Left: average NEES (log
 scale) and the $95\%$ band for $n=3$. Right: median position error. The
-filter converges, but for about twenty steps its covariance claims tens
-to hundreds of times more precision than it has.}
+filter converges, but for about twenty steps its covariance claims up to
+about a hundred times more precision than it has.}
 \label{fig:ekftransient}
 \end{figure}
 
@@ -317,8 +317,8 @@ Chapter~\ref{ch:ukf}); or \emph{iterate} the update.
 
 \section{The update as one Gauss--Newton step}
 
-There is another way to look at the update. The posterior density is the
-product of the predicted belief and the likelihood; its \emph{mode} is the
+There is another way to look at the update. The posterior density is
+proportional to the product of the predicted belief and the likelihood; its \emph{mode} is the
 pose at which this density is highest, also called the \emph{maximum a
 posteriori} (MAP) estimate. Maximising a product of Gaussian densities is the same
 as minimising the sum of their exponents with the sign changed, a
@@ -359,7 +359,10 @@ $P_i=(I-K_iH_i)\bar P$ and $P_iH_i\T R^{-1}=K_i$, which gives
 The EKF update is one step of an optimiser on the right cost function,
 stopped after the first iteration. When the estimate is far from the
 truth, one step is not enough; iterating, with re-linearisation at each
-step, gets closer to the true posterior mode. This is also the bridge to
+step, gets closer to the posterior mode when it converges (Gauss--Newton
+without step control need not converge; see Bell and Cathey in the
+references). That mode is the one of the Gaussian predicted belief times
+the likelihood. This is also the bridge to
 modern SLAM, which solves the same least-squares problem for a whole
 trajectory at once (Chapter~\ref{ch:choosing}).
 \end{inwords}
@@ -407,7 +410,11 @@ maximum; the pose is always written $(p^x,p^y,\theta)$; and for a Gaussian
 the mode is the mean. It matters when a distribution is far from Gaussian.
 For the bent cloud of \cref{fig:ekfbanana}, the mean is at $3.76$ along
 the heading, inside the bend, while the density of the end positions is
-highest on the arc, near $3.9$: the mode and the mean are different
+highest near $3.9$, just inside the arc of radius $s$. (In the polar
+coordinates $(d,\varphi)$ the density is Gaussian; on the lawn it is
+divided by $d$, the factor of the change to polar coordinates, which pulls
+its maximum in, as in the example above: it is at
+$d=\tfrac12(s+\sqrt{s^2-4\sigma_s^2})=3.91$.) the mode and the mean are different
 points, and neither is ``the'' answer.
 
 \section{Data association}
@@ -430,16 +437,20 @@ $\Normal(\vect0,S_j)$, and $-2\log\Normal(\y;\vect0,S)=\y\T S^{-1}\y+
 standard deviations. For the right landmark and a consistent filter it
 follows a $\chi^2_2$ distribution (this is the NIS of
 \cref{ch:kalman}). A \emph{gate} therefore rejects the measurement when
-even the best Mahalanobis distance exceeds a high quantile of $\chi^2_2$:
-such a measurement is too surprising to come from any known landmark.
+even the best squared Mahalanobis distance exceeds a high quantile of
+$\chi^2_2$: such a measurement is too surprising to come from any known
+landmark. (The implementation of this book does not gate.)
 
 This works as long as the estimate is good (\cref{fig:nnfail}). A
 measurement says where a landmark is \emph{relative to the robot}. The
 filter attaches this relative position to its \emph{estimated} pose to
 find where the landmark should be on the lawn, and picks the known
-landmark closest to that point. If the estimate is off, that point is off
-by the same amount. Once the error exceeds about half the spacing between
-landmarks, the nearest landmark is the wrong one.
+landmark closest to that point (closest in the sense of the criterion
+above, which also weighs by $S_j$). If the estimated position is off, that
+point is off by the same amount; an error $\Delta\theta$ on the heading
+adds a displacement of about $r\,\Delta\theta$, the measurement being
+turned about the estimate. Once the error exceeds about half the spacing
+between landmarks, the nearest landmark is the wrong one.
 
 \begin{figure}[ht]
 \centering
@@ -516,7 +527,8 @@ more robust estimator, for instance a particle filter or a GNSS fix.
     cheap. After a very uncertain start it is over-confident: the
     Jacobians are computed at the wrong place.
   \item The EKF update is one Gauss--Newton step on a least-squares cost;
-    iterating it (the iterated EKF) gets closer to the posterior mode.
+    iterating it (the iterated EKF), when it converges, gets closer to the
+    posterior mode.
   \item With unidentified landmarks the EKF must choose one association
     per measurement. A wrong choice is reinforced by the update, and the
     filter can lose the robot for good.
@@ -544,7 +556,8 @@ more robust estimator, for instance a particle filter or a GNSS fix.
 \subsection*{Solutions}
 
 \textbf{4.1.} If $f(\x,\uu)=F\x+B\uu+\vect{c}$, its Jacobian is $F$ and
-the EKF predicted covariance is $FPF\T+Q$; if the noise enters through
+the EKF predicted covariance is $FPF\T+BMB\T$, that of the Kalman filter
+with $Q=BMB\T$; if the noise enters through
 the control as $f(\x,\uu+\bepsilon)$, it is affine in $\bepsilon$ too and
 $VMV\T$ is the exact covariance of the noise term. The mean $f(\hx,\uu)$
 is the exact mean by linearity. For an affine $h(\x)=H\x+\vect{c}$, the
@@ -570,7 +583,8 @@ changes the range linearly (no curvature); moving perpendicular to it
 always increases the range, by Pythagoras, so the errors do not average
 out. The bias is small far from the landmark and large close to it.
 
-\textbf{4.4.} For a consistent filter, the Mahalanobis distance of a
+\textbf{4.4.} For a consistent filter, the squared Mahalanobis distance
+of a
 correct measurement is $\chi^2_2$, whose $99\%$ quantile is
 $-2\log0.01=9.21$; $1\%$ of correct measurements are rejected. If $S$ is
 ten times too small, the actual distance is ten times the
