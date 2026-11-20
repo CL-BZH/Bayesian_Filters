@@ -401,7 +401,8 @@ directly from the poses compatible with the measurement.
 When the sensor does not say which landmark it saw, the likelihood of one
 measurement is a mixture over the landmarks that could have produced it:
 \[
-  p(\z_k\mid\x)=\frac1M\sum_{j=1}^M\Normal\bigl(\z_k;\,h_j(\x),\,R_1\bigr),
+  p(\z_k\mid\x)=\frac1{n_\ell}\sum_{j=1}^{n_\ell}\Normal\bigl(\z_k;\,
+  h_j(\x),\,R_1\bigr),
 \]
 assuming each landmark equally likely a priori. A particle filter simply
 evaluates it: every particle is scored against every possible

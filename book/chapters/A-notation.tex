@@ -25,7 +25,12 @@ $\bepsilon_t\sim\Normal(\vect0,M)$ & control noise,
   $M=\diag(\sigma_s^2,\sigma_\delta^2)$ & \code{world.motion\_cov}\\
 $f$, $F$, $V$ & motion model and its Jacobians & \code{motion\_model},
   \code{motion\_jacobians}\\
-$\bell_j$ & position of landmark $j$ & \code{world.landmarks[j]}\\
+$Q_t=VMV\T$ & first-order covariance of one step's pose error (rank $2$)
+  & \\
+$\pi_t$ & rule computing the control from the measurements,
+  $\uu_t=\pi_t(\z_{1:t})$ & \\
+$n_\ell$, $\bell_j$ & number of landmarks; position of landmark $j$ &
+  \code{world.n\_landmarks}, \code{world.landmarks[j]}\\
 $h_j$, $H$ & range--bearing model and its Jacobian &
   \code{range\_bearing}, \code{range\_bearing\_jacobian}\\
 $R_1=\diag(\sigma_r^2,\sigma_\phi^2)$ & noise of one range--bearing pair &
@@ -34,6 +39,8 @@ $\z_t$ & measurement taken at $\x_t$ & \code{run.z\_rb[t-1]}\\
 $p(a)$, $p(a\mid b)$ & distribution of $a$ (given $b$), written as a
   density (\cref{sec:assumptions}) & \\
 $\Cov(X,Y)$, $\Cov(X)$ & cross-covariance and covariance matrices & \\
+$A\indep B\mid C$ & $A$ and $B$ conditionally independent given $C$
+  (\cref{app:bayesnet}) & \\
 $\norm{\vect e}_A^2=\vect e\T A^{-1}\vect e$ & squared Mahalanobis norm & \\
 $A\succ0$, $A\succeq0$ & positive definite, positive semi-definite & \\
 $\bel$, $\belbar$ & belief and predicted belief & \\

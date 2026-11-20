@@ -191,7 +191,9 @@ step. Two sets of symbols are used from here to the end of the section.
     \begin{equation}\label{eq:actual}
       \q=\p+d\begin{pmatrix}\cos\varphi\\ \sin\varphi\end{pmatrix}.
     \end{equation}
-    This is the \emph{actual} end pose $\x_{t+1}=(\q,\varphi)$.
+    This is the \emph{actual} end pose $\x_{t+1}=(\q,\varphi)$. (Strictly,
+    $\x_{t+1}=(\q,\wrap\varphi)$; in this section headings are compared
+    modulo $2\pi$, which by \cref{lem:wrap} changes nothing.)
 \end{itemize}
 The pose error is the difference between the two. To see how it depends on
 $\varepsilon_s$ and $\varepsilon_\delta$, take one error at a time.
@@ -403,7 +405,8 @@ errors are exaggerated.}
 \begin{proposition}{The pose error to first order}{firstorder}
 To first order in the noise:
 \begin{enumerate}[label=(\roman*),nosep]
-\item $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$ is Gaussian with mean
+\item The approximation $\x_{t+1}\approx f(\x_t,\uu_t)+V\bepsilon_t$ is a
+  Gaussian with mean
   $f(\x_t,\uu_t)$ and covariance $Q_t=VMV\T$, a $3\times3$ matrix of rank
   $2$.
 \item In the frame of the step, $e_\parallel=\varepsilon_s$,
@@ -413,8 +416,8 @@ To first order in the noise:
     0&s^2\sigma_\delta^2&s\sigma_\delta^2\\0&s\sigma_\delta^2&\sigma_\delta^2
     \end{pmatrix}.
   \]
-  If $s\neq0$, the sideways error and the heading error have correlation
-  $1$.
+  If $s>0$, the sideways error and the heading error have correlation
+  $1$ ($-1$ if $s<0$).
 \end{enumerate}
 \end{proposition}
 
@@ -504,7 +507,8 @@ sweeps a two-dimensional sheet in the three-dimensional pose space, a
 through the start position (\cref{fig:helicoid}). At height $\varphi$ (a
 given heading), the possible positions form a straight line pointing in
 the direction $\varphi$; as the height increases, the line rotates. Its
-shadow on the lawn, the set of reachable positions, is an arc-shaped band.
+shadow on the lawn, the region where the end positions concentrate, is an
+arc-shaped band.
 
 \begin{figure}[ht]
 \centering
@@ -546,10 +550,12 @@ Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
   straight line through $\p$ in the direction $\varphi$, at the distance
   $d\sim\Normal(s,\sigma_s^2)$ from $\p$: it has no spread across that
   line.
-\item Given the new position $\q$, and if $d>0$, the new heading is
-  determined exactly: it is the direction of $\q-\p$,
-  $\varphi=\operatorname{atan2}(q^y-p^y,\,q^x-p^x)$ (the function
-  $\operatorname{atan2}$ is defined in \cref{def:atan2}).
+\item If the robot drives forwards, $d>0$, the new heading is the
+  direction of the displacement $\q-\p$:
+  $\varphi=\operatorname{atan2}(q^y-p^y,\,q^x-p^x)$, modulo $2\pi$ (the
+  function $\operatorname{atan2}$ is defined in \cref{def:atan2}). The
+  event $d\le0$ has probability $\Pr(\varepsilon_s\le-s)$, which is
+  $10^{-23}$ with the simulation values.
 \end{enumerate}
 \end{proposition}
 
@@ -557,17 +563,24 @@ Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
 (i) The first claim is \eqref{eq:actual}. If $\x_{t+1}$ had a density $g$
 on $\R^3$, every set $A$ would satisfy
 $\Pr(\x_{t+1}\in A)=\int_Ag\,\mathrm d\lambda^3$, where $\lambda^3$ is
-the volume, so every set of zero volume would have probability zero. A
-surface has zero volume, yet the helicoid has probability one: no density
-can exist.
+the volume, so every set of zero volume would have probability zero. The
+helicoid has zero volume: each horizontal slice of it, at a fixed heading,
+is a line, of zero area, and the volume is the integral of the areas of the
+slices. Yet the helicoid has probability one: no density can exist.
 
 (ii) A Gaussian on $\R^3$ either has a density or lies in a plane, a line
-or a point (\cref{lem:dichotomy}). By (i) there is no density. And the
-distribution does not lie in a plane: by (iii), the poses with heading
-$\varphi$ fill a whole line in the direction $\varphi$, and these lines,
-at different heights and in different directions, are not contained in any
-single plane (two of them with different directions, together with the
-vertical line through $\p$ that joins them, already span $\R^3$).
+or a point (\cref{lem:dichotomy}, proved in Chapter~\ref{ch:kalman}
+independently of this chapter). By (i) there is no density. Suppose the
+distribution lay in a plane $\Pi$. By (iii), given the heading $\varphi$
+the pose follows a Gaussian on the whole line $L_\varphi$ through
+$(\p,\varphi)$ in the horizontal direction $(\cos\varphi,\sin\varphi,0)$;
+so for almost every $\varphi$ the line $L_\varphi$ lies in $\Pi$. Take two
+such headings $\varphi_1,\varphi_2$ whose directions are not parallel.
+$\Pi$ then contains the two directions of $L_{\varphi_1}$ and
+$L_{\varphi_2}$, which span the horizontal plane, and the vertical
+direction $(0,0,\varphi_2-\varphi_1)$ joining the points $(\p,\varphi_1)$
+and $(\p,\varphi_2)$. These three directions span $\R^3$, which a plane
+cannot contain.
 
 (iii) Conditioning on $\varphi$ is conditioning on $\varepsilon_\delta$,
 which is independent of $\varepsilon_s$. So $d$ keeps its distribution
@@ -575,15 +588,16 @@ $\Normal(s,\sigma_s^2)$, and $\q=\p+d\,(\cos\varphi,\sin\varphi)$ runs
 along a fixed line.
 
 (iv) For $d>0$, $\q-\p$ is a positive multiple of
-$(\cos\varphi,\sin\varphi)$, so its direction is $\varphi$.
+$(\cos\varphi,\sin\varphi)$, so its direction is $\varphi$. (For $d<0$
+it is the opposite direction, $\varphi+\pi$.)
 \end{proof}
 
 \begin{inwords}
 After one step from a known pose, the reachable poses form a twisted sheet,
 and every pose off the sheet is impossible. On the sheet, position and
 heading are tied exactly: slices at a fixed heading are straight lines
-(iii), and above each point of the lawn the sheet has a single height
-(iv). A Gaussian, whose level sets are ellipsoids, cannot follow a twisted
+(iii), and above each point of the lawn the part of the sheet where the
+robot drives forwards has a single height (iv). A Gaussian, whose level sets are ellipsoids, cannot follow a twisted
 sheet; the Gaussian of \cref{prop:firstorder} replaces the sheet by the
 plane that touches it at the intended pose.
 \end{inwords}
@@ -673,7 +687,10 @@ last turn error has had only one leg to show up in the position.
 Together with the distance
 errors, which move the robot along the path, the errors displace the pose
 in three independent directions. From two steps on, the distribution of
-the pose has a genuine density on $\R^3$.
+the pose has a genuine density on $\R^3$. To first order this is the
+computation above; exactly, it holds because the map from the four noises
+of two steps to the final pose has a Jacobian of rank $3$ except on a set
+of probability zero, and such a map sends a density to a density.
 
 \begin{figure}[ht]
 \centering
@@ -811,7 +828,9 @@ for the filters of this book, and something for the methods that must
   \item ``Here are two candidates for the next pose. Which one is the
     more plausible, and how many times more?'' The answer expected is the
     ratio of two numbers, the values of a density
-    $p(\x_{t+1}\mid\x_t,\uu_t)$ at the two candidates.
+    $p(\x_{t+1}\mid\x_t,\uu_t)$ at the two candidates. (This notation,
+    for the distribution of $\x_{t+1}$ given $\x_t$ and $\uu_t$, is
+    introduced in \cref{sec:assumptions}.)
 \end{itemize}
 The second question needs a word on what the \emph{value} of a density
 is. It is not a probability: the probability of one exact pose is zero,
@@ -823,8 +842,9 @@ number attached to each single pose, which allows two poses to be
 compared.
 
 For the one-step transition that number does not exist. If the candidate
-is off the surface of \cref{prop:degenerate} (its heading is not the
-direction of its displacement), a small enough ball around it does not
+is off the surface of \cref{prop:degenerate} (for a robot driving
+forwards: its heading is not the direction of its displacement), a small
+enough ball around it does not
 meet the surface: its probability is zero, however close to the surface
 the candidate is. If the candidate is on the surface, a ball of radius $r$
 contains a piece of the surface whose area is proportional to $r^2$, and
@@ -839,10 +859,13 @@ through $f$.
   \item The particle filter moves each particle by
     $f(\x^{(i)},\uu+\bepsilon^{(i)})$, with its own draw of the noise. The
     unscented filter does the same with a few chosen values.
-  \item The Kalman-type filters move the mean by $f$ and the covariance by
-    $P\mapsto FPF\T+Q_t$, with $Q_t=VMV\T$. This $Q_t$ has rank $2$ and
+  \item The Kalman-type filters move the mean by $f$ and the covariance
+    $P$ of the pose by $P\mapsto FPF\T+Q_t$, where $F$ is the Jacobian of
+    $f$ with respect to the pose (Chapter~\ref{ch:ekf}) and
+    $Q_t=VMV\T$. This $Q_t$ has rank $2$ and
     cannot be inverted, but it never is: it is only added to $FPF\T$, and
-    the sum is invertible.
+    the sum is invertible ($\det F=1$ and $P\succ0$ give $FPF\T\succ0$,
+    and $Q_t\succeq0$).
 \end{itemize}
 The filters do ask the second question, but of the \emph{sensor} model:
 the update compares the poses by the value $p(\z\mid\x)$ of the
@@ -856,10 +879,13 @@ known pose. A filter is never sure of the current pose: its belief is
 spread over a volume of the pose space. Each pose of that volume sends its
 own surface, and these surfaces, side by side, fill a volume again
 (\cref{fig:spread}). Precisely: for a fixed value of the noise, the map
-$\x\mapsto f(\x,\uu+\bepsilon)$ shifts and turns the poses without
-changing volumes, so it sends a density to a density, and the next belief
-is the average of these densities over the noise. So $\bel$ and $\belbar$
-are ordinary densities at every step, although the transition is not.
+$\x\mapsto f(\x,\uu+\bepsilon)$ is a bijection of the pose space (its
+inverse is $\theta=\varphi-\delta-\varepsilon_\delta$,
+$\p=\q-d\,(\cos\varphi,\sin\varphi)$) whose Jacobian $F$ has determinant
+$1$, so it preserves volumes and sends a density to a density, and the next belief
+is the average of these densities over the noise. So the beliefs of the
+filters ($\bel$ and $\belbar$ in Chapter~\ref{ch:bayes}) are ordinary
+densities at every step, although the transition is not.
 
 \begin{figure}[ht]
 \centering
@@ -1125,8 +1151,8 @@ direction it appears relative to where the robot is facing (the
 \emph{bearing}). \Cref{fig:sensor} shows both.
 
 \begin{definition}{Range--bearing sensor}{rb}
-The lawn holds $M$ landmarks (beacons) at known positions
-$\bell_1,\dots,\bell_M$. For landmark $j$ let $\vect{d}=\bell_j-\p$, where
+The lawn holds $n_\ell$ landmarks (beacons) at known positions
+$\bell_1,\dots,\bell_{n_\ell}$. For landmark $j$ let $\vect{d}=\bell_j-\p$, where
 $\p=(p^x,p^y)$. The sensor returns
 \begin{equation}\label{eq:h}
   \z_{t,j}=h_j(\x_t)+\vv_{t,j},\qquad
@@ -1135,7 +1161,10 @@ $\p=(p^x,p^y)$. The sensor returns
   \qquad \vv_{t,j}\sim\Normal\bigl(\vect0,\,R_1\bigr),
 \end{equation}
 $R_1=\diag(\sigma_r^2,\sigma_\phi^2)$, for the landmarks within range,
-with all $\vv_{t,j}$ independent. The bearing is measured \emph{relative to
+with all $\vv_{t,j}$ independent of each other, of $\x_0$ and of the
+motion noises (the same holds for the noises of the GPS and the compass
+below). The bearing component of $\z_{t,j}$ is wrapped as well, so that it
+stays in $[-\pi,\pi)$. The bearing is measured \emph{relative to
 the heading}, so it carries information about $\theta$.
 \end{definition}
 
@@ -1148,7 +1177,8 @@ Subtracting the heading $\theta$ gives the direction as seen from the
 robot, and $\wrap$ keeps the result in $[-\pi,\pi)$: a positive bearing
 means that the landmark is to the left of the robot, a negative one that
 it is to the right, and $0$ that it is straight ahead. A landmark is
-``within range'' when it is closer than the maximum range of the sensor;
+``within range'' when its measured range is below the maximum range of
+the sensor;
 by default the range is unlimited and every landmark is seen, and some
 experiments limit it. The real reading adds
 a noise $\vv_{t,j}$ with standard deviations $\sigma_r$ on the range and
@@ -1454,7 +1484,9 @@ applied to the poses and the measurements, in the order
 $\x_0,\x_1,\z_1,\x_2,\z_2,\dots$
 
 \emph{Case (i).} Every factor is also conditioned on all the controls.
-The factor of $\x_{t+1}$ is
+The factor of $\x_0$ is $p(\x_0\mid\uu_{0:T-1})=p(\x_0)$: controls fixed
+in advance are chosen independently of the start pose. The factor of
+$\x_{t+1}$ is
 $p(\x_{t+1}\mid\x_{0:t},\z_{1:t},\uu_{0:T-1})$. It is simplified in two
 steps, each with its own justification.
 \begin{enumerate}[nosep]
@@ -1518,9 +1550,9 @@ describes its runs just as well.
 
 The same statement can be made with ordinary densities only. A run is
 computed from the start pose $\x_0$ and the noises
-$\bepsilon_0,\bepsilon_1,\dots$ and $\vv_1,\vv_2,\dots$, which are
-independent and have Gaussian densities; their joint density is a plain
-product, and \eqref{eq:joint} says the same thing in terms of the poses
+$\bepsilon_0,\bepsilon_1,\dots$ and $\vv_1,\vv_2,\dots$. The noises are
+independent of each other and of $\x_0$, and have Gaussian densities;
+their joint density, given $\x_0$, is a plain product, and \eqref{eq:joint} says the same thing in terms of the poses
 and the measurements. \Cref{sec:shape} explains why the filters are not
 affected by the missing density.
 
@@ -1582,9 +1614,10 @@ behind it is along the line.}
 \end{figure}
 
 \begin{proposition}{Dead-reckoning error on a straight path}{deadreckoning}
-Let the robot start at a known pose heading along the $x$-axis and receive
+Let the robot start at the origin, heading along the $x$-axis, and receive
 $t$ commands $\uu=(s,0)$. Number the steps $k=1,\dots,t$, with
-$\varepsilon_{s,k}$ and $\varepsilon_{\delta,k}$ the errors of step $k$ and
+$\varepsilon_{s,k}$ and $\varepsilon_{\delta,k}$ the errors of step $k$
+(the noise $\bepsilon_{k-1}$ of \cref{def:noise}) and
 $\theta_k$ the heading after its turn. Let $e_t=p^y_t$ be its lateral error and
 $a_t=st-p^x_t$ its forward shortfall with respect to dead reckoning. Then
 \begin{align}
@@ -1653,8 +1686,8 @@ $t=100$, \eqref{eq:drlateral} predicts a lateral standard deviation of
 $69.8$ and \eqref{eq:drshort} a shortfall of $9.1$. A Monte Carlo run with
 20\,000 robots gives $67.5$ and $8.9$. On the figure-eight path of the
 simulations the loops partly cancel the error (rotating a closed loop about
-its start leaves its end in place), and the median error after 100 steps is
-about 20; but it still grows without bound
+its start leaves its end in place), and over 200 runs the median error
+after 100 steps is about 20; but it still grows without bound
 (\cref{fig:deadreckoning}).
 
 \begin{figure}[ht]
@@ -1682,7 +1715,9 @@ true poses, the commanded controls and every sensor reading. The pilot of
 the simulation steers the robot back towards the centre near the edges of
 the lawn. It does not know the true pose: like a real robot it has only
 its sensors, here the latest GPS fix and compass reading. That steering is
-part of the \emph{command}, so the filters know it. In
+part of the \emph{command}, so the filters know it (the filters that do
+not read the GPS and the compass ignore what it says about the pose: end
+of \cref{sec:bayesnet-mower}). In
 \cref{sec:closedloop} the pilot is replaced by a controller that steers
 from the filter's own estimate. The notebook draws \cref{fig:transition,fig:deadreckoning}.
 \end{practice}
@@ -1713,7 +1748,8 @@ RTK-GNSS or a camera.
     $\wrap$, and the direction of a vector is given by
     $\operatorname{atan2}$ (\cref{sec:angles}).
   \item Two assumptions make recursive filtering possible: given the
-    current pose, the next pose does not depend on the past \ref{A1}, and
+    current pose and control, the next pose does not depend on the past
+\ref{A1}, and
     neither does the current measurement \ref{A2}. They give the
     factorisation \eqref{eq:joint}, drawn as the network of
     \cref{fig:bayesnet}.
@@ -1738,8 +1774,9 @@ RTK-GNSS or a camera.
   $\E[\cos\theta]=e^{-\sigma^2/2}$ and $\E[\sin\theta]=0$. Deduce the
   exact mean forward progress of one noisy step from a heading known up to
   $\Normal(0,\sigma^2)$, and compare it with the linearised value $s$.
-\item\label{ex:condind} Using \cref{prop:joint}, show that the
-  measurements are \emph{not} independent of one another, but that they
+\item\label{ex:condind} With controls fixed in advance, use
+  \cref{prop:joint} to show that the measurements are \emph{not}
+  independent of one another, but that they
   are independent given the states: $p(\z_{1:T}\mid\x_{0:T})=
   \prod_t p(\z_t\mid\x_t)$.
 \item\label{ex:wrapadd} Is $\wrap$ additive, i.e.\ is
@@ -1760,8 +1797,8 @@ RTK-GNSS or a camera.
 \textbf{1.1.} The null space of $VMV\T$ equals the null space of $V\T$
 because $M$ is positive definite (proof of \cref{prop:firstorder}). A
 vector $\vect{n}$ with $V\T\vect{n}=
-\vect0$ is orthogonal to both columns of $V$, so it is their cross
-product:
+\vect0$ is orthogonal to both columns of $V$, so it is a multiple of
+their cross product, and the null space is the line spanned by
 \[
   \vect{n}=\begin{pmatrix}\cos\theta'\\\sin\theta'\\0\end{pmatrix}\times
   \begin{pmatrix}-s\sin\theta'\\s\cos\theta'\\1\end{pmatrix}
@@ -1778,10 +1815,16 @@ real robot can also slide sideways, on a slope or on wet grass; the model
 has no noise for that, and a filter built on it would need a third noise
 term to account for it.
 
-\textbf{1.2.} $\E[e^{i\theta}]=e^{-\sigma^2/2}$ is the characteristic
-function of $\Normal(0,\sigma^2)$ at $1$. Its real and imaginary parts
-are $\E[\cos\theta]$ and $\E[\sin\theta]$; the second is also $0$ because
-$\sin$ is odd and the distribution symmetric. A step of length $s$ in
+\textbf{1.2.} $\E[\sin\theta]=0$ because $\sin$ is odd and the
+distribution symmetric. For the cosine, let $m(a)=\E[\cos(a\theta)]$.
+Differentiating under the expectation, $m'(a)=-\E[\theta\sin(a\theta)]$.
+For $\theta\sim\Normal(0,\sigma^2)$, an integration by parts against the
+density (whose derivative is $-x/\sigma^2$ times itself) gives
+$\E[\theta\,g(\theta)]=\sigma^2\E[g'(\theta)]$; with $g(x)=\sin(ax)$,
+$m'(a)=-\sigma^2a\,m(a)$. Since $m(0)=1$, $m(a)=e^{-\sigma^2a^2/2}$, and
+$\E[\cos\theta]=m(1)=e^{-\sigma^2/2}$. The distance error
+$\varepsilon_s$ is independent of the heading and has mean zero, so it does
+not change the mean progress. A step of length $s$ in
 direction $\theta$ therefore advances by $s\,e^{-\sigma^2/2}<s$ on
 average. Linearising $\cos\theta\approx1$ gives $s$, and the bias
 $s(1-e^{-\sigma^2/2})\approx s\sigma^2/2$ is exactly the per-step term in
@@ -1789,21 +1832,31 @@ $s(1-e^{-\sigma^2/2})\approx s\sigma^2/2$ is exactly the per-step term in
 
 \textbf{1.3.} Integrating \eqref{eq:joint} over $\x_{0:T}$ gives
 $p(\z_{1:T}\mid\uu)$, which does not factorise: two measurements both
-depend on the trajectory, which is random (two GPS fixes taken one step
-apart are strongly correlated because the robot was nearly in the same
-place). Dividing \eqref{eq:joint} by $p(\x_{0:T}\mid\uu)=p(\x_0)\prod_t
-p(\x_{t+1}\mid\x_t,\uu_t)$, which is the marginal of \eqref{eq:joint}
-obtained by integrating out every $\z_t$ (each likelihood integrates to
-one), leaves $\prod_t p(\z_t\mid\x_t)$.
+depend on the trajectory, which is random (once the position is
+uncertain by much more than the GPS noise, two GPS fixes taken one step
+apart are strongly correlated, because the robot was nearly in the same
+place). For the second claim, \eqref{eq:joint} is the product of
+$p(\x_0)\prod_tp(\x_{t+1}\mid\x_t,\uu_t)$, the distribution of the
+trajectory (integrate out every $\z_t$: each likelihood integrates to one),
+and of $\prod_tp(\z_t\mid\x_t)$, which for each trajectory is a
+distribution of $\z_{1:T}$. A joint distribution written as ``distribution
+of the trajectory times a distribution of the measurements given the
+trajectory'' has that second factor as its conditional distribution, so
+$p(\z_{1:T}\mid\x_{0:T})=\prod_tp(\z_t\mid\x_t)$. (When the controls are
+computed from the measurements this fails: $\x_2$ depends on $\uu_1$,
+hence on $\z_1$, so knowing $\x_2$ says something about $\z_1$ beyond
+$\x_1$.)
 
 \textbf{1.4.} No: $\wrap(3+3)=6-2\pi\approx-0.28$, whereas
 $\wrap(3)+\wrap(3)=6$. $\wrap$ is additive only modulo $2\pi$:
 $\wrap(a+b)=\wrap(\wrap(a)+\wrap(b))$. A filter update adds a correction
-$K\y$ to the heading; the sum may leave $[-\pi,\pi)$, and if it is not
-wrapped, the next innovation (a difference of angles,
-\cref{lem:wrap}) or the next circular mean will treat a heading of
-$3.2$ and one of $-3.08$ as different, although they are the same
-direction.
+$K\y$ to the heading; the sum may leave $[-\pi,\pi)$, the range in which
+\cref{def:pose} keeps headings. Wrapped differences and circular means are
+not affected (\cref{lem:wrap}), but any operation that is not
+$2\pi$-invariant is: $3.2$ and $-3.08$ are the same direction, yet their
+plain average is $0.06$, the opposite direction. Wrapping after each update
+keeps every stored heading in one interval, and so keeps every such
+operation safe.
 
 \textbf{1.5.} From the proof of \cref{prop:deadreckoning},
 $\theta_t=\sum_{j=1}^t\varepsilon_{\delta,j}$ and

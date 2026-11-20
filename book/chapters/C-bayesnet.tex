@@ -227,8 +227,9 @@ and \ref{A2} of \cref{sec:assumptions}, which have exactly the form above.
 Given $\x_t$ and $\uu_t$, the pose $\x_{t+1}$ is independent of everything
 before it: $\mathrm{pa}(\x_{t+1})=\{\x_t,\uu_t\}$. Given $\x_t$, the
 measurement $\z_t$ is independent of everything before it:
-$\mathrm{pa}(\z_t)=\{\x_t\}$. The controls are fixed in advance: they
-depend on nothing and have no parents (the end of
+$\mathrm{pa}(\z_t)=\{\x_t\}$. A third assumption, not contained in the
+first two, is that the controls are fixed in advance: they depend on
+nothing and have no parents (the end of
 \cref{sec:bayesnet-mower} looks at controls computed during the run). The
 network is that of \cref{fig:bayesnet}, and the factorisation
 \eqref{eq:bnfactor} is \eqref{eq:joint}, with the controls kept behind the
@@ -368,7 +369,7 @@ of rain from $0.56$ to $0.2$: the two causes are dependent.
 \end{example}
 
 One more fact about colliders: knowing a \emph{descendant} of the collider
-has the same effect as knowing the collider. If we do not see the grass
+has an effect of the same kind as knowing the collider, usually weaker. If we do not see the grass
 but see someone slip on it, the grass is probably wet, and rain and
 sprinkler become dependent again.
 
@@ -386,9 +387,9 @@ made of chains, forks and colliders. The rule of d-separation (``d'' for
 \emph{directional}) combines the three patterns, and gives independences
 that are consequences of the model without being among its assumptions.
 
-A \emph{path} between two nodes is a sequence of nodes in which each one is
-joined to the next by an arrow, \emph{whatever the direction of the
-arrows}. The direction is ignored because dependence has no direction: if
+A \emph{path} between two nodes is a sequence of distinct nodes in which
+each one is joined to the next by an arrow, \emph{whatever the direction
+of the arrows}. The direction is ignored because dependence has no direction: if
 $A$ tells something about $B$, then $B$ tells something about $A$
 (\cref{sec:condind}), so information travels along an arrow both ways. In
 \cref{fig:garden}, $R\rightarrow W\leftarrow S$ is a path from
@@ -407,15 +408,20 @@ of the following:
 \end{itemize}
 A path that is not blocked is \emph{open}. Two variables $X$ and $Y$ are
 \emph{d-separated} by $\mathcal S$ if every path between them is blocked
-by $\mathcal S$.
+by $\mathcal S$. Two sets of variables $\mathcal X$ and $\mathcal Y$ are
+d-separated by $\mathcal S$ if every path from a node of $\mathcal X$ to a
+node of $\mathcal Y$ is blocked by $\mathcal S$.
 \end{definition}
 
 One blocking node is enough to block a path, but every path must be
 blocked for d-separation.
 
 \begin{theorem}{d-separation implies conditional independence}{dsep}
-If $X$ and $Y$ are d-separated by $\mathcal S$ in a Bayesian network, then
-$X\indep Y\mid\mathcal S$ for every distribution that factorises as
+If $X$ and $Y$, or two sets $\mathcal X$ and $\mathcal Y$, are
+d-separated by $\mathcal S$ in a Bayesian network, then
+$X\indep Y\mid\mathcal S$ (respectively
+$\mathcal X\indep\mathcal Y\mid\mathcal S$, the variables of each set taken
+together) for every distribution that factorises as
 \eqref{eq:bnfactor}.
 \end{theorem}
 
@@ -463,12 +469,14 @@ In \cref{fig:garden}:
     not given, and neither is its descendant $L$. The path is blocked:
     yes.
   \item \emph{Is $R\indep S\mid L$?} Same path, but now $L$, a descendant
-    of the collider $W$, is given. The path is open: no. Knowing that
+    of the collider $W$, is given. The path is open, so the graph does not
+    give the independence; and in this garden it fails: knowing that
     someone slipped, learning that the sprinkler was on makes rain less
     likely.
 \end{itemize}
-The second and third answers are the assumptions of \cref{ex:garden},
-which the rule gives back. The first and the fourth are the two questions
+The third answer is an assumption of \cref{ex:garden}, and the second
+follows directly from one ($L\indep(R,S)\mid W$ implies $L\indep R\mid W$):
+the rule gives them back. The first and the fourth are the two questions
 asked at the start of \cref{sec:three}: nobody assumed them.
 \end{example}
 
@@ -562,9 +570,10 @@ $\uu_{0:t-1}$ and the measurements $\z_{1:t}$.
     given and does not block; the chain node $\x_t$ is given: blocked.
 \end{itemize}
 Every path from the past to $\x_{t+1}$ passes through $\x_t$ in this way.
-The control $\uu_t$, on the other hand, cannot be removed: an arrow joins
-it to $\x_{t+1}$, and a path without an intermediate node cannot be
-blocked.
+The control $\uu_t$, on the other hand, is not covered: an arrow joins it
+to $\x_{t+1}$, and a path without an intermediate node cannot be blocked,
+so the graph gives no reason to remove it (and the model gives one to keep
+it: the command moves the robot).
 
 \subsection*{(c) Prediction: the next control says nothing about the
 current pose}
@@ -619,7 +628,8 @@ $\z_{1:t}$ and the controls stay.
 
 \emph{Check.} The path is $\x_t\rightarrow\x_{t+1}\rightarrow\z_{t+1}$.
 Its intermediate node $\x_{t+1}$ is a chain node and it is not given, so
-it does not block: the path is open, and $\z_{t+1}$ cannot be removed.
+it does not block: the path is open, and the graph does not allow the
+removal of $\z_{t+1}$.
 This is the example of \cref{sec:assumptions}: $\z_{t+1}$ is taken after
 $\x_t$ and cannot influence it, but it is a measurement of $\x_{t+1}$,
 which is one step away from $\x_t$, and so it carries information about
@@ -680,8 +690,8 @@ estimate: this is exactly the situation above. In the recorded runs of the
 other chapters a pilot follows a path fixed in advance and, near the edge
 of the lawn, adds a turn towards the centre computed from the latest GPS
 fix and compass reading. A filter that reads those two sensors is again in
-that situation. The filters of \cref{ch:ekf,ch:ukf,ch:particle} read the
-landmarks instead. For them the recorded commands depend on readings that
+that situation. The grid filter of \cref{ch:bayes} and the filters of
+\cref{ch:ekf,ch:ukf,ch:particle} read the landmarks instead. For them the recorded commands depend on readings that
 they are not given, as happens whenever a filter replays the log of a
 robot that was driven by something else, and those commands carry a little
 information about the pose that the filter does not use.

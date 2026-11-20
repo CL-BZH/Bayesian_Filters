@@ -121,7 +121,8 @@ Let $X\sim\Normal(\bmu,\Sigma)$ in $\R^n$.
 (Cholesky). Let $Z=L^{-1}(X-\bmu)$. By \cref{lem:affine}, $Z$ is Gaussian
 with mean $\vect0$ and covariance $L^{-1}\Sigma L^{-\mathsf T}=I$. Its
 components are jointly Gaussian and uncorrelated, hence independent
-standard normals (\cref{lem:uncorr}), so $Z$ has the density
+standard normals (apply \cref{lem:uncorr} to the first component against
+the others, then to the second against the remaining ones, and so on), so $Z$ has the density
 $(2\pi)^{-n/2}\exp(-\tfrac12\norm{\vect z}^2)$. Since $X=\bmu+LZ$ is an
 invertible affine map of $Z$, the change-of-variables formula gives $X$
 the density
@@ -191,7 +192,8 @@ depend on the value $\y$ at all.
 \centering
 \includegraphics[width=\linewidth]{figures/ch03_gaussian.pdf}
 \caption{Left: contours of a joint Gaussian of $(X,Y)$. Fixing $Y=y$
-(dashed) slices it; the slice is the Gaussian density of $X\mid Y=y$, whose
+(dashed) slices it; the slice, divided by $p(y)$, is the Gaussian density
+of $X\mid Y=y$, whose
 mean lies on the regression line $\E[X\mid Y=y]$ and whose width does not
 depend on $y$. Right: the Kalman update in one dimension, the example of
 the text. The posterior lies between the prior and the measurement, closer
@@ -212,8 +214,8 @@ it, and $H_t$ which combination of the state the sensor sees.
   \x_{t+1}&=F_t\x_t+B_t\uu_t+\w_t, & \w_t&\sim\Normal(\vect0,Q_t),\\
   \z_{t}&=H_t\x_t+\vv_t, & \vv_t&\sim\Normal(\vect0,R_t),
 \end{align*}
-with $\x_0\sim\Normal(\hx_0,P_0)$ and all noises independent of each
-other and of $\x_0$.
+with $\x_0\sim\Normal(\hx_0,P_0)$, $R_t\succ0$, and all noises
+independent of each other and of $\x_0$.
 \end{definition}
 
 Two symbols are used throughout the book: a bar marks a \emph{predicted}
@@ -324,8 +326,10 @@ S^{-1}=K$.
 \begin{inwords}
 Information (inverse covariance) adds: what we knew, plus what the
 measurement tells, and the measurement's contribution $H\T R^{-1}H$ does
-not depend on what we knew. It also shows that an update can only reduce
-the uncertainty, in every direction. A direction $\vect n$ that the sensor
+not depend on what we knew. An update can only reduce the uncertainty,
+in every direction: $P=\bar P-\bar PH\T S^{-1}H\bar P$, and the subtracted
+term is positive semi-definite, so $\vect n\T P\vect n\le\vect n\T\bar
+P\vect n$ for every $\vect n$. A direction $\vect n$ that the sensor
 does not see ($H\vect n=\vect0$) receives no information from the
 measurement itself: $\vect n\T P^{-1}\vect n=\vect n\T\bar P^{-1}\vect n$.
 Its variance can still decrease, but only through its correlation with the
@@ -334,8 +338,9 @@ correct a heading.
 \end{inwords}
 
 \begin{proposition}{Joseph form}{joseph}
-For \emph{any} gain $K$, the error of the estimate
-$\hx=\bx+K(\z-H\bx)$ has covariance
+Let the prediction error $\x-\bx$ have mean zero and covariance $\bar P$
+and be independent of the measurement noise $\vv$. For \emph{any} gain
+$K$, the error of the estimate $\hx=\bx+K(\z-H\bx)$ has covariance
 \begin{equation}\label{eq:joseph}
   P_K=(I-KH)\bar P(I-KH)\T+KRK\T,
 \end{equation}
@@ -388,6 +393,11 @@ This is the computation of \cref{sec:errors} again: an error on the
 distance moves the robot along its heading, and an error on the heading,
 here the compass error, moves it sideways by $s_t$ per radian. $G_t$ is
 the upper $2\times2$ block of the matrix $V$ of \eqref{eq:firstorder}.
+One more approximation is made, beyond the first order: the compass noise
+$\nu_{t+1}$ enters both the known input $c_{t+1}$ and the noise $\w_t$, so
+$\w_t$ is not exactly independent of the input. The effect is small
+($\sigma_c=0.02$\,rad), and the consistency test of \cref{fig:kfnees}
+shows that the filter is not misled by it.
 $Q_t$ is long along the heading (step noise) and thin across it (compass
 noise), and it turns with the robot. A time-varying $Q_t$ is no problem:
 nothing in \cref{thm:kf} needs it to be constant.
@@ -408,8 +418,10 @@ position error of each GPS fix and of the filter.}
 
 \section{The gain settles}
 
-$P_t$ and $K_t$ do not depend on the measurements: only on $F,H,Q,R$ and
-$P_0$. For a time-invariant model the predicted covariance obeys the
+When $F$, $H$, $Q$ and $R$ are fixed in advance, $P_t$ and $K_t$ do not
+depend on the measurements: only on these matrices and on $P_0$. (In the
+compass--GPS filter they depend on the compass readings, through $Q_t$,
+but not on the GPS fixes.) For a time-invariant model the predicted covariance obeys the
 \emph{Riccati recursion} $\bar P\mapsto F\bigl(\bar P-\bar PH\T(H\bar PH\T
 +R)^{-1}H\bar P\bigr)F\T+Q$, which converges, under mild conditions, to a
 unique fixed point. (The conditions are called detectability and
@@ -455,9 +467,13 @@ Along the heading, $q=\sigma_s^2=0.16$ and $r=64$ give $P_\infty=3.12$;
 across it, $q=s^2\sigma_c^2=0.0064$ gives $P_\infty=0.64$. If the heading
 were constant, the RMS error would therefore settle at
 $\sqrt{3.12+0.64}=1.94$. Because the heading turns, the long axis of $Q_t$
-rotates and the two directions mix; the filter's own covariance settles
-around $\operatorname{tr}P\approx4.5$, i.e.\ an RMS of $2.1$, and the
-measured RMS error over 20 runs is $2.11$. The filter's covariance is
+rotates and the two directions mix. Averaged over the headings, $Q_t$ is
+about $\tfrac12(0.16+0.0064)\,I=0.083\,I$, and \cref{prop:steady} with
+$q=0.083$ gives $P_\infty=2.27$ per axis, a trace of $4.5$. The filter's
+own covariance indeed settles around $\operatorname{tr}P\approx4.5$, i.e.\
+an RMS of $2.1$, and the measured RMS error over 20 runs (seeds 0 to 19,
+started at the true pose with $P_0=\diag(400,400)$, the first 20 steps
+left out) is $2.11$. The filter's covariance is
 telling the truth, which is the subject of the next section.
 
 \section{Is the filter honest? NEES}
@@ -480,6 +496,10 @@ deviation of $1$ gives a NEES of $9$: a ``three-sigma'' error, which
 should be rare. Recall that $\chi^2_n$ (chi-squared with
 $n$ degrees of freedom) is the distribution of the sum of the squares of
 $n$ independent standard normal variables; its mean is $n$.
+
+For the Kalman filter of a linear-Gaussian model, the hypothesis of the
+next proposition is the conclusion of \cref{thm:kf}: given the data, the
+error $\x_t-\hx_t$ is $\Normal(\vect0,P_t)$.
 
 \begin{proposition}{NEES of a consistent filter}{neeschi2}
 If $\x_t-\hx_t\sim\Normal(\vect0,P_t)$ with $P_t\succ0$ in $\R^n$, then
@@ -514,9 +534,10 @@ $P_0$ would make the first steps look pessimistic.
 \includegraphics[width=\linewidth]{figures/ch03_kf_nees.pdf}
 \caption{Average NEES over 50 runs (log scale) for the compass--GPS
 Kalman filter; grey: the $95\%$ band for $n=2$. Left: the correct $R$,
-inside the band. Middle: the filter believes the GPS is 4 times more
-precise than it is: over-confident by an order of magnitude. Right: it
-believes the GPS is 4 times worse: pessimistic.}
+inside the band. Middle: the filter believes that the standard deviation
+of the GPS is 4 times smaller than it is ($R/16$): over-confident by an
+order of magnitude. Right: it believes it is 4 times larger ($16R$):
+pessimistic.}
 \label{fig:kfnees}
 \end{figure}
 
@@ -592,9 +613,9 @@ is a cheap and effective guard.
   the filter effectively average?
 \item\label{ex:wrongR} A Kalman filter is run with a wrong measurement
   covariance $R'$ while the true one is $R$. Show that the covariance it
-  reports and the covariance of its actual error both follow the Riccati
-  recursion, but with different matrices, and write the recursion for the
-  actual error covariance. Explain the middle panel of
+  reports follows the Riccati recursion with $R'$, while the covariance of
+  its actual error follows a linear recursion that uses the filter's gain
+  and the true $R$; write that recursion. Explain the middle panel of
   \cref{fig:kfnees}.
 \end{enumerate}
 
@@ -608,8 +629,11 @@ gain. The updated error is uncorrelated with (hence, being Gaussian,
 independent of) the innovation: the filter has extracted everything the
 measurement had to say.
 
-\textbf{3.2.} Stack the two measurements: $H=(1,1)\T$,
-$R=\diag(r_1,r_2)$, $\bar P^{-1}=0$. Then
+\textbf{3.2.} ``No prior'' is the limit $\bar P\to\infty$, in which the
+information form gives $\bar P^{-1}=0$ and the mean
+$\hx=P(\bar P^{-1}\bx+H\T R^{-1}\z)=PH\T R^{-1}\z$ (from $\hx=\bx+K(\z-H\bx)$
+with $K=PH\T R^{-1}$ and $I-KH=P\bar P^{-1}$). Stack the two measurements:
+$H=(1,1)\T$, $R=\diag(r_1,r_2)$. Then
 $P^{-1}=H\T R^{-1}H=1/r_1+1/r_2$ and
 $\hat x=PH\T R^{-1}\z=P(z_1/r_1+z_2/r_2)$: the inverse-variance weighted
 average, with variance $r_1r_2/(r_1+r_2)$, smaller than both. When
@@ -630,8 +654,10 @@ $\x-\hx=(I-K'H)(\x-\bx)-K'\vv$ with the true $\vv\sim\Normal(\vect0,R)$, so
 by \cref{prop:joseph} the actual covariance is
 $P^{\mathrm{true}}=(I-K'H)\bar P^{\mathrm{true}}(I-K'H)^{\mathsf T}+K'R{K'}^{\mathsf T}$, then
 $\bar P^{\mathrm{true}}\leftarrow FP^{\mathrm{true}}F\T+Q$. With
-$R'=R/16$ the gain $K'$ is close to $I$: the estimate follows each fix,
-so the actual error is close to the GPS error, while the reported
-covariance is about $R'$, sixteen times too small. NEES measures the
-actual error in units of the reported covariance, hence values an order of
+$R'=R/16$ the gain is larger (with the scalar values of
+\cref{prop:steady}, $q=0.16$ and $r'=4$, it is $0.18$ instead of $0.05$):
+the filter averages fewer fixes, so its actual error grows, while the
+covariance it reports shrinks. In that scalar case the reported variance is
+$0.72$ and the actual one $6.7$, nine times more. NEES measures the actual
+error in units of the reported covariance, hence values an order of
 magnitude above the band.

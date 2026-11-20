@@ -147,7 +147,8 @@ Both remain true when every term is conditioned on the same extra
 variables, which is how they are used below.
 
 \begin{theorem}{Bayes filter}{bayes}
-Under \ref{A1}--\ref{A2},
+Under \ref{A1}--\ref{A2}, with controls fixed in advance or computed from
+the measurements (the two cases of \cref{prop:joint}),
 \begin{align}
   \belbar(\x_{t+1})&=\int p(\x_{t+1}\mid\x_t,\uu_t)\,\bel(\x_t)\,
   \mathrm d\x_t, \label{eq:predict}\\
@@ -262,9 +263,13 @@ The first claim is the identification of the denominator in the proof of
 \cref{thm:bayes}. For the second, the chain rule gives
 $p(\z_{1:T}\mid\uu_{0:T-1})=\prod_tp(\z_t\mid\z_{1:t-1},\uu_{0:T-1})$. In
 the factor of $\z_t$, the controls $\uu_t,\dots,\uu_{T-1}$ are applied
-after $\z_t$ is received. They can be removed for the reason given in the
-proof of \cref{prop:joint}: fixed in advance, they tell nothing about what
-happened before them. The factor is then
+after $\z_t$ is received. That is not a reason to remove them (the trap
+of \cref{sec:assumptions}); the network of \cref{fig:bayesnet} is. A
+path from such a control $\uu_s$, $s\ge t$, to $\z_t$ starts with the only
+arrow at $\uu_s$, $\uu_s\rightarrow\x_{s+1}$, and must continue with
+$\x_{s+1}\leftarrow\x_s$: the node $\x_{s+1}$ is a collider. Neither it nor
+any of its descendants (later poses and measurements) is given, so every
+such path is blocked (\cref{app:bayesnet}). The factor is then
 $p(\z_t\mid\z_{1:t-1},\uu_{0:t-1})=\eta_t^{-1}$. When the controls are
 computed from the measurements, apply the chain rule to $p(\z_{1:T})$
 instead: given $\z_{1:t-1}$ the controls $\uu_{0:t-1}$ are known, and the
@@ -334,10 +339,12 @@ On the grid, the shift is done by linear interpolation
 (\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
 The step noise acts along the heading and the compass noise across it
 (\cref{sec:errors}), so $\Sigma_t$ has the standard deviation $\sigma_s$
-along the heading and $s\,\sigma_c$ across it. The code uses instead a
-round kernel of standard deviation $\sqrt{\sigma_s^2+s^2\sigma_c^2}$,
-which is a little larger than both: a slight over-approximation of the
-noise.
+along the heading and $s\,\sigma_c$ across it, about $0.4$ units. The
+code uses instead a round kernel whose standard deviation is that value,
+but never less than $0.3$ cell, that is $1.2$ units for cells 4 units
+wide; the interpolated shift blurs a little more. The predicted belief is
+therefore wider than the motion noise, which is harmless at this cell
+size: the grid cannot resolve less than a cell anyway.
 Probability that leaves the lawn is lost, and the table is renormalised.
 The update is the cell-wise product
 $b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
@@ -407,12 +414,17 @@ through the landmarks. The two points have exactly the same ranges.}
 What can tell the two points apart is the \emph{motion}. The heading is
 known, so the filter moves both hypotheses by the same displacement
 $\vect{d}$. But the mirror image of the true trajectory moves by the
-mirrored displacement $\sigma(\vect{d})$. Unless $\vect{d}$ is parallel to
-the axis, in which case $\sigma(\vect{d})=\vect{d}$, the wrong hypothesis
-drifts away from the mirror image of the robot and stops agreeing with
-the ranges. So only one of the two tracks remains consistent with the
+mirrored displacement $\sigma(\vect{d})$ (for a displacement, the
+reflection of the vector, without translation). Unless $\vect{d}$ is
+parallel to the axis, in which case $\sigma(\vect{d})=\vect{d}$, the wrong
+hypothesis drifts away from the mirror image of the robot. It then stops
+agreeing with the ranges, because two points have the same distances to
+two distinct landmarks only if they are equal or mirror images (two
+circles with distinct centres meet in at most two points). So only one of the two tracks remains consistent with the
 measurements as the robot drives (\cref{fig:mirrormotion}).
-\Cref{fig:gridbimodal} shows how this plays out on the standard run.
+\Cref{fig:gridbimodal} shows how this plays out on a run with only the
+first two landmarks (seed 1), starting from a uniform belief over the
+lawn.
 
 \begin{figure}[ht]
 \centering
@@ -457,10 +469,12 @@ wrong hypothesis is then no longer at the mirror image of the robot
 \caption{Grid belief (darker is more probable; a power-law colour scale
 makes small masses visible) with range-only sensing to two landmarks
 (stars); the red circle surrounds the true position. The first measurement gives a
-belief symmetric about the line through the landmarks: two bumps. Both
-survive for a few measurements, and at measurements 4 and 5 the
-\emph{wrong} one carries more mass than the right one ($0.43$ against
-$0.31$ at measurement 5, counting the mass within 10 units of each). As
+belief symmetric about the line through the landmarks (nearly: the
+uniform start is cut off by the edges of the lawn, which are not symmetric
+about that line): two bumps. Both survive for a few measurements, and at
+measurements 4 and 5 the \emph{wrong} one carries more mass than the right
+one (at measurement 5, $0.65$ against $0.35$ on the two sides of the
+line). As
 the robot drives on, the wrong bump stops agreeing with the ranges: by
 measurement 8 it has disappeared, and the belief then follows the robot.}
 \label{fig:gridbimodal}
@@ -495,8 +509,8 @@ ways out, and the rest of the book follows both:
 \end{enumerate}
 
 \begin{practice}[\nb{01\_bayes\_filter.ipynb}, \code{grid.py}]
-\code{GridFilter} implements the predict and update steps above on $4\times4$
-cells, with \code{sensor="range"} or \code{"range\_bearing"}. The notebook
+\code{GridFilter} implements the predict and update steps above on cells
+4 units wide ($80\times80$ cells), with \code{sensor="range"} or \code{"range\_bearing"}. The notebook
 reproduces \cref{fig:gridbimodal} and compares the grid filter with dead
 reckoning: with two noisy ranges per step, its median error after step 20
 is $2.3$, less than half the range noise $\sigma_r=5$, although the cells are
@@ -566,9 +580,9 @@ $(0.5,0.5)$. Update with ``rough'': multiply by $(0.3,0.8)$ to get
 $(0.15,0.40)$, normalise: $(0.273,0.727)$. Predict:
 $(0.9\cdot0.273+0.1\cdot0.727,\ 0.1\cdot0.273+0.9\cdot0.727)=
 (0.318,0.682)$. Update with ``rough'': $(0.0955,0.5455)$, normalise:
-$(0.149,0.851)$. The second reading counts less than the first would have
-alone, because the prediction pulled the belief back towards $1/2$: the
-robot might have left the path in between.
+$(0.149,0.851)$. Without the prediction in between, two readings would
+give $(0.123,0.877)$: the prediction pulled the belief back towards $1/2$,
+because the robot might have left the path in between.
 
 \textbf{2.2.} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
 $X_2\sim\Normal(\vect0,\Sigma_2)$ are independent, the density of

@@ -63,13 +63,17 @@ $\bm r$ meets the tangent at $\p'$. Three regions are nested:
     and $s\tan x$, so area $\tfrac12 s^2\tan x$.
 \end{itemize}
 The first is inside the second because the sector is convex (its angle is
-less than $\pi$) and contains the three vertices $\p,\p',\bm r$. The second
-is inside the third because the whole disc lies on the same side of the
+less than $\pi$) and contains the three vertices $\p,\p',\bm r$. The
+second is inside the third because the sector lies in the angle $\p'\p\bm
+r$, the triangle is the part of that angle on the same side of the
+tangent as $\p$, and the whole disc lies on the same side of the
 tangent as $\p$: any point $\bm y\ne\p'$ of the tangent satisfies
 $\|\bm y-\p\|^2=s^2+\|\bm y-\p'\|^2>s^2$ (Pythagoras, the tangent being
 perpendicular to the radius), so the tangent line never enters the disc.
 Each inclusion leaves out a region of positive area, so
 $\tfrac12 s^2\sin x<\tfrac12 s^2 x<\tfrac12 s^2\tan x$. Dividing by
 $\tfrac12 s^2 x$ gives $\sin x/x<1$, and dividing by $\tfrac12 s^2\tan x$
-gives $\cos x<\sin x/x$: this is \eqref{eq:sinx}. The only analytic input is that the area of a sector is
-proportional to its angle, which is how the radian is defined.
+gives $\cos x<\sin x/x$: this is \eqref{eq:sinx}. The only analytic input is the area $\tfrac12s^2x$ of a sector of angle
+$x$, for example
+$\int_0^x\!\int_0^s r\,\mathrm dr\,\mathrm d\phi$ in polar coordinates.
+It is what ties areas to the radian, which is defined by arc length.
