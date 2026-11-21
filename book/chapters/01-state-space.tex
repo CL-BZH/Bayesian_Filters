@@ -2282,31 +2282,43 @@ $C$ and $S$ read
   \rho=\norm{(C,S)}=\frac1N\Bigl\|\sum_{j=1}^N\vect u_j\Bigr\| .
 \]
 The headings are random, so $\rho$ is random, and the question is its
-typical size. The mean $\E[\rho]$ is hard to compute directly: $\rho$ is
-the length of a sum of random vectors, a square root of a sum of
-squares. The mean of $\rho^2$ has no square root and is easy, and it
-bounds the mean of $\rho$: since $\Var(\rho)=\E[\rho^2]-\E[\rho]^2\ge0$,
-\[
-  \E[\rho]\le\sqrt{\E[\rho^2]} ,
-\]
-the \emph{root mean square} of $\rho$. Expanding the squared length of the
-sum as the scalar product of the sum with itself,
+typical size. Expanding the squared length of the sum as the scalar
+product of the sum with itself, and using $\norm{\vect u_j}^2=1$,
 \[
   \Bigl\|\sum_j\vect u_j\Bigr\|^2=\sum_j\sum_k\vect u_j\T\vect u_k
-  =\sum_j\norm{\vect u_j}^2+\sum_{j\neq k}\vect u_j\T\vect u_k .
+  =\sum_j\norm{\vect u_j}^2+\sum_{j\neq k}\vect u_j\T\vect u_k
+  =N+X,
+  \qquad X=\sum_{j\neq k}\vect u_j\T\vect u_k
+  =\sum_{j\neq k}\cos(\theta_j-\theta_k),
 \]
-Each $\norm{\vect u_j}^2$ is $1$. For $j\neq k$, $\vect u_j$ and
-$\vect u_k$ are independent, so
-$\E[\vect u_j\T\vect u_k]=\E[\vect u_j]\T\E[\vect u_k]$, and
+the last form by the subtraction formula, since
+$\vect u_j\T\vect u_k=\cos\theta_j\cos\theta_k+\sin\theta_j\sin\theta_k$.
+Hence
+\[
+  \rho=\frac1N\sqrt{N+X},\qquad \rho^2=\frac{N+X}{N^2}.
+\]
+$\E[X]$ is easy, because the expectation of a sum is the sum of the
+expectations: for $j\neq k$, $\vect u_j$ and $\vect u_k$ are independent,
+so $\E[\vect u_j\T\vect u_k]=\E[\vect u_j]\T\E[\vect u_k]$, and
 $\E[\vect u_j]=\vect0$ because a uniform heading has
 $\E[\cos\theta_j]=\frac1{2\pi}\int_{-\pi}^{\pi}\cos t\,\mathrm dt=0$ and
-likewise $\E[\sin\theta_j]=0$. Hence
+likewise $\E[\sin\theta_j]=0$. So $\E[X]=0$, and
 \[
-  \E\Bigl\|\sum_j\vect u_j\Bigr\|^2=N,
-  \qquad
-  \E[\rho^2]=\frac{N}{N^2}=\frac1N ,
+  \E[\rho^2]=\frac{N+\E[X]}{N^2}=\frac1N .
 \]
-so $\E[\rho]\le1/\sqrt N$, which is $0.03$ for $N=1000$ (while
+$\E[\rho]$ is a different matter. It is the expectation of
+$\sqrt{N+X}$, and the expectation of a square root is not the square root
+of the expectation: $\E[\sqrt{N+X}]$ depends on the whole distribution of
+$X$, not only on its mean, and that distribution (of a double sum of
+cosines of differences of random angles) is complicated. Both $\rho$ and
+$\sqrt{\E[\rho^2]}$ contain one square root; the difference is that in
+$\sqrt{\E[\rho^2]}$, the \emph{root mean square} of $\rho$, the square
+root is taken \emph{after} the expectation, and in $\E[\rho]$ before it.
+The root mean square bounds the mean: since
+$\Var(\rho)=\E[\rho^2]-\E[\rho]^2\ge0$,
+\[
+  \E[\rho]\le\sqrt{\E[\rho^2]}=\frac1{\sqrt N},
+\] which is $0.03$ for $N=1000$ (while
 $\sum_jw_j=1$). The bound is close: a simulation gives
 $\E[\rho]\approx0.89/\sqrt N$. The circular mean is then defined, but it is the
 direction of a short, essentially random vector, it changes from one
