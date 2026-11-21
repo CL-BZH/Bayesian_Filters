@@ -2276,9 +2276,14 @@ $C$ and $S$ read
   \rho=\norm{(C,S)}=\frac1N\Bigl\|\sum_{j=1}^N\vect u_j\Bigr\| .
 \]
 The headings are random, so $\rho$ is random, and the question is its
-typical size. Its exact distribution is complicated, but the mean of its
-square is easy to compute, and the square root of that mean (the root
-mean square) gives the typical size. Expanding the squared length of the
+typical size. The mean $\E[\rho]$ is hard to compute directly: $\rho$ is
+the length of a sum of random vectors, a square root of a sum of
+squares. The mean of $\rho^2$ has no square root and is easy, and it
+bounds the mean of $\rho$: since $\Var(\rho)=\E[\rho^2]-\E[\rho]^2\ge0$,
+\[
+  \E[\rho]\le\sqrt{\E[\rho^2]} ,
+\]
+the \emph{root mean square} of $\rho$. Expanding the squared length of the
 sum as the scalar product of the sum with itself,
 \[
   \Bigl\|\sum_j\vect u_j\Bigr\|^2=\sum_j\sum_k\vect u_j\T\vect u_k
@@ -2295,8 +2300,9 @@ likewise $\E[\sin\theta_j]=0$. Hence
   \qquad
   \E[\rho^2]=\frac{N}{N^2}=\frac1N ,
 \]
-and the typical size of $\rho$ is $\sqrt{\E[\rho^2]}=1/\sqrt N$, which is
-$0.03$ for $N=1000$ (while $\sum_jw_j=1$). The circular mean is then defined, but it is the
+so $\E[\rho]\le1/\sqrt N$, which is $0.03$ for $N=1000$ (while
+$\sum_jw_j=1$). The bound is close: a simulation gives
+$\E[\rho]\approx0.89/\sqrt N$. The circular mean is then defined, but it is the
 direction of a short, essentially random vector, it changes from one
 step to the next, and it says nothing about the heading of the robot.
 The ratio $\rho/\sum_jw_j$ of \cref{sec:circular} detects this case.
