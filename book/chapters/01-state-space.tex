@@ -2028,15 +2028,20 @@ operation safe.
 \solution{1.5} From the proof of \cref{prop:deadreckoning},
 $\theta_t=\sum_{j=1}^t\varepsilon_{\delta,j}$ and
 $e_t\approx s\sum_{j=1}^t(t-j+1)\varepsilon_{\delta,j}$. With independent
-$\varepsilon_{\delta,j}$ of variance $\sigma_\delta^2$,
+$\varepsilon_{\delta,j}$ of variance $\sigma_\delta^2$, only the pairs
+with the same $j$ contribute to the covariances, and with $m=t-j+1$
+(which runs from $1$ to $t$) and the classical sums
+$\sum_{m=1}^tm=t(t+1)/2$ and $\sum_{m=1}^tm^2=t(t+1)(2t+1)/6$,
 \[
   \Cov(e_t,\theta_t)\approx s\sigma_\delta^2\sum_{m=1}^tm=
   s\sigma_\delta^2\frac{t(t+1)}2,\quad
   \Var(e_t)\approx s^2\sigma_\delta^2\frac{t(t+1)(2t+1)}6,\quad
   \Var(\theta_t)=t\sigma_\delta^2 .
 \]
-Hence $\rho_t^2=\frac{t^2(t+1)^2/4}{t\cdot t(t+1)(2t+1)/6}=
-\frac{3(t+1)}{2(2t+1)}$, which is $1$ for $t=1$ and tends to $3/4$. A
+Hence the squared correlation is
+$\rho_t^2=\frac{\Cov(e_t,\theta_t)^2}{\Var(e_t)\Var(\theta_t)}
+=\frac{t^2(t+1)^2/4}{t\cdot t(t+1)(2t+1)/6}=
+\frac{3(t+1)}{2(2t+1)}$ (the factors $s^2\sigma_\delta^4$ cancel), which is $1$ for $t=1$ and tends to $3/4$. A
 Monte Carlo run with the noise of the simulations gives $0.903$ and $0.874$
 after 5 and 25 steps, against $0.905$ and $0.875$. The coupling never
 vanishes because every turn error that contributes to the final heading

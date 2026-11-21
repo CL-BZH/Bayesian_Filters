@@ -55,7 +55,18 @@ the eigenvectors of $\Sigma$, and the half-length of each axis is
 proportional to the standard deviation in its direction, the square root
 of the eigenvalue. The figures of this book draw a planar Gaussian as its
 ``$2\sigma$ ellipse'', the level set whose half-axes are twice these
-standard deviations; it contains $86\%$ of the probability.
+standard deviations; it contains $86\%$ of the probability. (Write
+$X=\bmu+L\vect g$ with $LL\T=\Sigma$, as in the proof of
+\cref{lem:dichotomy} below: $\vect g$ is a pair of independent standard
+normals, and the ellipse is the image of the disc $\norm{\vect g}\le2$.
+In polar coordinates the density $e^{-\norm{\vect g}^2/2}/(2\pi)$ gives
+the disc of radius $\rho$ the probability
+$\int_0^{2\pi}\!\int_0^\rho e^{-r^2/2}\,r\,\mathrm dr\,\mathrm d\alpha/(2\pi)
+=1-e^{-\rho^2/2}$, that is,
+\begin{equation}\label{eq:chi2tail}
+  \Pr\bigl(\norm{\vect g}^2>x\bigr)=e^{-x/2}\qquad(x\ge0),
+\end{equation}
+and for $\rho=2$ the disc has the probability $1-e^{-2}\approx0.86$.)
 
 \begin{lemma}{Affine maps and sums}{affine}
 If $X\sim\Normal(\bmu,\Sigma)$, then $AX+\vect{b}\sim\Normal(A\bmu+\vect{b},
@@ -68,9 +79,13 @@ For any $\vect{a}$, $\vect{a}\T(AX+\vect{b})=(A\T\vect{a})\T X+\vect{a}\T
 \vect{b}$ is Gaussian with mean $\vect{a}\T(A\bmu+\vect{b})$ and variance
 $\vect{a}\T A\Sigma A\T\vect{a}$. For the sum, $(X,W)$ is jointly
 Gaussian: a combination $\vect a\T X+\vect c\T W$ is the sum of two
-independent scalar Gaussians, which is Gaussian with the means and the
-variances added (its characteristic function, recalled in the next proof,
-is the product of theirs). And $AX+\vect{b}+W=[A\ \,I](X,W)\T+\vect{b}$ is an
+independent scalar Gaussians $G_1$, $G_2$, with means $m_1,m_2$ and
+variances $v_1,v_2$. That sum is Gaussian with the means and the
+variances added: by independence, and with the characteristic function
+of a scalar Gaussian recalled in the next proof,
+$\E[e^{\ii(G_1+G_2)}]=\E[e^{\ii G_1}]\,\E[e^{\ii G_2}]
+=e^{\ii(m_1+m_2)-(v_1+v_2)/2}$, which is the characteristic function of
+$\Normal(m_1+m_2,v_1+v_2)$. And $AX+\vect{b}+W=[A\ \,I](X,W)\T+\vect{b}$ is an
 affine map of it; its covariance is $A\Sigma A\T+Q$ because the cross
 covariance of $X$ and $W$ is zero.
 \end{proof}
@@ -84,18 +99,23 @@ independent.
 \end{lemma}
 
 \begin{proof}
-A distribution is determined by its characteristic function
-$\E[e^{i\vect a\T X}]$, and for a scalar Gaussian $G$ with mean $m$ and
-variance $v$, $\E[e^{iG}]=e^{im-v/2}$. For any $\vect a,\vect b$, the
+The \emph{characteristic function} of a random vector $X$ is the
+function $\vect a\mapsto\E[e^{\ii\vect a\T X}]$, where $\ii^2=-1$.
+Two facts are used. A distribution is determined by its characteristic
+function (the uniqueness theorem of probability; see Billingsley in the
+references). And for a scalar Gaussian $G$ with mean $m$ and variance
+$v$, $\E[e^{\ii G}]=e^{\ii m-v/2}$: for $m=0$ this is computed in
+\cref{sec:feyn-complex}, and $G=m+(G-m)$ gives the factor
+$e^{\ii m}$. For any $\vect a,\vect b$, the
 scalar $\vect a\T X+\vect b\T Y$ is Gaussian with mean
 $\vect a\T\bmu_x+\vect b\T\bmu_y$ and variance
 $\vect a\T\Sigma_{xx}\vect a+\vect b\T\Sigma_{yy}\vect b$, the cross term
 $2\,\vect a\T\Cov(X,Y)\,\vect b$ being zero. Hence
 \[
-  \E\bigl[e^{i(\vect a\T X+\vect b\T Y)}\bigr]
-  =e^{i\vect a\T\bmu_x-\frac12\vect a\T\Sigma_{xx}\vect a}\;
-   e^{i\vect b\T\bmu_y-\frac12\vect b\T\Sigma_{yy}\vect b}
-  =\E\bigl[e^{i\vect a\T X}\bigr]\,\E\bigl[e^{i\vect b\T Y}\bigr].
+  \E\bigl[e^{\ii(\vect a\T X+\vect b\T Y)}\bigr]
+  =e^{\ii\vect a\T\bmu_x-\frac12\vect a\T\Sigma_{xx}\vect a}\;
+   e^{\ii\vect b\T\bmu_y-\frac12\vect b\T\Sigma_{yy}\vect b}
+  =\E\bigl[e^{\ii\vect a\T X}\bigr]\,\E\bigl[e^{\ii\vect b\T Y}\bigr].
 \]
 The joint characteristic function is the product of the two marginal ones,
 which is the characteristic function of independent $X$ and $Y$.
@@ -171,12 +191,16 @@ $(E,Y)$ is an affine map of $(X,Y)$, hence jointly Gaussian, and
 \[
   \Cov(E,Y)=\Sigma_{xy}-K\Sigma_{yy}=0 .
 \]
-By \cref{lem:uncorr}, $E$ is independent of $Y$, and
-$E\sim\Normal(\vect0,\Sigma_{xx}-K\Sigma_{yx})$ by \cref{lem:affine}
-(expand $\Cov(E)=\Sigma_{xx}-K\Sigma_{yx}-\Sigma_{xy}K\T+K\Sigma_{yy}K\T$
-and use $K\Sigma_{yy}=\Sigma_{xy}$). Writing
-$X=\bmu_x+K(Y-\bmu_y)+E$, conditioning on $Y=\y$ fixes the second term
-and leaves the distribution of $E$ unchanged.
+By \cref{lem:uncorr}, $E$ is independent of $Y$. By \cref{lem:affine},
+$E$ is Gaussian with mean $\vect0$ and covariance
+\[
+  \Cov(E)=\Sigma_{xx}-K\Sigma_{yx}-\Sigma_{xy}K\T+K\Sigma_{yy}K\T
+  =\Sigma_{xx}-K\Sigma_{yx},
+\]
+because $K\Sigma_{yy}K\T=\Sigma_{xy}K\T$ (from $K\Sigma_{yy}=\Sigma_{xy}$)
+cancels the third term. Writing $X=\bmu_x+K(Y-\bmu_y)+E$, conditioning on
+$Y=\y$ fixes the second term, and leaves the distribution of $E$
+unchanged because $E$ is independent of $Y$.
 \end{proof}
 
 \begin{inwords}
@@ -289,10 +313,13 @@ jointly Gaussian (an affine image of the independent Gaussians
 $\x_{t+1}$ and $\vv_{t+1}$) with
 \[
   \bmu_y=H\bx,\quad\Sigma_{xy}=\Cov(\x,H\x+\vv)=\bar PH\T,\quad
-  \Sigma_{yy}=H\bar PH\T+R=S .
+  \Sigma_{yy}=H\bar PH\T+R=S ,
 \]
-\Cref{thm:conditioning} gives the mean $\bx+\bar PH\T S^{-1}(\z-H\bx)$ and
-the covariance $\bar P-\bar PH\T S^{-1}H\bar P=(I-KH)\bar P$.
+where $\Cov(\x,H\x+\vv)=\Cov(\x,\x)H\T+\Cov(\x,\vv)=\bar PH\T+0$, and
+$\Cov(H\x+\vv)=H\bar PH\T+R$ since $\x$ and $\vv$ are independent.
+\Cref{thm:conditioning} gives the mean
+$\bx+\bar PH\T S^{-1}(\z-H\bx)=\bx+K\y$ and the covariance
+$\bar P-\bar PH\T S^{-1}H\bar P=\bar P-KH\bar P=(I-KH)\bar P$.
 \end{proof}
 
 The quantity $\y$ is the \emph{innovation}: what the measurement says that
@@ -318,7 +345,8 @@ $\bar P^{-1}+H\T R^{-1}H$:
     R^{-1}H\\
   &=I+\bar PH\T\bigl[R^{-1}-S^{-1}-S^{-1}(S-R)R^{-1}\bigr]H=I,
 \end{align*}
-using $H\bar PH\T=S-R$. For the gain,
+using $H\bar PH\T=S-R$ in the last term; the bracket is zero because
+$S^{-1}(S-R)R^{-1}=R^{-1}-S^{-1}$. For the gain,
 $PH\T R^{-1}=\bar PH\T R^{-1}-\bar PH\T S^{-1}(S-R)R^{-1}=\bar PH\T
 S^{-1}=K$.
 \end{proof}
@@ -328,7 +356,9 @@ Information (inverse covariance) adds: what we knew, plus what the
 measurement tells, and the measurement's contribution $H\T R^{-1}H$ does
 not depend on what we knew. An update can only reduce the uncertainty,
 in every direction: $P=\bar P-\bar PH\T S^{-1}H\bar P$, and the subtracted
-term is positive semi-definite, so $\vect n\T P\vect n\le\vect n\T\bar
+term is positive semi-definite (with $\vect m=H\bar P\vect n$, since
+$\bar P$ is symmetric, $\vect n\T\bar PH\T S^{-1}H\bar P\vect n=
+\vect m\T S^{-1}\vect m\ge0$, $S^{-1}$ being positive definite), so $\vect n\T P\vect n\le\vect n\T\bar
 P\vect n$ for every $\vect n$. A direction $\vect n$ that the sensor
 does not see ($H\vect n=\vect0$) receives no information from the
 measurement itself: $\vect n\T P^{-1}\vect n=\vect n\T\bar P^{-1}\vect n$.
@@ -352,8 +382,10 @@ $(I-KH)\bar P$.
 $\x-\hx=(I-KH)(\x-\bx)-K\vv$, a combination of two independent
 zero-mean terms with covariances $\bar P$ and $R$; \cref{lem:affine} gives
 \eqref{eq:joseph}, a sum of two positive semi-definite matrices. Expanding,
-$P_K=\bar P-KH\bar P-\bar PH\T K\T+KSK\T$. With $K=\bar PH\T S^{-1}$ the
-last term is $\bar PH\T K\T$ and cancels the third.
+$P_K=\bar P-KH\bar P-\bar PH\T K\T+K(H\bar PH\T+R)K\T
+=\bar P-KH\bar P-\bar PH\T K\T+KSK\T$. With $K=\bar PH\T S^{-1}$ the
+last term is $\bar PH\T S^{-1}SK\T=\bar PH\T K\T$ and cancels the third,
+which leaves $\bar P-KH\bar P=(I-KH)\bar P$.
 \end{proof}
 
 The short form $(I-KH)\bar P$ is the difference of two positive
@@ -468,7 +500,11 @@ across it, $q=s^2\sigma_c^2=0.0064$ gives $P_\infty=0.64$. If the heading
 were constant, the RMS error would therefore settle at
 $\sqrt{3.12+0.64}=1.94$. Because the heading turns, the long axis of $Q_t$
 rotates and the two directions mix. Averaged over the headings, $Q_t$ is
-about $\tfrac12(0.16+0.0064)\,I=0.083\,I$, and \cref{prop:steady} with
+about $\tfrac12(0.16+0.0064)\,I=0.083\,I$: with $q_1=0.16$ along the
+heading $c$ and $q_2=0.0064$ across it, the entries of $Q_t$ are
+$q_1\cos^2c+q_2\sin^2c$, $q_1\sin^2c+q_2\cos^2c$ on the diagonal and
+$(q_1-q_2)\sin c\cos c$ off it, and over a full turn $\cos^2$ and
+$\sin^2$ average to $\tfrac12$ and $\sin c\cos c$ to $0$. Then \cref{prop:steady} with
 $q=0.083$ gives $P_\infty=2.27$ per axis, a trace of $4.5$. The filter's
 own covariance indeed settles around $\operatorname{tr}P\approx4.5$, i.e.\
 an RMS of $2.1$, and the measured RMS error over 20 runs (seeds 0 to 19,
@@ -512,9 +548,10 @@ $N\cdot\frac1N\sum_k\NEES^{(k)}\sim\chi^2_{nN}$.
 Let $L$ with $LL\T=P_t$ (Cholesky). Then $\vect{g}=L^{-1}(\x_t-\hx_t)\sim
 \Normal(\vect0,L^{-1}P_tL^{-\mathsf T})=\Normal(\vect0,I)$ by
 \cref{lem:affine}, and $\NEES_t=\vect{g}\T\vect{g}$ is a sum of $n$
-squared independent standard normals: $\chi^2_n$, of mean $n$. Sums of
-independent $\chi^2$ variables are $\chi^2$ with the degrees of freedom
-added.
+squared independent standard normals: $\chi^2_n$, of mean $n$ (each
+square has mean $\Var(g_i)=1$). The $N$ runs are independent, so the sum
+of their NEES is a sum of $nN$ squares of independent standard normals,
+that is $\chi^2_{nN}$.
 \end{proof}
 
 A two-sided $95\%$ acceptance band for the average NEES over $N$ runs is
@@ -621,18 +658,23 @@ is a cheap and effective guard.
 
 \subsection*{Solutions}
 
-\solution{3.1} $\y=H(\x-\bx)+\vv$; both terms have mean zero given the
-past, and they are independent, so $\Cov(\y)=H\bar PH\T+R=S$. After the
-update, $\x-\hx=(\x-\bx)-K\y$, so
-$\Cov(\x-\hx,\y)=\Cov(\x-\bx,\y)-K\Cov(\y)=\bar PH\T-KS=0$ for the Kalman
-gain. The updated error is uncorrelated with (hence, being Gaussian,
+\solution{3.1} $\y=\z-H\bx=H(\x-\bx)+\vv$; both terms have mean zero
+given the past, and they are independent, so
+$\Cov(\y)=H\bar PH\T+R=S$. After the update, $\x-\hx=(\x-\bx)-K\y$, so
+\[
+  \Cov(\x-\hx,\y)=\Cov(\x-\bx,\y)-K\Cov(\y)=\bar PH\T-KS=0,
+\]
+where $\Cov(\x-\bx,\y)=\Cov(\x-\bx,\x-\bx)H\T+\Cov(\x-\bx,\vv)=\bar PH\T$,
+and $KS=\bar PH\T S^{-1}S=\bar PH\T$ for the Kalman gain. The updated error is uncorrelated with (hence, being Gaussian,
 independent of) the innovation: the filter has extracted everything the
 measurement had to say.
 
 \solution{3.2} ``No prior'' is the limit $\bar P\to\infty$, in which the
 information form gives $\bar P^{-1}=0$ and the mean
-$\hx=P(\bar P^{-1}\bx+H\T R^{-1}\z)=PH\T R^{-1}\z$ (from $\hx=\bx+K(\z-H\bx)$
-with $K=PH\T R^{-1}$ and $I-KH=P\bar P^{-1}$). Stack the two measurements:
+$\hx=P(\bar P^{-1}\bx+H\T R^{-1}\z)=PH\T R^{-1}\z$. The first equality
+comes from $\hx=\bx+K(\z-H\bx)=(I-KH)\bx+K\z$, with $K=PH\T R^{-1}$ and
+$I-KH=P(P^{-1}-H\T R^{-1}H)=P\bar P^{-1}$ (both by
+\cref{prop:information}). Stack the two measurements:
 $H=(1,1)\T$, $R=\diag(r_1,r_2)$. Then
 $P^{-1}=H\T R^{-1}H=1/r_1+1/r_2$ and
 $\hat x=PH\T R^{-1}\z=P(z_1/r_1+z_2/r_2)$: the inverse-variance weighted
@@ -658,6 +700,15 @@ $R'=R/16$ the gain is larger (with the scalar values of
 \cref{prop:steady}, $q=0.16$ and $r'=4$, it is $0.18$ instead of $0.05$):
 the filter averages fewer fixes, so its actual error grows, while the
 covariance it reports shrinks. In that scalar case the reported variance is
-$0.72$ and the actual one $6.7$, nine times more. NEES measures the actual
+$P'_\infty=\bar P'_\infty-q=0.88-0.16=0.72$, with
+$\bar P'_\infty=(0.16+\sqrt{0.16^2+4\times0.16\times4})/2=0.88$ by
+\cref{prop:steady} and the gain $K'=0.88/(0.88+4)=0.18$. The actual
+variance $P$ is the fixed point of the recursion above with $F=H=1$:
+$P=(1-K')^2(P+q)+K'^2r$, so
+\[
+  P=\frac{(1-K')^2q+K'^2r}{1-(1-K')^2}
+  =\frac{0.671\times0.16+0.0328\times64}{0.329}\approx6.7,
+\]
+nine times more. NEES measures the actual
 error in units of the reported covariance, hence values an order of
 magnitude above the band.

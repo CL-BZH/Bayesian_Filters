@@ -265,9 +265,19 @@ Gaussian densities: the prior, one per motion step and one per
 measurement. The logarithm of a Gaussian density
 $\Normal(\vect e;\vect0,A)$ is $-\tfrac12\norm{\vect e}_A^2$ plus a
 constant, so $-\log p(\x_{0:T}\mid\z_{1:T},\uu)=J(\x_{0:T})
-+\text{const}$. $J$ is a positive definite quadratic, so the posterior
-over the whole trajectory is Gaussian and its mode $\x^\star_{0:T}$ is its
-mean. The mean of a marginal is the marginal of the mean, so
++\text{const}$.
+
+$J$ is a quadratic function of the stacked trajectory, and its quadratic
+part is positive definite: that part is $J$ with $\hx_0$, the controls and
+the measurements set to zero, and it vanishes only if $\x_0=\vect0$ (prior
+term), then $\x_1=F_0\x_0=\vect0$ (first motion term), and so on along
+the chain. A quadratic with a positive definite quadratic part $A$ has a
+unique minimiser $\x^\star_{0:T}$, and completing the square writes it as
+$J=\tfrac12(\x_{0:T}-\x^\star_{0:T})\T A(\x_{0:T}-\x^\star_{0:T})
++\text{const}$. So the posterior, proportional to $e^{-J}$, is the
+Gaussian density with mean $\x^\star_{0:T}$ and covariance $A^{-1}$
+\eqref{eq:gaussdensity}: its mode is its mean. The mean of one block of
+a random vector is the corresponding block of its mean, so
 $\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
 $\bel(\x_T)$: $\hx_T$ by \cref{thm:kf}.
 \end{proof}
@@ -393,10 +403,20 @@ place, or localising with a camera, is a smoothing problem.
 $P_\infty=\bar P_\infty-q$ (\cref{prop:steady}). The smoothed estimate
 combines two sources of information about $x_t$ that are conditionally
 independent given $x_t$: the past (the filter, variance $P_\infty$,
-including $z_t$) and the future (a backward filter that has not seen
-$z_t$ and uses no prior on $x_t$, so that it is a pure likelihood; by
-time-reversal symmetry of the random walk, it has variance
-$\bar P_\infty$).
+including $z_t$) and the future, $z_{t+1},z_{t+2},\dots$, which gives a
+likelihood of $x_t$ with no prior. That likelihood is Gaussian in $x_t$;
+call its variance $b$. It is built backwards in two steps. The future
+from $t+1$ on gives a likelihood of $x_{t+1}$, of variance $B$ say,
+combining $z_{t+1}$ (variance $r$) with the likelihood of $x_{t+1}$ from
+$z_{t+2},\dots$; and since $x_{t+1}=x_t+w_t$, a likelihood of $x_{t+1}$ of
+variance $V$ is a likelihood of $x_t$ of variance $V+q$. Far from the
+end the variances no longer depend on $t$, so
+\[
+  b=B+q,\qquad\frac1B=\frac1r+\frac1{B+q}.
+\]
+The forward filter obeys the same equations: $\bar P=P+q$ and
+$1/P=1/r+1/\bar P$ (\cref{prop:steady}). So $B=P_\infty$ and
+$b=\bar P_\infty$.
 Information adds (\cref{prop:information}):
 $1/P^{\mathrm{s}}=1/P_\infty+1/\bar P_\infty$. With $q=0.16$ and $r=64$:
 $P_\infty=3.12$, $\bar P_\infty=3.28$, and $P^{\mathrm s}=1.60$: the
@@ -424,4 +444,6 @@ globally or from a wide Gaussian around the EKF's estimate. A test
 based on the mean and covariance alone does not work: with two distant,
 equally heavy modes, every particle is at a squared Mahalanobis distance
 of about $1$ from the mean, and the cloud looks compact in its own
-units.
+units. (In one dimension, with narrow modes at $-a$ and $+a$, the mean is
+$0$ and the variance $a^2$, so every particle is at the squared distance
+$a^2/a^2=1$.)

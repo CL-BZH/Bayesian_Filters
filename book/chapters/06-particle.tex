@@ -78,8 +78,11 @@ moreover unbiased.
 Write $w=c\,\tilde w$ for an unknown $c>0$. Then
 $\E_q[\tilde w\varphi]=\int\varphi\,\frac{\mathrm d\pi}{\mathrm dq}\,
 \mathrm dq=\E_\pi[\varphi]$, which is the unbiasedness claim, and
-$\E_q[\tilde w]=1$. By the strong law of large numbers applied to the
-numerator and the denominator,
+$\E_q[\tilde w]=\int\frac{\mathrm d\pi}{\mathrm dq}\,\mathrm dq=1$ (the
+total probability of $\pi$). Both $\tilde w\varphi$ and $\tilde w$ have
+finite means under $q$, since $\E_q|\tilde w\varphi|=\E_\pi|\varphi|$.
+By the strong law of large numbers applied to the numerator and the
+denominator,
 \[
   \hat\varphi_N=\frac{\frac1N\sum_i\tilde w(X^{(i)})\varphi(X^{(i)})}
   {\frac1N\sum_i\tilde w(X^{(i)})}\longrightarrow
@@ -102,7 +105,8 @@ $\pi$. Samples where $q$ over-represents $\pi$ get small weights.}
 The self-normalised estimate is
 biased for finite $N$
 (Exercise~\ref{ex:isbias}), but the bias is $O(1/N)$ and vanishes as $N$
-grows.
+grows (a second-order expansion of the ratio; not proved here, see Doucet
+and Johansen in the references).
 
 \section{From the Bayes filter to particles}
 
@@ -216,10 +220,13 @@ over the visible landmarks.
 \end{inwords}
 
 \paragraph{Log-weights.} With four precise landmarks, a particle 50 units
-from the truth has a likelihood around $e^{-200}$ relative to a good one,
-and the products underflow quickly. The implementation adds
-log-likelihoods and normalises with $\log\sum_ie^{a_i}=a_{\max}+
-\log\sum_ie^{a_i-a_{\max}}$. Fixed rescaling factors, or thresholds on raw
+from the truth has a likelihood around $e^{-200}$ relative to a good one:
+if its four ranges are each off by about $50=10\,\sigma_r$, each
+contributes a factor $e^{-10^2/2}=e^{-50}$. The products underflow
+quickly. The implementation adds log-likelihoods and normalises with
+$\log\sum_ie^{a_i}=a_{\max}+\log\sum_ie^{a_i-a_{\max}}$ (factor
+$e^{a_{\max}}$ out of the sum), in which every exponential is at most
+$1$ and the largest is exactly $1$. Fixed rescaling factors, or thresholds on raw
 weights, break as soon as the number of visible landmarks or the noise
 level changes.
 
@@ -296,12 +303,15 @@ where $f_i=Nw^{(i)}-\lfloor Nw^{(i)}\rfloor$.
 
 \begin{proof}
 Multinomial: each draw selects $i$ with probability $w^{(i)}$,
-independently. Systematic: particle $i$ owns an interval of length
-$w^{(i)}$ in $[0,1)$, and the points $(U+k)/N$ form a lattice of spacing
-$1/N$ with a uniformly random offset. An interval of length $\ell$
-contains $\lfloor N\ell\rfloor$ or $\lceil N\ell\rceil$ lattice points.
-Since the offset is uniform, the expected number of points in the
-interval is its length divided by the spacing, $Nw^{(i)}$. A variable
+independently, so $N_i$ counts the successes of $N$ independent trials of
+probability $w^{(i)}$. Systematic: particle $i$ owns an interval $I_i$ of
+length $w^{(i)}$ in $[0,1)$, and the points $(U+k)/N$ form a lattice of
+spacing $1/N$ with a uniformly random offset. An interval of length
+$\ell$ spans $N\ell$ spacings, so it contains at least $\lfloor
+N\ell\rfloor$ and at most $\lceil N\ell\rceil$ lattice points. For the
+mean: the point $(U+k)/N$ is uniform on $[k/N,(k+1)/N)$, so it falls in
+$I_i$ with probability $N\,\abs{I_i\cap[k/N,(k+1)/N)}$; summing over $k$,
+$\E[N_i]=N\abs{I_i}=Nw^{(i)}$. A variable
 taking the values $m$ and $m+1$ with mean $m+f_i$ takes $m+1$ with
 probability $f_i$, hence the variance $f_i(1-f_i)$.
 \end{proof}
@@ -385,8 +395,9 @@ $320\times320\times2\pi\approx6\times10^5$ units of pose space. After
 four ranges and four bearings the posterior has standard deviations of
 about $2.6$ and $1.6$ in position and $0.026$\,rad in heading (the
 information form of \cref{prop:information}, evaluated at the start
-pose): a box of volume $2.6\times1.6\times0.026\approx0.1$. The expected
-number of uniform particles inside such a box is therefore about
+pose): a box of volume $2.6\times1.6\times0.026\approx0.1$. A uniform
+particle falls in that box with probability $0.1/(6\times10^5)\approx
+2\times10^{-7}$, so the expected number of particles inside it is about
 $N\times10^{-7}$: far below one for any affordable $N$. The best particle
 is a few units from the truth, and the filter must then crawl to it
 through the motion noise. This is \emph{sample impoverishment}: the
@@ -464,13 +475,22 @@ with probability $m_0$.
 \begin{proof}
 After resampling, the number of particles in $A$ is
 $\operatorname{Bin}(N,m_t)$ (each draw lands in $A$ with probability
-$m_t$), which gives the mean and variance. The states $0$ and $1$ are
-absorbing (an empty mode receives no draws) and every other state reaches
-one of them with positive probability in a single step, so absorption
-happens almost surely, at a random time $\tau$. The martingale is bounded,
-so its expectation is still $m_0$ at the time it stops (the optional
-stopping theorem): $\E[m_\tau]=m_0$, and $m_\tau\in\{0,1\}$ gives
-$\Pr(m_\tau=1)=m_0$.
+$m_t$), so $Nm_{t+1}$ has mean $Nm_t$ and variance $Nm_t(1-m_t)$;
+dividing by $N$ and $N^2$ gives the mean and variance of $m_{t+1}$.
+
+\emph{Absorption.} The states $0$ and $1$ are absorbing: an empty mode
+receives no draws, and a full one receives all of them. From any other
+state $m$, all $N$ draws miss $A$ with probability $(1-m)^N>0$; over the
+finitely many states $k/N$, $0<k<N$, this probability is at least some
+$c>0$. So the probability of not being absorbed during $k$ steps is at
+most $(1-c)^k\to0$: absorption happens with probability one, at a random
+time $\tau$.
+
+\emph{Where it ends.} Taking expectations in $\E[m_{t+1}\mid m_t]=m_t$
+gives $\E[m_{t+1}]=\E[m_t]$, so $\E[m_t]=m_0$ for every $t$. After $\tau$
+the fraction no longer changes, so $m_t\to m_\tau$ with probability one;
+$0\le m_t\le1$, so dominated convergence gives $\E[m_\tau]=m_0$. Since
+$m_\tau\in\{0,1\}$, $\E[m_\tau]=\Pr(m_\tau=1)$, which is therefore $m_0$.
 \end{proof}
 
 \begin{inwords}
@@ -690,8 +710,13 @@ Nw^{(i)}$, $\sum_kp_{ik}^2\ge(\sum_kp_{ik})^2/N=Nw^{(i)2}$ by
 Cauchy--Schwarz, so $\Var(N_i)\le Nw^{(i)}-Nw^{(i)2}$.
 
 \solution{6.4} Let $h_t=m_t(1-m_t)$. Given $m_t$,
-$\E[m_{t+1}^2]=m_t^2+m_t(1-m_t)/N$, so $\E[h_{t+1}\mid m_t]=m_t-m_t^2-
-m_t(1-m_t)/N=h_t(1-1/N)$; take expectations and iterate. For $N=2000$,
+$\E[m_{t+1}^2]=\E[m_{t+1}]^2+\Var(m_{t+1})=m_t^2+m_t(1-m_t)/N$, so
+\[
+  \E[h_{t+1}\mid m_t]=\E[m_{t+1}]-\E[m_{t+1}^2]
+  =m_t-m_t^2-\frac{m_t(1-m_t)}N=h_t\Bigl(1-\frac1N\Bigr).
+\]
+Taking expectations, $\E[h_{t+1}]=(1-1/N)\,\E[h_t]$, and after $t$ steps
+$\E[h_t]=(1-1/N)^th_0$. For $N=2000$,
 $(1-1/N)^t=1/2$ gives $t=\log2/(-\log(1-1/2000))\approx1386$
 resamplings: slow, but certain, and faster with fewer particles or
 noisier weights.

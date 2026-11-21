@@ -43,14 +43,36 @@ $q=\norm{\vect{d}}^2$, the range--bearing model \eqref{eq:h} has
 \end{proposition}
 
 \begin{proof}
-For $f$, differentiate component-wise; $\theta$ and $\delta$ enter only
-through $\theta'$, whose derivative with respect to either is $1$. For the
-range, $\nabla_{\p}\norm{\bell-\p}=-\vect{d}/\norm{\vect{d}}$. For the
-bearing, $\partial\operatorname{atan2}(y,x)/\partial(x,y)=(-y,x)/
-(x^2+y^2)$ and $\vect{d}$ depends on $\p$ with derivative $-I$, which
-gives $(d_y,-d_x)/q$; the heading enters with coefficient $-1$. $\wrap$ is
-locally a translation by a multiple of $2\pi$ and does not change
-derivatives.
+Away from its jump at $\pm\pi$, $\wrap$ adds a fixed multiple of
+$2\pi$, so it does not change derivatives and can be ignored.
+
+\emph{Motion.} The components of $f$ are $p^x+s\cos\theta'$,
+$p^y+s\sin\theta'$ and $\theta'$, with $\theta'=\theta+\delta$, so
+$\partial\theta'/\partial\theta=\partial\theta'/\partial\delta=1$. With
+respect to $(p^x,p^y,\theta)$, the first component has the derivatives
+$(1,0,-s\sin\theta')$, the second $(0,1,s\cos\theta')$, the third
+$(0,0,1)$: the rows of $F$. With respect to $(s,\delta)$, the first has
+$(\cos\theta',-s\sin\theta')$, the second $(\sin\theta',s\cos\theta')$,
+the third $(0,1)$: the rows of $V$.
+
+\emph{Range.} $\norm{\vect d}=\sqrt q$ with $q=d_x^2+d_y^2$, so
+$\partial\norm{\vect d}/\partial d_x=d_x/\sqrt q$ and likewise for $d_y$.
+Since $\vect d=\bell-\p$, $\partial d_x/\partial p^x=\partial
+d_y/\partial p^y=-1$, which gives $(-d_x/\sqrt q,-d_y/\sqrt q)$; the range
+does not contain $\theta$.
+
+\emph{Bearing.} Near a point with $x>0$,
+$\operatorname{atan2}(y,x)=\arctan(y/x)$, and elsewhere it differs from
+$\arctan(y/x)$ or from $-\arctan(x/y)$ by a constant; either way
+\[
+  \frac{\partial\operatorname{atan2}(y,x)}{\partial x}
+  =\frac{1}{1+y^2/x^2}\cdot\Bigl(-\frac y{x^2}\Bigr)=\frac{-y}{x^2+y^2},
+  \qquad
+  \frac{\partial\operatorname{atan2}(y,x)}{\partial y}=\frac{x}{x^2+y^2}.
+\]
+With $(x,y)=(d_x,d_y)$ and $\partial\vect d/\partial\p=-I$, the bearing
+has the derivatives $(d_y/q,-d_x/q)$ with respect to $\p$, and $-1$ with
+respect to $\theta$, which enters as $-\theta$.
 \end{proof}
 
 Each entry can be read geometrically. The matrix $V$ is that of
@@ -137,7 +159,10 @@ The \emph{mean} goes through the true non-linear functions; only the
 \emph{covariance} goes through their Jacobians. The process noise enters
 through the control, so its state-space covariance is $VMV\T$, of rank
 two (\cref{prop:firstorder}); $\bar P$ stays positive definite because
-$FPF\T$ is ($F$ is invertible, its determinant being $1$).
+$FPF\T$ is: $F$ is invertible (its determinant is $1$), so for
+$\vect a\neq\vect0$ the vector $F\T\vect a$ is not zero and
+$\vect a\T FPF\T\vect a=(F\T\vect a)\T P(F\T\vect a)>0$; adding the
+positive semi-definite $VMV\T$ keeps it positive.
 
 \begin{inwords}
 The EKF pretends that, over the region where the robot probably is, the
@@ -150,8 +175,8 @@ goes wrong.
 
 \paragraph{Angles.} Forgetting to wrap the bearing innovation is the most
 common EKF bug in localisation. If the predicted bearing is $3.10$ and the
-measured one is $-3.12$, the raw innovation is $-6.22$ instead of $+0.063$
-(\cref{lem:wrap}), and the update throws the robot across the lawn.
+measured one is $-3.12$, the raw innovation is $-3.12-3.10=-6.22$
+instead of $-6.22+2\pi=+0.063$ (\cref{lem:wrap}), and the update throws the robot across the lawn.
 
 \Cref{fig:ekftrack} shows the filter on the standard run, with four
 landmarks always in view. The EKF's position RMSE is $1.01$, well below the
@@ -203,8 +228,15 @@ $|\rho(\vect{e})|\le C\norm{\vect{e}}^4$. Take expectations:
 $\E[\vect{e}]=\vect0$,
 $\E[\vect{e}\T A\vect{e}]=\E[\tr(A\vect e\vect e\T)]=\tr(A\Sigma)$, the
 cubic term has expectation zero because the odd moments of a centred
-Gaussian vanish, and $\E|\rho(\vect{e})|\le C\,\E\norm{\vect{e}}^4=
-O(\norm{\Sigma}^2)$.
+Gaussian vanish (the vector $-\vect e$ has the same distribution as
+$\vect e$, so a function that changes sign with $\vect e$ has mean zero),
+and $\E|\rho(\vect{e})|\le C\,\E\norm{\vect{e}}^4=O(\norm{\Sigma}^2)$.
+For the last bound, write $\vect e=L\vect g$ with $LL\T=\Sigma$ and
+$\vect g\sim\Normal(\vect0,I)$ (as in the proof of
+\cref{lem:dichotomy}); then $\norm{\vect e}^2\le\norm L^2\norm{\vect g}^2
+=\norm\Sigma\,\norm{\vect g}^2$ in the operator norm, and
+$\E\norm{\vect g}^4$ is a finite number that depends only on the
+dimension.
 \end{proof}
 
 For the heading, $\nabla^2\cos=-\cos$, so $\E[\cos\theta]\approx
@@ -212,7 +244,12 @@ For the heading, $\nabla^2\cos=-\cos$, so $\E[\cos\theta]\approx
 exact $e^{-\sigma_\theta^2/2}\cos\bar\theta$ (Exercise~\ref{ex:ecos}).
 \Cref{fig:linearisation} shows it in one dimension: with
 $\theta\sim\Normal(0.5,0.8^2)$, the EKF puts the mean of $\cos\theta$ at
-$0.88$, against a true mean of $0.64$.
+$\cos0.5=0.88$, against a true mean of
+$e^{-0.8^2/2}\cos0.5=0.726\times0.878=0.64$. (The exact formula for a
+mean $\bar\theta\ne0$: $\cos\theta=\cos\bar\theta\cos e-\sin\bar\theta
+\sin e$ with $e=\theta-\bar\theta\sim\Normal(0,\sigma_\theta^2)$, and
+$\E[\cos e]=e^{-\sigma_\theta^2/2}$, $\E[\sin e]=0$ by
+Exercise~\ref{ex:ecos}.)
 
 \begin{figure}[ht]
 \centering
@@ -236,7 +273,8 @@ bent. It covers the middle of the banana well and misses its two tips,
 which curl back towards the start; and its centre lies ahead of the true
 mean, because every turn error, to the left or to the right, shortens the
 forward progress. The true mean is at $s\,e^{-\sigma_\delta^2/2}$ along
-the heading (Exercise~\ref{ex:ecos}), here $3.76$ instead of $4$.
+the heading (Exercise~\ref{ex:ecos}), here $4\,e^{-0.35^2/2}=4\times0.941
+=3.76$ instead of $4$.
 
 \begin{figure}[ht]
 \centering
@@ -257,8 +295,13 @@ case. A robot known to within $1$ unit but
 with a heading uncertainty of $\sigma_\theta=0.8$\,rad (about $45^\circ$)
 drives 10 steps of 4 units straight ahead. The true distribution is an
 arc. The EKF puts its mean at the tip of the arc, $11.05$ units ahead of
-the true mean ($40(1-e^{-0.32})=10.95$ in theory), and its ellipse is a
-needle, much too thin along the direction of travel.
+the true mean, and its ellipse is a needle, much too thin along the
+direction of travel. In theory the gap is $40(1-e^{-0.32})=10.95$: the
+heading error $e\sim\Normal(0,0.8^2)$ is the same for the ten steps,
+which therefore add up to one straight drive of $40$ units in the
+direction $\theta+e$, whose mean progress along $\theta$ is
+$40\,\E[\cos e]=40\,e^{-0.8^2/2}=40\,e^{-0.32}$ (Exercise~\ref{ex:ecos}),
+while the EKF puts the robot $40$ units ahead.
 
 \begin{figure}[ht]
 \centering
@@ -346,13 +389,30 @@ convergence is the \emph{iterated} EKF.
 \end{proposition}
 
 \begin{proof}
-Gauss--Newton linearises the residual $\z-h(\x)\approx\z-h(\x_i)-H_i
-(\x-\x_i)$ and minimises the resulting quadratic. Its minimiser satisfies
-$(\bar P^{-1}+H_i\T R^{-1}H_i)(\x-\bx)=H_i\T R^{-1}(\z-h(\x_i)-H_i(\bx-
-\x_i))$, obtained by setting the gradient to zero. By
-\cref{prop:information} the inverse of the left matrix is
-$P_i=(I-K_iH_i)\bar P$ and $P_iH_i\T R^{-1}=K_i$, which gives
-\eqref{eq:iekf}. With $\x_0=\bx$ the bracket is $\z-h(\bx)=\y$.
+The first claim: the logarithm of the product of the two densities is
+$-J(\x)$ plus a constant, by \eqref{eq:gaussdensity}, so the product is
+largest where $J$ is smallest.
+
+Gauss--Newton linearises the residual,
+$\z-h(\x)\approx\z-h(\x_i)-H_i(\x-\x_i)$. Written around $\bx$, this is
+$\vect r_i-H_i(\x-\bx)$ with $\vect r_i=\z-h(\x_i)-H_i(\bx-\x_i)$, so
+the step minimises the quadratic
+\[
+  J_i(\x)=\tfrac12(\x-\bx)\T\bar P^{-1}(\x-\bx)
+  +\tfrac12\bigl(\vect r_i-H_i(\x-\bx)\bigr)\T R^{-1}
+  \bigl(\vect r_i-H_i(\x-\bx)\bigr).
+\]
+Its gradient is
+$\bar P^{-1}(\x-\bx)-H_i\T R^{-1}\bigl(\vect r_i-H_i(\x-\bx)\bigr)$, and
+setting it to zero gives
+\[
+  (\bar P^{-1}+H_i\T R^{-1}H_i)(\x-\bx)=H_i\T R^{-1}\vect r_i .
+\]
+By \cref{prop:information} (with $H_i$ in place of $H$), the inverse of
+the matrix on the left is $P_i=(I-K_iH_i)\bar P$, and
+$P_iH_i\T R^{-1}=K_i$. Hence $\x-\bx=K_i\vect r_i$, which is
+\eqref{eq:iekf}. With $\x_0=\bx$, $\vect r_0=\z-h(\bx)=\y$, and the step is
+the EKF update $\bx+K\y$.
 \end{proof}
 
 \begin{inwords}
@@ -413,9 +473,14 @@ the heading, inside the bend, while the density of the end positions is
 highest near $3.9$, just inside the arc of radius $s$. (In the polar
 coordinates $(d,\varphi)$ the density is Gaussian; on the lawn it is
 divided by $d$, the factor of the change to polar coordinates, which pulls
-its maximum in, as in the example above: it is at
-$d=\tfrac12(s+\sqrt{s^2-4\sigma_s^2})=3.91$.) the mode and the mean are different
-points, and neither is ``the'' answer.
+its maximum in, as in the example above. Along the intended heading
+the polar density is proportional to $e^{-(d-s)^2/(2\sigma_s^2)}$, so
+the density on the lawn is proportional to
+$e^{-(d-s)^2/(2\sigma_s^2)}/d$; the derivative of its logarithm,
+$-(d-s)/\sigma_s^2-1/d$, vanishes when $d^2-sd+\sigma_s^2=0$, at
+$d=\tfrac12(s+\sqrt{s^2-4\sigma_s^2})=\tfrac12(4+\sqrt{16-1.44})=3.91$.)
+The mode and the mean are different points, and neither is ``the''
+answer.
 
 \section{Data association}
 \label{sec:ekf-association}
@@ -567,27 +632,48 @@ coincides.
 
 \solution{4.2} At $0$, $\cos'(0)=0$: linearisation gives
 $y\approx1$, with mean $1$ and variance $0$. Exactly,
-$\E[y]=e^{-\sigma^2/2}$ (Exercise~\ref{ex:ecos}) and
-$\E[y^2]=\E[(1+\cos2\theta)/2]=(1+e^{-2\sigma^2})/2$, so
-$\Var(y)=\tfrac12(1-e^{-\sigma^2})^2$. For $\sigma=0.8$: mean $0.726$
+$\E[y]=e^{-\sigma^2/2}$ (Exercise~\ref{ex:ecos}). For the variance, use
+$\cos^2\theta=(1+\cos2\theta)/2$ and $\E[\cos(a\theta)]=
+e^{-a^2\sigma^2/2}$ (the function $m(a)$ of solution~\ref{ex:ecos}) with
+$a=2$: $\E[y^2]=(1+e^{-2\sigma^2})/2$. So
+\[
+  \Var(y)=\E[y^2]-\E[y]^2=\tfrac12\bigl(1+e^{-2\sigma^2}\bigr)-e^{-\sigma^2}
+  =\tfrac12\bigl(1-2e^{-\sigma^2}+e^{-2\sigma^2}\bigr)
+  =\tfrac12\bigl(1-e^{-\sigma^2}\bigr)^2 .
+\] For $\sigma=0.8$: mean $0.726$
 (not $1$) and standard deviation $0.334$ (not $0$). Linearising at a
 stationary point loses \emph{all} the uncertainty; this is the needle of
 \cref{fig:arc}.
 
-\solution{4.3} For $r(\p)=\norm{\bell-\p}$, $\nabla r=-\hat{\vect{d}}$ and
-$\nabla^2r=(I-\hat{\vect{d}}\hat{\vect{d}}\T)/r$ with
-$\hat{\vect d}=\vect{d}/r$. So
-$\tfrac12\tr(\nabla^2r\,\Sigma)=\tfrac1{2r}(\tr\Sigma-\hat{\vect{d}}\T
-\Sigma\hat{\vect{d}})=\sigma_\perp^2/(2r)$. Moving along the line of sight
-changes the range linearly (no curvature); moving perpendicular to it
-always increases the range, by Pythagoras, so the errors do not average
-out. The bias is small far from the landmark and large close to it.
+\solution{4.3} For $r(\p)=\norm{\bell-\p}$, with $\vect d=\bell-\p$ and
+$\hat{\vect d}=\vect{d}/r$, the gradient is $\nabla r=-\vect d/r$
+(\cref{prop:jacobians}). Differentiating it once more, with
+$\partial\vect d/\partial\p=-I$ and $\nabla r=-\vect d/r$,
+\[
+  \nabla^2r=\frac{\partial}{\partial\p}\Bigl(-\frac{\vect d}{r}\Bigr)
+  =\frac{I}{r}+\vect d\,\frac{(\nabla r)\T}{r^2}
+  =\frac{I}{r}-\frac{\vect d\vect d\T}{r^3}
+  =\frac{I-\hat{\vect{d}}\hat{\vect{d}}\T}{r}.
+\]
+So $\tfrac12\tr(\nabla^2r\,\Sigma)=\tfrac1{2r}(\tr\Sigma-\hat{\vect{d}}\T
+\Sigma\hat{\vect{d}})$. Here $\tr\Sigma$ is the sum of the variances in
+any two perpendicular directions, for instance along $\hat{\vect d}$ and
+across it, and $\hat{\vect d}\T\Sigma\hat{\vect d}$ is the variance along
+$\hat{\vect d}$; the difference is the variance $\sigma_\perp^2$ across
+the line of sight, and the bias is $\sigma_\perp^2/(2r)$. Moving along
+the line of sight changes the range linearly (no curvature). Moving
+perpendicular to it by $a$ changes it to $\sqrt{r^2+a^2}\approx
+r+a^2/(2r)$, by Pythagoras: always an increase, whatever the sign of $a$,
+so the errors do not average out, and the mean increase is
+$\E[a^2]/(2r)=\sigma_\perp^2/(2r)$. The bias is small far from the landmark and large close to it.
 
 \solution{4.4} For a consistent filter, the squared Mahalanobis distance
 of a
-correct measurement is $\chi^2_2$, whose $99\%$ quantile is
-$-2\log0.01=9.21$; $1\%$ of correct measurements are rejected. If $S$ is
-ten times too small, the actual distance is ten times the
-$\chi^2_2$ variable, and it exceeds $9.21$ with probability
-$e^{-0.921/2}=0.63$: the filter rejects most of the measurements that
+correct measurement is $\chi^2_2$. A $\chi^2_2$ variable exceeds $x$
+with probability $e^{-x/2}$ by \eqref{eq:chi2tail}, so its $99\%$
+quantile solves $e^{-x/2}=0.01$: $x=-2\log0.01=9.21$, and $1\%$ of correct
+measurements are rejected. If $S$ is ten times too small, the true
+innovation covariance is $10S$, and the computed distance is ten times a
+$\chi^2_2$ variable $X$. It exceeds $9.21$ when $X>0.921$, with
+probability $e^{-0.921/2}=0.63$: the filter rejects most of the measurements that
 would correct it.

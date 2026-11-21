@@ -338,11 +338,12 @@ worked out, is the one the Kalman filter will use in
 On the grid, the shift is done by linear interpolation
 (\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
 The step noise acts along the heading and the compass noise across it
-(\cref{sec:errors}), so $\Sigma_t$ has the standard deviation $\sigma_s$
-along the heading and $s\,\sigma_c$ across it, about $0.4$ units. The
-code uses instead a round kernel whose standard deviation is that value,
-but never less than $0.3$ cell, that is $1.2$ units for cells 4 units
-wide; the interpolated shift blurs a little more. The predicted belief is
+(\cref{sec:errors}), so $\Sigma_t$ has the standard deviation
+$\sigma_s=0.4$ along the heading and $s\,\sigma_c=4\times0.02=0.08$
+across it. The code uses instead a round kernel, with the standard
+deviation $\sqrt{\sigma_s^2+(s\sigma_c)^2}\approx0.41$ units (about
+$0.1$ cell), but never less than $0.3$ cell, that is $1.2$ units for
+cells 4 units wide; the interpolated shift blurs a little more. The predicted belief is
 therefore wider than the motion noise, which is harmless at this cell
 size: the grid cannot resolve less than a cell anyway.
 Probability that leaves the lawn is lost, and the table is renormalised.
@@ -581,18 +582,26 @@ $(0.15,0.40)$, normalise: $(0.273,0.727)$. Predict:
 $(0.9\cdot0.273+0.1\cdot0.727,\ 0.1\cdot0.273+0.9\cdot0.727)=
 (0.318,0.682)$. Update with ``rough'': $(0.0955,0.5455)$, normalise:
 $(0.149,0.851)$. Without the prediction in between, two readings would
-give $(0.123,0.877)$: the prediction pulled the belief back towards $1/2$,
+multiply $(0.5,0.5)$ by $(0.3^2,0.8^2)=(0.09,0.64)$, which normalises to
+$(0.09,0.64)/0.73=(0.123,0.877)$: the prediction pulled the belief back towards $1/2$,
 because the robot might have left the path in between.
 
-\solution{2.2} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
-$X_2\sim\Normal(\vect0,\Sigma_2)$ are independent, the density of
-$X_1+X_2$ is the convolution of their densities, and $X_1+X_2\sim
-\Normal(\vect0,\Sigma_1+\Sigma_2)$ (its characteristic function,
-introduced in \cref{ch:kalman}, is the product
-$e^{-\vect{k}\T(\Sigma_1+\Sigma_2)\vect{k}/2}$). Blurring twice
-is therefore one blur with the summed covariance. After $t$ predictions
-with per-step noise $\Sigma$ and no update, the belief has been convolved
-with $\Normal(\vect0,t\Sigma)$: its width grows like $\sqrt t$, plus the
+\solution{2.2} Blurring a density $b$ with $\Normal(\vect0,\Sigma_1)$
+gives the density of $X+X_1$, where $X$ has the density $b$ and
+$X_1\sim\Normal(\vect0,\Sigma_1)$ is independent of $X$: by the change
+of variable used in the proof of \cref{prop:conv}, the density of $X+X_1$
+is $\int g_1(\p-\vect q)\,b(\vect q)\,\mathrm d\vect q=(b\ast g_1)(\p)$,
+with $g_1$ the density of $X_1$. Blurring again with
+$\Normal(\vect0,\Sigma_2)$ adds a second independent
+$X_2\sim\Normal(\vect0,\Sigma_2)$, which gives the density of
+$X+(X_1+X_2)$. By \cref{lem:affine} (the sum of two independent
+Gaussians), $X_1+X_2\sim\Normal(\vect0,\Sigma_1+\Sigma_2)$, and it is
+independent of $X$. So the two blurs together add to $X$ one independent
+$\Normal(\vect0,\Sigma_1+\Sigma_2)$ noise: they are one blur with the
+summed covariance. After $t$ predictions with per-step noise $\Sigma$ and
+no update, the belief has, by the same argument repeated, been convolved
+with $\Normal(\vect0,t\Sigma)$. Its standard deviations are those of
+$\Sigma$ multiplied by $\sqrt t$: the width grows like $\sqrt t$, plus the
 heading-induced growth of \cref{prop:deadreckoning} when the heading is
 not known.
 
@@ -600,9 +609,22 @@ not known.
 $k$ likelihoods, all $\sigma$-invariant by \cref{prop:mirror}. A
 $\sigma$-invariant prior times $\sigma$-invariant factors stays
 $\sigma$-invariant, so the two bumps always have equal mass: $1/2$ each,
-exactly, not only in the limit. (In the limit each bump also shrinks to a
-point, because the ranges are averaged.) Only motion, or a third landmark
-off the axis, can break the tie.
+exactly, not only in the limit. Each bump also shrinks to a point. For
+one landmark at distance $d(\p)=\norm{\bell-\p}$, the readings
+$r_1,\dots,r_k$ have independent noises $\Normal(0,\sigma_r^2)$, so the
+product of their likelihoods is
+\[
+  \prod_{i=1}^k e^{-(r_i-d(\p))^2/(2\sigma_r^2)}
+  =C\,e^{-k\,(\bar r-d(\p))^2/(2\sigma_r^2)},
+  \qquad\bar r=\tfrac1k\textstyle\sum_ir_i ,
+\]
+where $C$ does not depend on $\p$: expanding,
+$\sum_i(r_i-d)^2=k(\bar r-d)^2+\sum_i(r_i-\bar r)^2$, and the last sum
+does not contain $\p$. This is the likelihood of a single reading
+$\bar r$ with the standard deviation $\sigma_r/\sqrt k$: the ring of
+positions compatible with the readings narrows like $1/\sqrt k$, and the
+two rings, one per landmark, meet in two shrinking spots. Only motion, or
+a third landmark off the axis, can break the tie.
 
 \solution{2.4} $600\times600\times360\approx1.3\times10^8$ cells, about
 $520$\,MB in single precision. A prediction written as
