@@ -1188,10 +1188,21 @@ of the sum gives the circular mean (green), between the two headings.}
 
 \emph{Why this deserves the name of a mean.} The ordinary weighted mean
 of numbers $\theta_j$ is the number $m$ that minimises
-$\sum_jw_j(\theta_j-m)^2$, the weighted sum of squared distances to the
-$\theta_j$. On the circle, the natural distance between two directions
-$a$ and $m$ is the length of the chord between the points
-$A=(\cos a,\sin a)$ and $M=(\cos m,\sin m)$ of the unit circle
+\[
+  \sum_jw_j(\theta_j-m)^2 ,
+\]
+the weighted sum of the squared differences between the $\theta_j$ and
+$m$. For angles, the difference $\theta_j-m$ is the problem: it depends
+on which numbers represent the directions. The headings $3.1$ and $-3.1$
+are $0.08$ apart as directions, but $6.2$ apart as numbers, and this is
+why the plain average fails. The cure is to replace the squared
+difference by a measure of how far apart two \emph{directions} are, one
+that does not depend on the numbers chosen to represent them, and that
+is close to the squared difference when the numbers are close.
+
+The simplest such measure is the straight-line distance between the
+points $A=(\cos a,\sin a)$ and $M=(\cos m,\sin m)$ that represent the
+directions $a$ and $m$ on the unit circle: the length of the chord $AM$
 (\cref{fig:chord}). Its square is computed by expanding the two squares,
 using $\cos^2+\sin^2=1$ for $a$ and for $m$, and then the subtraction
 formula $\cos(a-m)=\cos a\cos m+\sin a\sin m$:
@@ -1207,12 +1218,20 @@ the perpendicular from $O$ to the chord cuts it in two halves of length
 $\sin(\abs d/2)$, and $\norm{A-M}=2\sin(\abs d/2)$; squared, with
 $2\sin^2x=1-\cos2x$, this is $2-2\cos d$, which equals $2-2\cos(a-m)$.
 
-Two properties make the squared chord a good replacement for the squared
-difference. It depends only on the directions: adding $2\pi$ to $a$ or to
-$m$ changes nothing. And for nearby directions it is close to the squared
-difference: the arc from $M$ to $A$ has length $\abs d$, and by
-\eqref{eq:sinx} with $x=\abs d/2$, the chord is shorter than the arc but
-longer than $\abs d\cos(d/2)$, so
+The squared chord has the two properties asked for. It depends only on
+the directions: adding $2\pi$ to $a$ or to $m$ does not change
+$\cos(a-m)$. And for nearby directions it is close to the squared
+difference $d^2$ of the angles. The arc from $M$ to $A$ has length
+$\abs d$ (an arc of the unit circle is as long as its angle), so the
+ratio of the chord to the arc is, with $x=\abs d/2$,
+\[
+  \frac{\norm{A-M}}{\abs d}=\frac{2\sin(\abs d/2)}{\abs d}
+  =\frac{\sin x}{x}.
+\]
+This is the ratio met in \cref{sec:errors} for the displacement caused by
+a turn error, and inequality \eqref{eq:sinx} there (proved in
+\cref{app:chord}) says that $\cos x<\sin x/x<1$ for $0<x<\pi/2$. So the
+chord lies between $\abs d\cos(d/2)$ and $\abs d$, and
 \[
   d^2\cos^2(d/2)<\norm{A-M}^2<d^2\qquad(0<\abs d<\pi):
 \]
@@ -1253,13 +1272,20 @@ nearby directions the two are almost equal.}
 \label{fig:chord}
 \end{figure}
 
-Replacing the squared distances by squared chords, the circular mean is
-the direction $m$ that minimises $\sum_jw_j\bigl(1-\cos(\theta_j-m)
-\bigr)$, half the weighted sum of the squared chords, for non-negative
-weights (Exercise~\ref{ex:circmean}). So it is
-the ordinary mean with distances measured on the circle, and when the
-$\theta_j$ are close together, away from the cut, the two means
-practically coincide.
+Now replace, in the definition of the ordinary mean, each squared
+difference $(\theta_j-m)^2$ by the squared chord $2-2\cos(\theta_j-m)$.
+The direction $m$ that minimises
+\[
+  \sum_jw_j\bigl(2-2\cos(\theta_j-m)\bigr)
+\]
+is the circular mean $\bar\theta$, for non-negative weights
+(Exercise~\ref{ex:circmean}, where the factor $2$ is dropped, since it
+does not change the minimiser). So the circular mean is the ordinary mean
+with the squared difference of the numbers replaced by the squared chord
+between the directions. When the $\theta_j$ are close to one another and
+away from the cut, every squared chord is almost the squared difference,
+and the two means practically coincide; near the cut, only the circular
+mean gives the right answer.
 
 \subsection{The range--bearing sensor}
 
