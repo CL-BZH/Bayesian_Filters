@@ -1821,11 +1821,20 @@ the integrand is odd (an odd function times an even density) and
 integrable ($\abs{\sin}\le1$), so the integral is $0$. Wrapping $\theta$
 into $[-\pi,\pi)$ would change nothing, since $\sin$ and $\cos$ have
 period $2\pi$. For the cosine, let $m(a)=\E[\cos(a\theta)]$.
-Differentiating under the expectation, $m'(a)=-\E[\theta\sin(a\theta)]$.
+Differentiating under the expectation,\footnote{This is allowed by
+dominated convergence. The derivative of $a\mapsto\cos(a\theta)$ is
+$-\theta\sin(a\theta)$, bounded by $\abs\theta$ for every $a$, and
+$\E\abs\theta<\infty$. By the mean value theorem the difference quotients
+$(\cos((a+h)\theta)-\cos(a\theta))/h$ are bounded by $\abs\theta$ as
+well, so their expectation converges to the expectation of their limit as
+$h\to0$.} $m'(a)=-\E[\theta\sin(a\theta)]$.
 For $\theta\sim\Normal(0,\sigma^2)$, an integration by parts against the
 density (whose derivative is $-x/\sigma^2$ times itself) gives
-$\E[\theta\,g(\theta)]=\sigma^2\E[g'(\theta)]$; with $g(x)=\sin(ax)$,
-$m'(a)=-\sigma^2a\,m(a)$. Since $m(0)=1$, $m(a)=e^{-\sigma^2a^2/2}$, and
+$\E[\theta\,g(\theta)]=\sigma^2\E[g'(\theta)]$ for a bounded $g$ with a
+bounded derivative (the boundary terms vanish, since $g$ is bounded and
+the density tends to $0$ at $\pm\infty$); with $g(x)=\sin(ax)$,
+$m'(a)=-\sigma^2a\,m(a)$. Then $m(a)\,e^{\sigma^2a^2/2}$ has derivative
+zero, and since $m(0)=1$, $m(a)=e^{-\sigma^2a^2/2}$, and
 $\E[\cos\theta]=m(1)=e^{-\sigma^2/2}$. The distance error
 $\varepsilon_s$ is independent of the heading and has mean zero, so it does
 not change the mean progress. A step of length $s$ in
