@@ -1867,14 +1867,28 @@ measurements is a product of two groups of factors:
   \underbrace{\prod_tp(\z_t\mid\x_t)}_{\text{(b)}} .
 \]
 Integrate over all the measurements to get the distribution of the
-trajectory alone. Group (a) does not contain any $\z_t$. In group (b),
-integrate over $\z_T$ first: only $p(\z_T\mid\x_T)$ contains it, and it
-integrates to $1$; then over $\z_{T-1}$, and so on. So the distribution
-of the trajectory is (a). The conditional distribution of the
-measurements given the trajectory is the joint distribution divided by
-that of the trajectory, that is (b):
-$p(\z_{1:T}\mid\x_{0:T})=\prod_tp(\z_t\mid\x_t)$, a product of one factor
-per measurement.
+trajectory alone. Group (a) does not contain any $\z_t$, so it comes out
+of the integral. In group (b), integrate over $\z_T$ first: only
+$p(\z_T\mid\x_T)$ contains it, and it integrates to $1$; then over
+$\z_{T-1}$, and so on:
+\[
+  \int\prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}
+  =\prod_{t=1}^T\int p(\z_t\mid\x_t)\,\mathrm d\z_t=1 .
+\]
+So the distribution of the trajectory is (a):
+\[
+  p(\x_{0:T}\mid\uu)=p(\x_0)\prod_tp(\x_{t+1}\mid\x_t,\uu_t).
+\]
+The conditional distribution of the measurements given the trajectory is
+the joint distribution divided by that of the trajectory:
+\[
+  p(\z_{1:T}\mid\x_{0:T},\uu)
+  =\frac{p(\x_{0:T},\z_{1:T}\mid\uu)}{p(\x_{0:T}\mid\uu)}
+  =\frac{\text{(a)}\times\text{(b)}}{\text{(a)}}
+  =\prod_{t=1}^Tp(\z_t\mid\x_t),
+\]
+a product of one factor per measurement. It does not depend on the
+controls, so it is also $p(\z_{1:T}\mid\x_{0:T})$.
 
 One point needs care: (a) has no density, because the transition has none
 (\cref{prop:degenerate}), so ``divided by (a)'' is to be read in the sense
