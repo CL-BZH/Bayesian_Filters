@@ -2,14 +2,16 @@
 \addcontentsline{toc}{chapter}{References}
 \markboth{References}{References}
 
-\begin{description}[leftmargin=1.5em,style=nextline,font=\normalfont]
-\item[Mathematical background]
-\begin{itemize}[nosep]
+% one group of references: its title on a line of its own, then the list
+\newcommand{\refgroup}[1]{\par\addvspace{\medskipamount}\noindent#1\par}
+
+\refgroup{Mathematical background}
+\begin{itemize}[nosep,leftmargin=1.5em]
 \item \emph{Advanced Calculus for Machine Learning}, companion book,
   \url{https://github.com/CL-BZH/advanced-calculus-for-ml}.
 \end{itemize}
-\item[Textbooks]
-\begin{itemize}[nosep]
+\refgroup{Textbooks}
+\begin{itemize}[nosep,leftmargin=1.5em]
 \item S.~Thrun, W.~Burgard and D.~Fox, \emph{Probabilistic Robotics},
   MIT Press, 2005. Chapters 2--4 and 7--8: the Bayes filter, Gaussian
   filters, Markov and Monte Carlo localisation, augmented MCL.
@@ -24,8 +26,8 @@
   Applications to Tracking and Navigation}, Wiley, 2001. Consistency
   tests (NEES, NIS) and data association.
 \end{itemize}
-\item[Kalman filters]
-\begin{itemize}[nosep]
+\refgroup{Kalman filters}
+\begin{itemize}[nosep,leftmargin=1.5em]
 \item R.~E.~Kalman, ``A new approach to linear filtering and prediction
   problems'', \emph{Journal of Basic Engineering} 82(1), 1960.
 \item B.~M.~Bell and F.~W.~Cathey, ``The iterated Kalman filter update as
@@ -40,8 +42,8 @@
   filters and estimators''', \emph{IEEE Transactions on Automatic Control}
   47(8), 2002. The UKF as statistical linear regression.
 \end{itemize}
-\item[Particle filters]
-\begin{itemize}[nosep]
+\refgroup{Particle filters}
+\begin{itemize}[nosep,leftmargin=1.5em]
 \item N.~J.~Gordon, D.~J.~Salmond and A.~F.~M.~Smith, ``Novel approach to
   nonlinear/non-Gaussian Bayesian state estimation'', \emph{IEE
   Proceedings F} 140(2), 1993.
@@ -56,11 +58,11 @@
 \item R.~Douc and O.~Capp\'e, ``Comparison of resampling schemes for
   particle filtering'', \emph{Proc.\ ISPA}, 2005.
 \end{itemize}
-\item[Smoothing and factor graphs]
-\begin{itemize}[nosep]
+\refgroup{Smoothing and factor graphs}
+\begin{itemize}[nosep,leftmargin=1.5em]
 \item F.~Dellaert and M.~Kaess, ``Factor graphs for robot perception'',
   \emph{Foundations and Trends in Robotics} 6(1--2), 2017.
 \item \emph{Visual SLAM for an Autonomous Lawnmower}, companion course,
   \url{https://github.com/CL-BZH/vslam-course}.
 \end{itemize}
-\end{description}
+
