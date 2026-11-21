@@ -1843,18 +1843,59 @@ derivative of the first, up to its sign.
 \[
   m'(a)=-\E[\theta\sin(a\theta)]=-\int_\R x\sin(ax)\,\phi(x)\,\mathrm dx .
 \]
-This is allowed because $a\mapsto\cos(a\theta)$ is Lipschitz with
-constant $\abs\theta$ and $\E\abs\theta<\infty$. The latter is a direct
-computation: $x\,\phi(x)$ has the antiderivative $-\sigma^2\phi(x)$, so by
-symmetry
-\[
-  \E\abs\theta=2\int_0^\infty x\,\phi(x)\,\mathrm dx
-  =2\sigma^2\phi(0)=\sigma\sqrt{2/\pi}.
-\]
-These are the hypotheses
-of the theorem on differentiation under the integral sign of the
-companion book (Theorem~17.20; its Example~17.22 is the present
-computation).
+Exchanging the derivative and the integral needs a justification:
+\cref{prop:diffint} in \cref{app:feynman}, with $f(a,x)=\cos(ax)\,\phi(x)$
+for $a$ and $x$ in $\R$. Its three hypotheses are checked one by one.
+\begin{enumerate}[nosep,label=(\arabic*)]
+  \item \emph{Each $f(a,\cdot)$ is integrable}, because
+        $\abs{\cos(ax)}\le1$ gives $\abs{f(a,x)}\le\phi(x)$, and $\phi$
+        integrates to $1$.
+  \item \emph{Each $f(\cdot,x)$ is differentiable}, with
+        $\partial_af(a,x)=-x\sin(ax)\,\phi(x)$ (the chain rule on
+        $a\mapsto\cos(ax)$; $\phi(x)$ does not depend on $a$).
+  \item \emph{The derivative has an integrable bound not depending on
+        $a$.} Since $\abs{\sin(ax)}\le1$,
+        \[
+          \abs{\partial_af(a,x)}\le g(x)=\abs x\,\phi(x)\qquad
+          \text{for all }a,
+        \]
+        and it remains to see that $g$ is integrable, that is, that
+        $\E\abs\theta=\int_\R\abs x\,\phi(x)\,\mathrm dx$ is finite.
+\end{enumerate}
+The integral of $g$ can be computed exactly, in three steps.
+\begin{itemize}[nosep]
+  \item \emph{An antiderivative.} Differentiating the exponent of
+        $\phi(x)=e^{-x^2/(2\sigma^2)}/(\sigma\sqrt{2\pi})$ gives
+        \[
+          \phi'(x)=-\frac{x}{\sigma^2}\,\phi(x),
+          \qquad\text{so}\qquad
+          x\,\phi(x)=-\sigma^2\phi'(x):
+        \]
+        $x\,\phi(x)$ is the derivative of $-\sigma^2\phi(x)$.
+  \item \emph{Half the line.} $g$ is even ($\abs{-x}\,\phi(-x)=\abs
+        x\,\phi(x)$), so its integral over $\R$ is twice its integral
+        over $[0,\infty)$, where $\abs x=x$. On $[0,R]$, by the
+        antiderivative,
+        \[
+          \int_0^Rx\,\phi(x)\,\mathrm dx
+          =\bigl[-\sigma^2\phi(x)\bigr]_0^R
+          =\sigma^2\bigl(\phi(0)-\phi(R)\bigr).
+        \]
+        As $R\to\infty$, $\phi(R)\to0$, so this tends to
+        $\sigma^2\phi(0)$. The integrand is nonnegative, so the
+        integrals over $[0,R]$ increase to the integral over
+        $[0,\infty)$ (monotone convergence), which is therefore
+        $\sigma^2\phi(0)$.
+  \item \emph{The value.} With $\phi(0)=1/(\sigma\sqrt{2\pi})$,
+        \[
+          \E\abs\theta=2\sigma^2\phi(0)=\frac{2\sigma}{\sqrt{2\pi}}
+          =\sigma\sqrt{\frac2\pi}\approx0.80\,\sigma ,
+        \]
+        which is finite.
+\end{itemize}
+So \cref{prop:diffint} applies. (The companion book proves the same
+rule in a more general form, Theorem~17.20; its Example~17.22 is the
+present computation.)
 
 \emph{Step 2: integrate by parts.} Since $x\,\phi(x)=-\sigma^2\phi'(x)$,
 on an interval $[-R,R]$
