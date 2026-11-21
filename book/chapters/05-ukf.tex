@@ -346,10 +346,35 @@ of the sum gives the circular mean (green), between the two headings.}
 \label{fig:circmean}
 \end{figure}
 
-Every difference of angles (in $P_y$, $P_{xz}$, the innovation) is
-wrapped. For non-negative weights, $\bar\theta$ minimises
-$\sum_jw_j(1-\cos(\theta_j-m))$ over $m$ (Exercise~\ref{ex:circmean}), a
-natural ``squared distance'' on the circle.
+\emph{Why this deserves the name of a mean.} The ordinary weighted mean
+of numbers $\theta_j$ is the number $m$ that minimises
+$\sum_jw_j(\theta_j-m)^2$, the weighted sum of squared distances to the
+$\theta_j$. On the circle, the natural distance between two directions
+$a$ and $m$ is the length of the chord between the points
+$(\cos a,\sin a)$ and $(\cos m,\sin m)$ of the unit circle, and its
+square is
+\[
+  (\cos a-\cos m)^2+(\sin a-\sin m)^2=2-2\cos(a-m).
+\]
+It depends only on the directions (adding $2\pi$ to $a$ or $m$ changes
+nothing), and for nearby directions it is close to the squared
+difference of the numbers, since $2-2\cos d\approx d^2$ for small $d$.
+Replacing the squared distances by squared chords, the circular mean is
+the direction $m$ that minimises $\sum_jw_j\bigl(1-\cos(\theta_j-m)
+\bigr)$, half the weighted sum of the squared chords, for non-negative
+weights (Exercise~\ref{ex:circmean}). So it is
+the ordinary mean with distances measured on the circle, and when the
+$\theta_j$ are close together, away from the cut, the two means
+practically coincide.
+
+\emph{Differences.} The same care is needed in the covariances. $P_y$,
+$P_{xz}$ and the innovation are built from differences between an angle
+and a mean angle, $\theta_j-\bar\theta$, and such a difference can be off
+by $\pm2\pi$ (\cref{lem:wrap}). With $\theta_j=3.1$ and
+$\bar\theta=-3.13$, the plain difference is $6.23$ where the rotation is
+$-0.05$, and its square, $38.8$ instead of $0.0028$, would make the
+covariance absurd. So every difference of angles is wrapped before it
+enters a covariance or an innovation.
 
 \section{Where the UKF earns its keep}
 
