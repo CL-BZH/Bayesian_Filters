@@ -2262,13 +2262,39 @@ exactly proportional. Writing
 $\frac{t+1}{2t+1}=\frac12+\frac1{2(2t+1)}$ shows that $\rho_t^2$
 decreases with $t$, towards $\frac32\cdot\frac12=\frac34$, so $\rho_t$
 decreases to $\sqrt3/2\approx0.87$. For $t=5$ and $t=25$ the formula
-gives $\rho_t=\sqrt{18/22}=0.905$ and $\sqrt{78/102}=0.875$. A
-Monte Carlo run with the noise of the simulations gives $0.903$ and $0.874$
-after 5 and 25 steps. The coupling never
-vanishes because every turn error that contributes to the final heading
-error also pushed the robot sideways for the rest of the path; old turn
-errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
-which mixes the two sums without decorrelating them.
+gives $\rho_t=\sqrt{18/22}=0.905$ and $\sqrt{78/102}=0.875$.
+Notebook~00 checks this with $20\,000$ simulated robots and the noise of
+the simulations: it finds $0.995$, $0.906$ and $0.872$ after 1, 5 and 25
+steps (not exactly $1$ after one step, because the simulation also has
+distance noise and the exact, nonlinear motion).
+
+\emph{Why the coupling never vanishes.} With the covariance rule above,
+the correlation of two sums of the same independent errors is
+\[
+  \rho_t=\frac{\sum_ja_jb_j}{\sqrt{\sum_ja_j^2}\,\sqrt{\sum_jb_j^2}},
+\]
+which is the cosine of the angle between the two vectors of coefficients,
+$(a_1,\dots,a_t)=s\,(t,t-1,\dots,1)$ for $e_t$ and $(b_1,\dots,b_t)=
+(1,\dots,1)$ for $\theta_t$. Two things follow.
+\begin{itemize}[nosep]
+  \item \emph{It is not $1$ (for $t\ge2$),} because the two vectors are
+        not proportional. Every turn error counts once in the heading, but
+        in the sideways error an old one counts many times (it has pushed
+        the robot sideways on every leg since) and a recent one almost not
+        at all. Knowing the final heading error therefore does not tell
+        the sideways error exactly: the same heading error can come from
+        an early turn error (large sideways error) or a late one (small
+        sideways error).
+  \item \emph{It is not $0$,} because all the coefficients are positive:
+        a turn to the left both raises the heading and moves the robot to
+        the left, for every turn error and at every step. The products
+        $a_jb_j$ are all positive, nothing can cancel, and the two vectors
+        make an acute angle. A correlation of $0$ would need some turn
+        errors to push the two errors in opposite directions.
+\end{itemize}
+As $t$ grows, the angle between the ramp $(t,\dots,1)$ and the constant
+vector $(1,\dots,1)$ tends to $30^\circ$, whose cosine is
+$\sqrt3/2$.
 
 \solution{1.6} Expanding $\cos(\theta_j-m)=\cos\theta_j\cos m+
 \sin\theta_j\sin m$, the sum is $\sum_jw_j-C\cos m-S\sin m$. Write the
