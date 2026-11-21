@@ -61,6 +61,20 @@ python -m pytest                # 18 tests: Jacobians, unscented transform, filt
 make book                       # compiles book/main.pdf (needs a TeX Live install with latexmk)
 ```
 
+### Running the notebooks without changing the repository
+
+The notebooks are stored with their outputs, so that GitHub displays them.
+
+- `make notebooks` executes all of them (about 3 minutes) and writes the executed copies to
+  `build/notebooks/`, which git ignores; no `__pycache__` is written. The repository is left
+  untouched.
+- `make notebooks-refresh` re-executes them in place, to update the stored outputs after a change
+  to the code. It records no execution timings, so with unchanged code the only differences are
+  the few printed run times (ms per step).
+- In Jupyter, *Restart Kernel and Run All* reproduces the stored results (every run is seeded).
+  To leave the repository clean afterwards, close without saving, or run
+  `git restore notebooks/`.
+
 Live demo, drawn with Python's `turtle` graphics module (needs Tk, e.g.
 `sudo apt install python3-tk`):
 
