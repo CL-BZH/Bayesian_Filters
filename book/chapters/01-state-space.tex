@@ -2018,12 +2018,22 @@ $p(\z_1\mid\x_{0:2})$ differs from $p(\z_1\mid\x_1)$.
 $\wrap(3)+\wrap(3)=6$. $\wrap$ is additive only modulo $2\pi$:
 $\wrap(a+b)=\wrap(\wrap(a)+\wrap(b))$. A filter update adds a correction
 $K\y$ to the heading; the sum may leave $[-\pi,\pi)$, the range in which
-\cref{def:pose} keeps headings. Wrapped differences and circular means are
-not affected (\cref{lem:wrap}), but any operation that is not
-$2\pi$-invariant is: $3.2$ and $-3.08$ are the same direction, yet their
-plain average is $0.06$, the opposite direction. Wrapping after each update
-keeps every stored heading in one interval, and so keeps every such
-operation safe.
+\cref{def:pose} keeps headings. Wrapping it after the update brings it
+back, so that each direction is stored as a single number: two equal
+headings are then two equal numbers, a plotted heading stays in one
+interval, and the plain difference of two stored headings is off by at
+most $\pm2\pi$, which one $\wrap$ removes (\cref{lem:wrap}).
+
+Wrapping does \emph{not} make every operation on angles safe. An
+operation that is not $2\pi$-invariant gives wrong results with or
+without it. Without it, $3.2$ and $-3.08$ are the same direction, yet
+their plain average is $0.06$, the opposite direction. With it, the
+problem remains: $3.1$ and $-3.1$ are both in $[-\pi,\pi)$, both close to
+$\pi$, and their plain average is $0$. So, whatever the interval, angles
+are compared through wrapped differences and averaged with the circular
+mean (\cref{sec:circular}); these give the same result for every choice
+of the stored numbers. Wrapping after each update is a convention that
+keeps the stored state tidy, not a substitute for them.
 
 \solution{1.5} From the proof of \cref{prop:deadreckoning},
 $\theta_t=\sum_{j=1}^t\varepsilon_{\delta,j}$ and
