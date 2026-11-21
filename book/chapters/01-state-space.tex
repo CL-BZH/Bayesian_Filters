@@ -1191,14 +1191,68 @@ of numbers $\theta_j$ is the number $m$ that minimises
 $\sum_jw_j(\theta_j-m)^2$, the weighted sum of squared distances to the
 $\theta_j$. On the circle, the natural distance between two directions
 $a$ and $m$ is the length of the chord between the points
-$(\cos a,\sin a)$ and $(\cos m,\sin m)$ of the unit circle, and its
-square is
+$A=(\cos a,\sin a)$ and $M=(\cos m,\sin m)$ of the unit circle
+(\cref{fig:chord}). Its square is computed by expanding the two squares,
+using $\cos^2+\sin^2=1$ for $a$ and for $m$, and then the subtraction
+formula $\cos(a-m)=\cos a\cos m+\sin a\sin m$:
+\begin{align*}
+  \norm{A-M}^2&=(\cos a-\cos m)^2+(\sin a-\sin m)^2\\
+  &=(\cos^2a+\sin^2a)+(\cos^2m+\sin^2m)
+    -2(\cos a\cos m+\sin a\sin m)\\
+  &=2-2\cos(a-m).
+\end{align*}
+The figure gives the same result geometrically. Let $d=\wrap(a-m)$ be the
+angle from $M$ to $A$. The triangle $OAM$ has two sides of length $1$, so
+the perpendicular from $O$ to the chord cuts it in two halves of length
+$\sin(\abs d/2)$, and $\norm{A-M}=2\sin(\abs d/2)$; squared, with
+$2\sin^2x=1-\cos2x$, this is $2-2\cos d$, which equals $2-2\cos(a-m)$.
+
+Two properties make the squared chord a good replacement for the squared
+difference. It depends only on the directions: adding $2\pi$ to $a$ or to
+$m$ changes nothing. And for nearby directions it is close to the squared
+difference: the arc from $M$ to $A$ has length $\abs d$, and by
+\eqref{eq:sinx} with $x=\abs d/2$, the chord is shorter than the arc but
+longer than $\abs d\cos(d/2)$, so
 \[
-  (\cos a-\cos m)^2+(\sin a-\sin m)^2=2-2\cos(a-m).
+  d^2\cos^2(d/2)<\norm{A-M}^2<d^2\qquad(0<\abs d<\pi):
 \]
-It depends only on the directions (adding $2\pi$ to $a$ or $m$ changes
-nothing), and for nearby directions it is close to the squared
-difference of the numbers, since $2-2\cos d\approx d^2$ for small $d$.
+for $\abs d=0.2$ the two bounds differ by $1\%$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=2.4,>=Stealth]
+  \def\aa{130}\def\mm{50}
+  \coordinate (O) at (0,0);
+  \coordinate (A) at (\aa:1);
+  \coordinate (M) at (\mm:1);
+  \coordinate (H) at (90:{sin(\mm)});
+  \draw[black!35] (O) circle (1);
+  \draw[black!35,->] (-1.3,0) -- (1.35,0) node[right,font=\small] {$x$};
+  \draw[thick,black!70] (O) -- (A) node[pos=0.55,below left=-1pt,font=\small] {$1$};
+  \draw[thick,black!70] (O) -- (M) node[pos=0.55,below right=-1pt,font=\small] {$1$};
+  \draw[very thick,blue!70!black] (A) -- (M);
+  \draw[very thick,orange!85!black,dashed] (M)
+    arc[start angle=\mm,end angle=\aa,radius=1];
+  \draw[black!70,densely dotted] (O) -- (H);
+  \draw[thin,black!60] ($(H)+(0,-0.06)$) -- ++(0.06,0) -- ++(0,0.06);
+  \draw[->,green!45!black] (\mm:0.28) arc[start angle=\mm,end angle=\aa,radius=0.28];
+  \node[font=\small,green!45!black] at (105:0.4) {$d$};
+  \fill (A) circle (0.8pt) node[left=2pt,font=\small] {$A=(\cos a,\sin a)$};
+  \fill (M) circle (0.8pt) node[right=2pt,font=\small] {$M=(\cos m,\sin m)$};
+  \fill (O) circle (0.6pt) node[below left,font=\small] {$O$};
+  \node[font=\small,blue!70!black,anchor=north west] at (0.66,0.66)
+    {chord $2\sin(\abs d/2)$};
+  \node[font=\small,orange!85!black,anchor=south] at (90:1.02) {arc $\abs d$};
+\end{tikzpicture}
+\caption{Two directions $a$ and $m$ as points $A$ and $M$ of the unit
+circle. The chord (blue) has length $2\sin(\abs d/2)$, where $d$ is the
+angle between the two directions: the perpendicular from $O$ (dotted) cuts
+the isosceles triangle $OAM$ into two right triangles with hypotenuse $1$
+and angle $\abs d/2$. The arc (orange, dashed) has length $\abs d$; for
+nearby directions the two are almost equal.}
+\label{fig:chord}
+\end{figure}
+
 Replacing the squared distances by squared chords, the circular mean is
 the direction $m$ that minimises $\sum_jw_j\bigl(1-\cos(\theta_j-m)
 \bigr)$, half the weighted sum of the squared chords, for non-negative
@@ -2135,9 +2189,15 @@ that $C=\rho\cos\bar\theta$ and $S=\rho\sin\bar\theta$. Then
 $C\cos m+S\sin m=\rho\cos(m-\bar\theta)$, and the sum is
 $\sum_jw_j-\rho\cos(m-\bar\theta)$, minimal where the cosine is $1$, at
 $m=\bar\theta$. If
-$C=S=0$ (e.g.\ two equal weights at opposite angles), every $m$ gives the
-same value: the mean direction is undefined, and so is
-$\operatorname{atan2}(0,0)$ (\cref{def:atan2}); a program returns some
-angle anyway, for instance \code{np.arctan2(0,0)} returns $0$, an
-arbitrary answer. A belief that wide is not Gaussian in any
-useful sense.
+$C=S=0$, every $m$ gives the same value: the mean direction is
+undefined, and so is $\operatorname{atan2}(0,0)$ (\cref{def:atan2}); a
+program returns some angle anyway, for instance \code{np.arctan2(0,0)}
+returns $0$, an arbitrary answer. $C=S=0$ means that the weighted unit
+vectors cancel out: for instance two equal weights at opposite headings,
+or headings spread evenly over the whole circle. No single direction
+summarises such a set. If the angles are the headings of a filter's
+particles, the filter does not know which way the robot faces, and the
+right output is that statement, not a mean heading. The same holds,
+less sharply, when $\rho=\sqrt{C^2+S^2}$ is small compared with
+$\sum_jw_j$: the mean then exists, but a small change of the angles moves
+it a lot, because it is the direction of a short vector.
