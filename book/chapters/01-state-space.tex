@@ -2215,12 +2215,26 @@ errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
 which mixes the two sums without decorrelating them.
 
 \solution{1.6} Expanding $\cos(\theta_j-m)=\cos\theta_j\cos m+
-\sin\theta_j\sin m$, the sum is $\sum_jw_j-C\cos m-S\sin m$. Let
-$\rho=\sqrt{C^2+S^2}>0$ and $\bar\theta=\operatorname{atan2}(S,C)$, so
-that $C=\rho\cos\bar\theta$ and $S=\rho\sin\bar\theta$. Then
-$C\cos m+S\sin m=\rho\cos(m-\bar\theta)$, and the sum is
-$\sum_jw_j-\rho\cos(m-\bar\theta)$, minimal where the cosine is $1$, at
-$m=\bar\theta$. If
+\sin\theta_j\sin m$, the sum is $\sum_jw_j-C\cos m-S\sin m$. Write the
+vector $(C,S)$ in polar coordinates: its length is
+$\rho=\sqrt{C^2+S^2}>0$, and its direction is
+$\bar\theta=\operatorname{atan2}(S,C)$. By the definition of
+$\operatorname{atan2}$ (\cref{def:atan2}, with $x=C$, $y=S$ and $r=\rho$),
+this direction is exactly the angle for which
+\[
+  C=\rho\cos\bar\theta,\qquad S=\rho\sin\bar\theta .
+\]
+Then, by the subtraction formula,
+\[
+  C\cos m+S\sin m=\rho\,(\cos\bar\theta\cos m+\sin\bar\theta\sin m)
+  =\rho\cos(m-\bar\theta).
+\]
+(Geometrically: $C\cos m+S\sin m$ is the scalar product of the vector
+$(C,S)$ with the unit vector $(\cos m,\sin m)$, that is, the length
+$\rho$ times the cosine of the angle between them.) So the sum is
+$\sum_jw_j-\rho\cos(m-\bar\theta)$. Only the cosine depends on $m$, and
+$\rho>0$, so the sum is smallest where the cosine is largest, equal to
+$1$, at $m=\bar\theta$. If
 $C=S=0$, every $m$ gives the same value: the mean direction is
 undefined, and so is $\operatorname{atan2}(0,0)$ (\cref{def:atan2}); a
 program returns some angle anyway, for instance \code{np.arctan2(0,0)}
