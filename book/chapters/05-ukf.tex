@@ -216,7 +216,7 @@ $Z_j=h(\chi_j)$;
   \hx=\bx+K(\z-\hat\z),\qquad P=\bar P-KSK\T .
 \end{gather*}
 Heading and bearing components are averaged on the circle and every
-residual is wrapped (\cref{sec:circular}).
+residual is wrapped (\cref{sec:ukf-angles}).
 \end{definition}
 
 For a linear $h(\x)=H\x$ these are $P_{xz}=\bar PH\T$ and
@@ -306,66 +306,18 @@ over-confident after an uncertain start (\cref{fig:ukftransient}).
 \end{inwords}
 
 
-\section{Angles on the circle}
-\label{sec:circular}
+\section{Angles in the UKF}
+\label{sec:ukf-angles}
 
-The weighted average of the headings $3.1$ and $-3.1$ is $0$: pointing the
-wrong way (\cref{fig:circmean}). The two headings are almost the same
-direction, just on either side of the cut at $\pm\pi$, and averaging the
-numbers ignores that. The remedy is to average \emph{directions} instead
-of numbers: replace each angle by the unit vector
-$(\cos\theta_j,\sin\theta_j)$, add the vectors with their weights, and
-take the direction of the sum. This is the \emph{circular mean}
-\[
-  \bar\theta=\operatorname{atan2}\Bigl(\sum_jw_j\sin\theta_j,\;
-  \sum_jw_j\cos\theta_j\Bigr).
-\]
+Two components of the state and of the measurement are angles: the
+heading, and the bearing of each landmark. They need care at two places.
 
-\begin{figure}[ht]
-\centering
-\begin{tikzpicture}[scale=1.7,>=Stealth]
-  \draw[black!35] (0,0) circle (1);
-  \draw[black!35,->] (-1.35,0) -- (1.5,0) node[right,font=\small] {$x$};
-  \draw[black!35,->] (0,-1.2) -- (0,1.25);
-  \draw[->,thick,black!80] (0,0) -- (160:1) node[above left=-1pt,
-    font=\small] {$\theta_1=3.1$};
-  \draw[->,thick,black!80] (0,0) -- (-160:1) node[below left=-1pt,
-    font=\small] {$\theta_2=-3.1$};
-  \draw[->,very thick,red!70!black] (0,0) -- (0:0.8);
-  \node[font=\small,red!70!black,anchor=west,align=left] at (1.25,-0.55)
-    {average of the\\numbers: $0$};
-  \draw[red!70!black,thin] (1.25,-0.5) -- (0.6,-0.04);
-  \draw[->,very thick,green!45!black] (0,0) -- (180:0.8);
-  \node[font=\small,green!45!black,anchor=east,align=right] at (-1.4,0)
-    {circular mean:\\$\pi$};
-\end{tikzpicture}
-\caption{Two headings on either side of the cut at $\pm\pi$ (angles
-exaggerated). The average of the two numbers is $0$, which points the
-opposite way (red). Adding the two unit vectors and taking the direction
-of the sum gives the circular mean (green), between the two headings.}
-\label{fig:circmean}
-\end{figure}
-
-\emph{Why this deserves the name of a mean.} The ordinary weighted mean
-of numbers $\theta_j$ is the number $m$ that minimises
-$\sum_jw_j(\theta_j-m)^2$, the weighted sum of squared distances to the
-$\theta_j$. On the circle, the natural distance between two directions
-$a$ and $m$ is the length of the chord between the points
-$(\cos a,\sin a)$ and $(\cos m,\sin m)$ of the unit circle, and its
-square is
-\[
-  (\cos a-\cos m)^2+(\sin a-\sin m)^2=2-2\cos(a-m).
-\]
-It depends only on the directions (adding $2\pi$ to $a$ or $m$ changes
-nothing), and for nearby directions it is close to the squared
-difference of the numbers, since $2-2\cos d\approx d^2$ for small $d$.
-Replacing the squared distances by squared chords, the circular mean is
-the direction $m$ that minimises $\sum_jw_j\bigl(1-\cos(\theta_j-m)
-\bigr)$, half the weighted sum of the squared chords, for non-negative
-weights (Exercise~\ref{ex:circmean}). So it is
-the ordinary mean with distances measured on the circle, and when the
-$\theta_j$ are close together, away from the cut, the two means
-practically coincide.
+\emph{Means.} The unscented transform averages the sigma points with the
+weights $W^{(m)}_j$. For an angle component the plain average can point
+the wrong way when the points straddle the cut at $\pm\pi$, so these
+components are averaged with the circular mean of \cref{sec:circular}
+instead (with the weights of this book, every $W^{(m)}_j$ is
+non-negative).
 
 \emph{Differences.} The same care is needed in the covariances. $P_y$,
 $P_{xz}$ and the innovation are built from differences between an angle
@@ -463,10 +415,6 @@ the models; for the few-dimensional state of a mower this is negligible.
   $W^{(c)}_0=W^{(m)}_0=w<0$. Let $g$ take one value $a$ at $\chi_0$ and
   another value $b$ at every other sigma point. Show that the unscented
   variance is $(a-b)^2w(1-w)<0$.
-\item\label{ex:circmean} Show that for weights $w_j\ge0$ with
-  $C=\sum_jw_j\cos\theta_j$, $S=\sum_jw_j\sin\theta_j$ not both zero, the
-  circular mean minimises $\sum_jw_j(1-\cos(\theta_j-m))$. What goes wrong
-  if $C=S=0$?
 \end{enumerate}
 
 \subsection*{Solutions}
@@ -515,15 +463,3 @@ $-w(a-b)$ elsewhere. Hence
 $P_y=(a-b)^2\bigl[w(1-w)^2+(1-w)w^2\bigr]=(a-b)^2w(1-w)$, negative for
 $w<0$. For $n=5$, $w=-2/3$ and $P_y=-\tfrac{10}9(a-b)^2$: a ``variance''
 that is negative.
-
-\solution{5.4} Expanding $\cos(\theta_j-m)=\cos\theta_j\cos m+
-\sin\theta_j\sin m$, the sum is $\sum_jw_j-C\cos m-S\sin m$. Let
-$\rho=\sqrt{C^2+S^2}>0$ and $\bar\theta=\operatorname{atan2}(S,C)$, so
-that $C=\rho\cos\bar\theta$ and $S=\rho\sin\bar\theta$. Then
-$C\cos m+S\sin m=\rho\cos(m-\bar\theta)$, and the sum is
-$\sum_jw_j-\rho\cos(m-\bar\theta)$, minimal where the cosine is $1$, at
-$m=\bar\theta$. If
-$C=S=0$ (e.g.\ two equal weights at opposite angles), every $m$ gives the
-same value: the mean direction is undefined, and $\operatorname{atan2}(0,
-0)$ returns an arbitrary angle. A belief that wide is not Gaussian in any
-useful sense.

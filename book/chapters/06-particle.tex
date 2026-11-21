@@ -198,7 +198,8 @@ Given particles and normalised weights $(\x_t^{(i)},w_t^{(i)})$:
   below a threshold: draw $N$ particles from the cloud with probabilities
   $w^{(i)}$, and reset every weight to $1/N$.
 \end{enumerate}
-The estimate is the weighted mean (with a circular mean for the heading)
+The estimate is the weighted mean (with a circular mean for the heading,
+\cref{sec:circular})
 and the weighted covariance of the cloud.
 \end{definition}
 

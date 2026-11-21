@@ -1142,6 +1142,71 @@ $\wrap$ in $[-\pi,\pi)$. The two intervals differ only at the single
 direction pointing along the negative $x$-axis, and the sensor model below
 applies $\wrap$ to the result, which settles it.
 
+\subsection{Averaging angles: the circular mean}
+\label{sec:circular}
+
+
+A filter often needs the average of several angles: the mean heading of
+a cloud of particles (\cref{ch:particle}), or of the sigma points of the
+unscented Kalman filter (\cref{ch:ukf}). The plain average of the numbers
+does not work. The weighted average of the headings $3.1$ and $-3.1$ is
+$0$: pointing the wrong way (\cref{fig:circmean}). The two headings are almost the same
+direction, just on either side of the cut at $\pm\pi$, and averaging the
+numbers ignores that. The remedy is to average \emph{directions} instead
+of numbers: replace each angle by the unit vector
+$(\cos\theta_j,\sin\theta_j)$, add the vectors with their weights, and
+take the direction of the sum. This is the \emph{circular mean}
+\[
+  \bar\theta=\operatorname{atan2}\Bigl(\sum_jw_j\sin\theta_j,\;
+  \sum_jw_j\cos\theta_j\Bigr).
+\]
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.7,>=Stealth]
+  \draw[black!35] (0,0) circle (1);
+  \draw[black!35,->] (-1.35,0) -- (1.5,0) node[right,font=\small] {$x$};
+  \draw[black!35,->] (0,-1.2) -- (0,1.25);
+  \draw[->,thick,black!80] (0,0) -- (160:1) node[above left=-1pt,
+    font=\small] {$\theta_1=3.1$};
+  \draw[->,thick,black!80] (0,0) -- (-160:1) node[below left=-1pt,
+    font=\small] {$\theta_2=-3.1$};
+  \draw[->,very thick,red!70!black] (0,0) -- (0:0.8);
+  \node[font=\small,red!70!black,anchor=west,align=left] at (1.25,-0.55)
+    {average of the\\numbers: $0$};
+  \draw[red!70!black,thin] (1.25,-0.5) -- (0.6,-0.04);
+  \draw[->,very thick,green!45!black] (0,0) -- (180:0.8);
+  \node[font=\small,green!45!black,anchor=east,align=right] at (-1.4,0)
+    {circular mean:\\$\pi$};
+\end{tikzpicture}
+\caption{Two headings on either side of the cut at $\pm\pi$ (angles
+exaggerated). The average of the two numbers is $0$, which points the
+opposite way (red). Adding the two unit vectors and taking the direction
+of the sum gives the circular mean (green), between the two headings.}
+\label{fig:circmean}
+\end{figure}
+
+\emph{Why this deserves the name of a mean.} The ordinary weighted mean
+of numbers $\theta_j$ is the number $m$ that minimises
+$\sum_jw_j(\theta_j-m)^2$, the weighted sum of squared distances to the
+$\theta_j$. On the circle, the natural distance between two directions
+$a$ and $m$ is the length of the chord between the points
+$(\cos a,\sin a)$ and $(\cos m,\sin m)$ of the unit circle, and its
+square is
+\[
+  (\cos a-\cos m)^2+(\sin a-\sin m)^2=2-2\cos(a-m).
+\]
+It depends only on the directions (adding $2\pi$ to $a$ or $m$ changes
+nothing), and for nearby directions it is close to the squared
+difference of the numbers, since $2-2\cos d\approx d^2$ for small $d$.
+Replacing the squared distances by squared chords, the circular mean is
+the direction $m$ that minimises $\sum_jw_j\bigl(1-\cos(\theta_j-m)
+\bigr)$, half the weighted sum of the squared chords, for non-negative
+weights (Exercise~\ref{ex:circmean}). So it is
+the ordinary mean with distances measured on the circle, and when the
+$\theta_j$ are close together, away from the cut, the two means
+practically coincide.
+
 \subsection{The range--bearing sensor}
 
 Beacons (\emph{landmarks}) stand at known places around the lawn. The
@@ -1790,6 +1855,10 @@ RTK-GNSS or a camera.
   \]
   so that $\rho_1=1$ and $\rho_t$ decreases to $\sqrt3/2\approx0.87$.
   Why does the coupling never vanish?
+\item\label{ex:circmean} Show that for weights $w_j\ge0$ with
+  $C=\sum_jw_j\cos\theta_j$, $S=\sum_jw_j\sin\theta_j$ not both zero, the
+  circular mean minimises $\sum_jw_j(1-\cos(\theta_j-m))$. What goes wrong
+  if $C=S=0$?
 \end{enumerate}
 
 \subsection*{Solutions}
@@ -2058,3 +2127,17 @@ vanishes because every turn error that contributes to the final heading
 error also pushed the robot sideways for the rest of the path; old turn
 errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
 which mixes the two sums without decorrelating them.
+
+\solution{1.6} Expanding $\cos(\theta_j-m)=\cos\theta_j\cos m+
+\sin\theta_j\sin m$, the sum is $\sum_jw_j-C\cos m-S\sin m$. Let
+$\rho=\sqrt{C^2+S^2}>0$ and $\bar\theta=\operatorname{atan2}(S,C)$, so
+that $C=\rho\cos\bar\theta$ and $S=\rho\sin\bar\theta$. Then
+$C\cos m+S\sin m=\rho\cos(m-\bar\theta)$, and the sum is
+$\sum_jw_j-\rho\cos(m-\bar\theta)$, minimal where the cosine is $1$, at
+$m=\bar\theta$. If
+$C=S=0$ (e.g.\ two equal weights at opposite angles), every $m$ gives the
+same value: the mean direction is undefined, and so is
+$\operatorname{atan2}(0,0)$ (\cref{def:atan2}); a program returns some
+angle anyway, for instance \code{np.arctan2(0,0)} returns $0$, an
+arbitrary answer. A belief that wide is not Gaussian in any
+useful sense.
