@@ -1844,7 +1844,14 @@ derivative of the first, up to its sign.
   m'(a)=-\E[\theta\sin(a\theta)]=-\int_\R x\sin(ax)\,\phi(x)\,\mathrm dx .
 \]
 This is allowed because $a\mapsto\cos(a\theta)$ is Lipschitz with
-constant $\abs\theta$ and $\E\abs\theta<\infty$: these are the hypotheses
+constant $\abs\theta$ and $\E\abs\theta<\infty$. The latter is a direct
+computation: $x\,\phi(x)$ has the antiderivative $-\sigma^2\phi(x)$, so by
+symmetry
+\[
+  \E\abs\theta=2\int_0^\infty x\,\phi(x)\,\mathrm dx
+  =2\sigma^2\phi(0)=\sigma\sqrt{2/\pi}.
+\]
+These are the hypotheses
 of the theorem on differentiation under the integral sign of the
 companion book (Theorem~17.20; its Example~17.22 is the present
 computation).

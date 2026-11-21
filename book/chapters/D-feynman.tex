@@ -165,7 +165,9 @@ equation between two unknowns becomes a differential equation for one
 unknown function.
 
 \emph{Differentiate.} $\abs{\partial_a(\cos(ax)\phi(x))}
-=\abs{x\sin(ax)}\,\phi(x)\le\abs x\,\phi(x)$, which is integrable, so
+=\abs{x\sin(ax)}\,\phi(x)\le\abs x\,\phi(x)$, which is integrable: since
+$x\,\phi(x)$ has the antiderivative $-\sigma^2\phi(x)$,
+$\int_\R\abs x\,\phi(x)\,\mathrm dx=2\sigma^2\phi(0)=\sigma\sqrt{2/\pi}$. So
 \cref{prop:diffint} applies on $J=\R$:
 $m'(a)=-\int_\R x\sin(ax)\,\phi(x)\,\mathrm dx$.
 
