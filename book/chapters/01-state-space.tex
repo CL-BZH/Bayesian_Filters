@@ -1815,8 +1815,12 @@ real robot can also slide sideways, on a slope or on wet grass; the model
 has no noise for that, and a filter built on it would need a third noise
 term to account for it.
 
-\textbf{1.2.} $\E[\sin\theta]=0$ because $\sin$ is odd and the
-distribution symmetric. For the cosine, let $m(a)=\E[\cos(a\theta)]$.
+\textbf{1.2.} Here $\theta$ ranges over all of $\R$.
+$\E[\sin\theta]=\int_\R\sin(x)\,\Normal(x;0,\sigma^2)\,\mathrm dx$, and
+the integrand is odd (an odd function times an even density) and
+integrable ($\abs{\sin}\le1$), so the integral is $0$. Wrapping $\theta$
+into $[-\pi,\pi)$ would change nothing, since $\sin$ and $\cos$ have
+period $2\pi$. For the cosine, let $m(a)=\E[\cos(a\theta)]$.
 Differentiating under the expectation, $m'(a)=-\E[\theta\sin(a\theta)]$.
 For $\theta\sim\Normal(0,\sigma^2)$, an integration by parts against the
 density (whose derivative is $-x/\sigma^2$ times itself) gives
