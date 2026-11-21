@@ -1815,32 +1815,75 @@ real robot can also slide sideways, on a slope or on wet grass; the model
 has no noise for that, and a filter built on it would need a third noise
 term to account for it.
 
-\solution{1.2} Here $\theta$ ranges over all of $\R$.
-$\E[\sin\theta]=\int_\R\sin(x)\,\Normal(x;0,\sigma^2)\,\mathrm dx$, and
-the integrand is odd (an odd function times an even density) and
-integrable ($\abs{\sin}\le1$), so the integral is $0$. Wrapping $\theta$
-into $[-\pi,\pi)$ would change nothing, since $\sin$ and $\cos$ have
-period $2\pi$. For the cosine, let $m(a)=\E[\cos(a\theta)]$.
-Differentiating under the expectation, $m'(a)=-\E[\theta\sin(a\theta)]$.
+\solution{1.2} Here $\theta$ ranges over all of $\R$, and
+$\phi(x)=e^{-x^2/(2\sigma^2)}/(\sigma\sqrt{2\pi})$ denotes its density.
+(Wrapping $\theta$ into $[-\pi,\pi)$ would change nothing, since $\sin$
+and $\cos$ have period $2\pi$.)
+
+\emph{The sine.} $\E[\sin\theta]=\int_\R\sin(x)\,\phi(x)\,\mathrm dx$.
+The integrand is odd (an odd function times an even density) and
+integrable ($\abs{\sin}\le1$), so the integral is $0$.
+
+\emph{The cosine: a parameter.} Integration by parts alone does not
+close. With $\phi'(x)=-(x/\sigma^2)\,\phi(x)$ it gives
+$\E[\theta\sin\theta]=\sigma^2\E[\cos\theta]$, which ties the unknown to
+another unknown; integrating by parts again brings in
+$\E[\theta^2\cos\theta]$, and so on, and the chain closes only as an
+infinite series. The way out is to put a parameter in the cosine,
+\[
+  m(a)=\E[\cos(a\theta)]=\int_\R\cos(ax)\,\phi(x)\,\mathrm dx ,
+  \qquad m(0)=1 ,
+\]
+because the second unknown, $\E[\theta\sin(a\theta)]$, is then the
+derivative of the first, up to its sign.
+
+\emph{Step 1: differentiate.} Differentiating under the expectation,
+\[
+  m'(a)=-\E[\theta\sin(a\theta)]=-\int_\R x\sin(ax)\,\phi(x)\,\mathrm dx .
+\]
 This is allowed because $a\mapsto\cos(a\theta)$ is Lipschitz with
 constant $\abs\theta$ and $\E\abs\theta<\infty$: these are the hypotheses
 of the theorem on differentiation under the integral sign of the
 companion book (Theorem~17.20; its Example~17.22 is the present
-computation, written out).
-For $\theta\sim\Normal(0,\sigma^2)$, an integration by parts against the
-density (whose derivative is $-x/\sigma^2$ times itself) gives
-$\E[\theta\,g(\theta)]=\sigma^2\E[g'(\theta)]$ for a bounded $g$ with a
-bounded derivative (the boundary terms vanish, since $g$ is bounded and
-the density tends to $0$ at $\pm\infty$); with $g(x)=\sin(ax)$,
-$m'(a)=-\sigma^2a\,m(a)$. Then $m(a)\,e^{\sigma^2a^2/2}$ has derivative
-zero, and since $m(0)=1$, $m(a)=e^{-\sigma^2a^2/2}$, and
-$\E[\cos\theta]=m(1)=e^{-\sigma^2/2}$. The distance error
-$\varepsilon_s$ is independent of the heading and has mean zero, so it does
-not change the mean progress. A step of length $s$ in
-direction $\theta$ therefore advances by $s\,e^{-\sigma^2/2}<s$ on
-average. Linearising $\cos\theta\approx1$ gives $s$, and the bias
-$s(1-e^{-\sigma^2/2})\approx s\sigma^2/2$ is exactly the per-step term in
-\eqref{eq:drshort}.
+computation).
+
+\emph{Step 2: integrate by parts.} Since $x\,\phi(x)=-\sigma^2\phi'(x)$,
+on an interval $[-R,R]$
+\[
+  \int_{-R}^{R}x\sin(ax)\,\phi(x)\,\mathrm dx
+  =-\sigma^2\bigl[\sin(ax)\,\phi(x)\bigr]_{-R}^{R}
+   +\sigma^2a\int_{-R}^{R}\cos(ax)\,\phi(x)\,\mathrm dx .
+\]
+As $R\to\infty$ the bracket tends to $0$ ($\sin$ is bounded and
+$\phi(\pm R)\to0$), and the two integrals tend to the integrals over $\R$
+by dominated convergence, with the integrable dominating functions
+$\abs x\,\phi(x)$ and $\phi(x)$.
+So
+\[
+  m'(a)=-\sigma^2a\,m(a).
+\]
+
+\emph{Step 3: solve.} The function $a\mapsto m(a)\,e^{\sigma^2a^2/2}$ has
+derivative $\bigl(m'(a)+\sigma^2a\,m(a)\bigr)e^{\sigma^2a^2/2}=0$, so it
+is constant, equal to its value $m(0)=1$ at $a=0$. Hence
+\[
+  m(a)=e^{-\sigma^2a^2/2},\qquad \E[\cos\theta]=m(1)=e^{-\sigma^2/2}.
+\]
+
+\emph{The mean progress.} A step of length $d=s+\varepsilon_s$ in the
+direction $\theta$ advances by $d\cos\theta$ along the intended
+direction. The distance error $\varepsilon_s$ is independent of the
+heading and has mean zero, so
+\[
+  \E[d\cos\theta]=\E[d]\,\E[\cos\theta]=s\,e^{-\sigma^2/2}<s .
+\]
+Linearising, $\cos\theta\approx1$, gives $s$: the linearised model misses
+the shortfall $s(1-e^{-\sigma^2/2})\approx s\sigma^2/2$. At step $k$ of
+\cref{prop:deadreckoning} the heading has variance $\sigma^2=k\sigma_\delta^2$,
+and $s\,k\sigma_\delta^2/2$ is exactly the term of step $k$ in the sum
+that gives \eqref{eq:drshort}. With $s=4$ and $\sigma=0.3$\,rad (the
+heading after a hundred steps), the robot advances $3.82$ instead of
+$4$.
 
 \solution{1.3} There are two claims.
 
