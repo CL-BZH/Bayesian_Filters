@@ -2265,15 +2265,38 @@ filter does not know which way the robot faces, and the right output is
 that statement, not a mean heading.
 
 An exact zero is rare with real data; a small $\rho$ is not. Take $N$
-particles with equal weights $1/N$ and headings drawn uniformly over the
-circle, as after the robot has been carried elsewhere. The unit vectors
-$\vect u_j$ are independent with mean $\vect0$ and length $1$, so
+particles with equal weights $w_j=1/N$ and headings $\theta_j$ drawn
+independently and uniformly over the circle, as after the robot has been
+carried elsewhere. Write $\vect u_j=(\cos\theta_j,\sin\theta_j)$ for the
+unit vector of heading $\theta_j$. With these weights the definitions of
+$C$ and $S$ read
 \[
-  \E\Bigl\|\sum_j\vect u_j\Bigr\|^2=\sum_j\E\norm{\vect u_j}^2
-  +\sum_{j\neq k}\E[\vect u_j]\T\E[\vect u_k]=N,
+  (C,S)=\frac1N\sum_{j=1}^N\vect u_j ,
+  \qquad\text{so}\qquad
+  \rho=\norm{(C,S)}=\frac1N\Bigl\|\sum_{j=1}^N\vect u_j\Bigr\| .
 \]
-and $\rho=\norm{\sum_j\vect u_j}/N$ is typically about $1/\sqrt N$, which
-is $0.03$ for $N=1000$. The circular mean is then defined, but it is the
+The headings are random, so $\rho$ is random, and the question is its
+typical size. Its exact distribution is complicated, but the mean of its
+square is easy to compute, and the square root of that mean (the root
+mean square) gives the typical size. Expanding the squared length of the
+sum as the scalar product of the sum with itself,
+\[
+  \Bigl\|\sum_j\vect u_j\Bigr\|^2=\sum_j\sum_k\vect u_j\T\vect u_k
+  =\sum_j\norm{\vect u_j}^2+\sum_{j\neq k}\vect u_j\T\vect u_k .
+\]
+Each $\norm{\vect u_j}^2$ is $1$. For $j\neq k$, $\vect u_j$ and
+$\vect u_k$ are independent, so
+$\E[\vect u_j\T\vect u_k]=\E[\vect u_j]\T\E[\vect u_k]$, and
+$\E[\vect u_j]=\vect0$ because a uniform heading has
+$\E[\cos\theta_j]=\frac1{2\pi}\int_{-\pi}^{\pi}\cos t\,\mathrm dt=0$ and
+likewise $\E[\sin\theta_j]=0$. Hence
+\[
+  \E\Bigl\|\sum_j\vect u_j\Bigr\|^2=N,
+  \qquad
+  \E[\rho^2]=\frac{N}{N^2}=\frac1N ,
+\]
+and the typical size of $\rho$ is $\sqrt{\E[\rho^2]}=1/\sqrt N$, which is
+$0.03$ for $N=1000$ (while $\sum_jw_j=1$). The circular mean is then defined, but it is the
 direction of a short, essentially random vector, it changes from one
 step to the next, and it says nothing about the heading of the robot.
 The ratio $\rho/\sum_jw_j$ of \cref{sec:circular} detects this case.
