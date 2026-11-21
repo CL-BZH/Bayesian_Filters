@@ -1,0 +1,287 @@
+\chapter{Differentiating under the integral sign}
+\label{app:feynman}
+
+Exercise~\ref{ex:ecos} needs $\E[\cos\theta]$ for a Gaussian angle
+$\theta$, and its solution finds it by a device that is hard to invent
+on the spot: put a parameter $a$ into the integral, differentiate with
+respect to $a$, and solve the equation that comes out. The device is
+classical. Richard Feynman made it popular under the name
+\emph{differentiating under the integral sign}; he had learned it as a
+student from Woods' \emph{Advanced Calculus}, and it is now often called
+\emph{Feynman's trick}. This appendix states the rule that makes it legal
+(\cref{sec:feyn-rule}), describes the device (\cref{sec:feyn-idea}),
+works three examples of the two ways it closes
+(\cref{sec:feyn-easy,sec:feyn-ode}), gives the shorter route to
+$\E[\cos\theta]$ through complex numbers (\cref{sec:feyn-complex}), and
+ends with how to choose the parameter (\cref{sec:feyn-choose}).
+
+\section{The rule}
+\label{sec:feyn-rule}
+
+All the integrals below are integrals of integrable functions, that is,
+Lebesgue integrals, and expectations are integrals of this kind. The
+rule is a consequence of dominated convergence.
+
+\begin{proposition}{Differentiation under the integral sign}{diffint}
+Let $J$ be an open interval, $S$ a subset of $\R$, and
+$f:J\times S\to\R$ a function such that
+\begin{enumerate}[nosep]
+  \item for each $a\in J$, the function $x\mapsto f(a,x)$ is integrable
+        on $S$;
+  \item for each $x\in S$, the function $a\mapsto f(a,x)$ is
+        differentiable on $J$;
+  \item there is an integrable function $g$ on $S$ with
+        $\abs{\partial_af(a,x)}\le g(x)$ for all $a\in J$ and $x\in S$.
+\end{enumerate}
+Then $F(a)=\int_Sf(a,x)\,\mathrm dx$ is differentiable on $J$, and
+\[
+  F'(a)=\int_S\partial_af(a,x)\,\mathrm dx .
+\]
+\end{proposition}
+
+\begin{proof}
+Fix $a\in J$ and a sequence $h_n\to0$ with $h_n\neq0$ and
+$a+h_n\in J$. The difference quotient of $F$ is the integral of the
+difference quotients of $f$:
+\[
+  \frac{F(a+h_n)-F(a)}{h_n}=\int_Sq_n(x)\,\mathrm dx,
+  \qquad
+  q_n(x)=\frac{f(a+h_n,x)-f(a,x)}{h_n}.
+\]
+For each $x$, $q_n(x)\to\partial_af(a,x)$ by (2), so $\partial_af(a,\cdot)$
+is measurable as a limit of measurable functions. By the mean value
+theorem, $q_n(x)=\partial_af(\xi_n,x)$ for some $\xi_n$ between $a$ and
+$a+h_n$, so $\abs{q_n(x)}\le g(x)$ by (3). Dominated convergence then
+gives $\int_Sq_n\to\int_S\partial_af(a,x)\,\mathrm dx$. This holds for
+every such sequence $(h_n)$, so $F$ is differentiable at $a$ with the
+stated derivative.
+\end{proof}
+
+A complex-valued $f$ is handled by applying the proposition to its real
+and imaginary parts. The companion book proves a more general form, with
+a parameter in a normed space and a Lipschitz bound in place of (3)
+(Theorem~17.20 there).
+
+Hypothesis (3) is the one to check, and it can fail. The integral
+$F(a)=\int_0^\infty\sin(ax)/x\,\mathrm dx$ (an improper integral, not an
+integrable function) does not depend on $a>0$: the substitution $y=ax$
+turns it into $F(1)$. So $F'(a)=0$. Differentiating under the integral
+sign anyway would give $\int_0^\infty\cos(ax)\,\mathrm dx$, which does
+not exist. Here $\partial_af=\cos(ax)$ has no integrable bound on
+$(0,\infty)$.
+
+\section{The device}
+\label{sec:feyn-idea}
+
+To compute one number $I$ given as an integral:
+\begin{enumerate}[nosep]
+  \item \emph{Embed it in a family.} Write $I=F(a_1)$ for a function
+        $F(a)=\int f(a,x)\,\mathrm dx$ of a parameter $a$.
+  \item \emph{Choose the family so that one member is known}:
+        $F(a_0)$ is easy for some $a_0$.
+  \item \emph{Differentiate in $a$} (\cref{prop:diffint}). The family is
+        chosen so that $F'$ is easier than $F$: either $F'$ can be
+        computed directly, or $F'$ is expressed through $F$ itself.
+  \item \emph{Go back from $F'$ to $F$}: integrate $F'$ from $a_0$, or
+        solve the differential equation that links $F'$ to $F$, with the
+        known value $F(a_0)$ as initial condition. Then evaluate at
+        $a_1$.
+\end{enumerate}
+All the inventiveness is in steps 1 and 2: where to put the parameter.
+The examples show the two ways step 3 can go.
+
+\section{When the derivative is easy}
+\label{sec:feyn-easy}
+
+\begin{example}{A logarithm in the denominator}{lntwo}
+Compute $I=\int_0^1\frac{x-1}{\ln x}\,\mathrm dx$.
+
+The $\ln x$ in the denominator is the obstacle. Differentiating $x^a$
+with respect to $a$ produces a factor $\ln x$, so put the parameter in
+the exponent:
+\[
+  F(a)=\int_0^1\frac{x^a-1}{\ln x}\,\mathrm dx ,\qquad a\in J=(-\tfrac12,2).
+\]
+Then $I=F(1)$, and $F(0)=0$ because the integrand is $0$ at $a=0$.
+The derivative of the integrand is
+$\partial_a\bigl((x^a-1)/\ln x\bigr)=x^a$: the obstacle cancels.
+Hypotheses of \cref{prop:diffint}, on $S=(0,1)$: for $a\in J$,
+$0<x^a\le x^{-1/2}$, which is integrable on $(0,1)$, so (3) holds with
+$g(x)=x^{-1/2}$; and $(x^a-1)/\ln x=\int_0^ax^b\,\mathrm db$ is bounded
+in absolute value by $\abs a\,x^{-1/2}$, so (1) holds. Hence
+\[
+  F'(a)=\int_0^1x^a\,\mathrm dx=\frac1{a+1},
+  \qquad
+  F(a)=F(0)+\int_0^a\frac{\mathrm db}{b+1}=\ln(1+a),
+  \qquad
+  I=F(1)=\ln2 .
+\]
+\end{example}
+
+\begin{example}{The moments of a Gaussian}{gaussmoments}
+Here the known member is a whole family. For $a>0$, the density of
+$\Normal(0,1/(2a))$ integrates to $1$, that is
+\[
+  G(a)=\int_\R e^{-ax^2}\,\mathrm dx=\sqrt{\pi}\,a^{-1/2}.
+\]
+On an interval $(a_0,\infty)$ with $a_0>0$, every derivative
+$\partial_a^k e^{-ax^2}=(-x^2)^ke^{-ax^2}$ is bounded by the integrable
+$x^{2k}e^{-a_0x^2}$, so \cref{prop:diffint}, applied $k$ times, gives
+\[
+  \int_\R x^{2k}e^{-ax^2}\,\mathrm dx=(-1)^kG^{(k)}(a)
+  =\sqrt\pi\;\frac{1\cdot3\cdots(2k-1)}{2^k}\;a^{-k-1/2}.
+\]
+Dividing by $G(a)$ and setting $a=1/(2\sigma^2)$: for
+$\theta\sim\Normal(0,\sigma^2)$,
+$\E[\theta^{2k}]=1\cdot3\cdots(2k-1)\,\sigma^{2k}$; in particular
+$\E[\theta^2]=\sigma^2$ and $\E[\theta^4]=3\sigma^4$.
+\end{example}
+
+\section{When the derivative gives back the integral}
+\label{sec:feyn-ode}
+
+This is the case of Exercise~\ref{ex:ecos}. Let
+$\theta\sim\Normal(0,\sigma^2)$, with density
+$\phi(x)=e^{-x^2/(2\sigma^2)}/(\sigma\sqrt{2\pi})$, and let us look for
+$\E[\cos\theta]$.
+
+\emph{Why integration by parts alone does not close.} The density
+satisfies $\phi'(x)=-(x/\sigma^2)\,\phi(x)$, so an integration by parts
+turns $\E[\theta\sin\theta]$ into $\sigma^2\E[\cos\theta]$. That is one
+equation between two unknowns. Integrating by parts again only brings in
+$\E[\theta^2\cos\theta]$, then $\E[\theta^3\sin\theta]$, and so on.
+
+\emph{Where to put the parameter.} The second unknown has the extra
+factor $\theta$ in front of $\sin\theta$, and that factor is what
+differentiating $\cos(a\theta)$ with respect to $a$ produces:
+$\partial_a\cos(a\theta)=-\theta\sin(a\theta)$. So the parameter goes into
+the frequency:
+\[
+  m(a)=\E[\cos(a\theta)]=\int_\R\cos(ax)\,\phi(x)\,\mathrm dx ,
+  \qquad m(0)=1 .
+\]
+The second unknown becomes the derivative of the first, and the one
+equation between two unknowns becomes a differential equation for one
+unknown function.
+
+\emph{Differentiate.} $\abs{\partial_a(\cos(ax)\phi(x))}
+=\abs{x\sin(ax)}\,\phi(x)\le\abs x\,\phi(x)$, which is integrable, so
+\cref{prop:diffint} applies on $J=\R$:
+$m'(a)=-\int_\R x\sin(ax)\,\phi(x)\,\mathrm dx$.
+
+\emph{Integrate by parts.} With $x\,\phi(x)=-\sigma^2\phi'(x)$, on an
+interval $[-R_1,R_2]$,
+\[
+  \int_{-R_1}^{R_2}x\sin(ax)\,\phi(x)\,\mathrm dx
+  =-\sigma^2\bigl[\sin(ax)\,\phi(x)\bigr]_{-R_1}^{R_2}
+   +\sigma^2a\int_{-R_1}^{R_2}\cos(ax)\,\phi(x)\,\mathrm dx .
+\]
+As $R_1,R_2\to\infty$ the bracket tends to $0$, and both integrals tend
+to the integrals over $\R$ by dominated convergence (bounds
+$\abs x\,\phi(x)$ and $\phi(x)$). So
+\[
+  m'(a)=-\sigma^2a\,m(a).
+\]
+
+\emph{Solve.} $m(a)\,e^{\sigma^2a^2/2}$ has derivative
+$\bigl(m'(a)+\sigma^2a\,m(a)\bigr)e^{\sigma^2a^2/2}=0$, so it is constant,
+equal to $m(0)=1$:
+\[
+  m(a)=e^{-\sigma^2a^2/2},\qquad \E[\cos\theta]=m(1)=e^{-\sigma^2/2}.
+\]
+The trick gave more than was asked: the whole function $m$, not only
+$m(1)$. In probability, $m$ is the real part of the
+\emph{characteristic function} $a\mapsto\E[e^{\ii a\theta}]$ of
+$\theta$, where $\ii$ is the imaginary unit ($\ii^2=-1$). The next
+section computes the characteristic function directly.
+
+\section{The route through complex numbers}
+\label{sec:feyn-complex}
+
+Euler's formula $e^{\ii y}=\cos y+\ii\sin y$ packs both expectations into
+one:
+\[
+  \E[e^{\ii a\theta}]=\E[\cos(a\theta)]+\ii\,\E[\sin(a\theta)],
+\]
+where the integral of a complex-valued function is, by definition, the
+integral of its real part plus $\ii$ times the integral of its imaginary
+part. The exponential of a complex number $w$ satisfies
+$e^{w_1+w_2}=e^{w_1}e^{w_2}$ and $\abs{e^w}=e^{\operatorname{Re}w}$.
+
+\emph{Complete the square.} In the exponent of
+$e^{\ii ax}\phi(x)$, with $c=a\sigma^2$,
+\[
+  \ii ax-\frac{x^2}{2\sigma^2}
+  =-\frac{(x-\ii c)^2}{2\sigma^2}-\frac{a^2\sigma^2}2 ,
+\]
+as expanding $(x-\ii c)^2=x^2-2\ii cx-c^2$ shows. Hence
+\[
+  \E[e^{\ii a\theta}]
+  =e^{-a^2\sigma^2/2}\;\frac{1}{\sigma\sqrt{2\pi}}
+   \int_\R e^{-(x-\ii c)^2/(2\sigma^2)}\,\mathrm dx .
+\]
+If the integral were the one with $c=0$, it would be $\sigma\sqrt{2\pi}$
+and the answer would be $e^{-a^2\sigma^2/2}$. The Gaussian has been
+shifted by the imaginary amount $\ii c$; the lemma says that the shift
+changes nothing.
+
+\begin{lemma}{An imaginary shift of the Gaussian}{imagshift}
+For every real $c$,
+$\displaystyle H(c)=\int_\R e^{-(x-\ii c)^2/(2\sigma^2)}\,\mathrm dx
+=\sigma\sqrt{2\pi}$.
+\end{lemma}
+
+\begin{proof}
+The same trick, with $c$ as the parameter. Write
+$k(c,x)=e^{-(x-\ii c)^2/(2\sigma^2)}$. Then
+$\abs{k(c,x)}=e^{(c^2-x^2)/(2\sigma^2)}$, and
+\[
+  \partial_ck=\frac{\ii(x-\ii c)}{\sigma^2}\,k
+  =-\ii\,\partial_xk .
+\]
+For $\abs c<C$, $\abs{\partial_ck}\le\frac{\abs x+C}{\sigma^2}\,
+e^{(C^2-x^2)/(2\sigma^2)}$, which is integrable, so by
+\cref{prop:diffint} (applied to real and imaginary parts),
+\[
+  H'(c)=-\ii\int_\R\partial_xk(c,x)\,\mathrm dx
+  =-\ii\lim_{R_1,R_2\to\infty}\bigl[k(c,x)\bigr]_{x=-R_1}^{x=R_2}=0,
+\]
+where the integral over $\R$ is the limit of the integrals over
+$[-R_1,R_2]$ by dominated convergence (same bound), and $k(c,\pm R)\to0$
+because $\abs{k(c,x)}\to0$ as $\abs x\to\infty$. So $H$ is constant, and
+$H(c)=H(0)=\sigma\sqrt{2\pi}$, the normalisation of the Gaussian density.
+\end{proof}
+
+Hence $\E[e^{\ii a\theta}]=e^{-a^2\sigma^2/2}$. Its real part is
+$\E[\cos(a\theta)]=e^{-a^2\sigma^2/2}$, as in \cref{sec:feyn-ode}, and its
+imaginary part is $\E[\sin(a\theta)]=0$, which recovers the symmetry
+argument for the sine.
+
+The complex route is shorter once the lemma is known, but the lemma is
+the same trick in another form: the parameter is now the shift $c$, and
+the derivative is a total derivative in $x$, whose integral is $0$. In
+complex analysis the lemma is a case of Cauchy's theorem: the line of
+integration can be moved from the real axis to the parallel line through
+$\ii c$ without changing the integral. The proof above needs none of that
+theory.
+
+\section{Choosing the parameter}
+\label{sec:feyn-choose}
+
+There is no recipe, but the examples share a pattern.
+\begin{itemize}[nosep]
+  \item \emph{A known end.} The family must contain an easy member:
+        $a=0$ in \cref{ex:lntwo} and in \cref{sec:feyn-ode}, $c=0$ in
+        \cref{lem:imagshift}, all $a$ in \cref{ex:gaussmoments}.
+  \item \emph{A derivative that removes the obstacle.} Look at what
+        blocks the computation, and put $a$ where $\partial_a$ produces
+        or cancels it: an exponent $x^a$ to cancel a $\ln x$, a
+        frequency $\cos(ax)$ to produce a factor $x$, a scale
+        $e^{-ax^2}$ to produce $x^2$. A damping factor $e^{-ax}$ is
+        another common choice, to make an integral converge.
+  \item \emph{A domination.} Check hypothesis (3) of
+        \cref{prop:diffint} on an interval of parameters that contains
+        both the known end and the target value.
+  \item \emph{A way back.} Either integrate $F'$, or recognise a
+        differential equation in $F$ and solve it from the known end.
+\end{itemize}

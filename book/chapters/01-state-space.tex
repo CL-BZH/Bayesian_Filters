@@ -1829,7 +1829,9 @@ close. With $\phi'(x)=-(x/\sigma^2)\,\phi(x)$ it gives
 $\E[\theta\sin\theta]=\sigma^2\E[\cos\theta]$, which ties the unknown to
 another unknown; integrating by parts again brings in
 $\E[\theta^2\cos\theta]$, and so on, and the chain closes only as an
-infinite series. The way out is to put a parameter in the cosine,
+infinite series. The way out is to put a parameter in the cosine (a
+classical device, the subject of \cref{app:feynman}, which also gives a
+shorter route through complex numbers),
 \[
   m(a)=\E[\cos(a\theta)]=\int_\R\cos(ax)\,\phi(x)\,\mathrm dx ,
   \qquad m(0)=1 ,
@@ -1857,7 +1859,9 @@ on an interval $[-R,R]$
 As $R\to\infty$ the bracket tends to $0$ ($\sin$ is bounded and
 $\phi(\pm R)\to0$), and the two integrals tend to the integrals over $\R$
 by dominated convergence, with the integrable dominating functions
-$\abs x\,\phi(x)$ and $\phi(x)$.
+$\abs x\,\phi(x)$ and $\phi(x)$. (Because the integrands are integrable,
+the symmetric interval is no restriction: any intervals $[-R_1,R_2]$ with
+$R_1,R_2\to\infty$ give the same limit.)
 So
 \[
   m'(a)=-\sigma^2a\,m(a).
