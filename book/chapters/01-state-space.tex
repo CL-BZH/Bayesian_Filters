@@ -1933,15 +1933,28 @@ the joint distribution divided by that of the trajectory:
 a product of one factor per measurement. It does not depend on the
 controls, so it is also $p(\z_{1:T}\mid\x_{0:T})$.
 
-One point needs care: (a) has no density, because the transition has none
-(\cref{prop:degenerate}), so ``divided by (a)'' is to be read in the sense
-of \cref{sec:assumptions}. What the computation shows is that for every
-set $B$ of trajectories and every set $A$ of measurement sequences, the
-probability that the trajectory is in $B$ and the measurements in $A$ is
-the average, over the trajectories in $B$ drawn from (a), of the
-probability that (b) gives to $A$. This is exactly what ``(b) is the
-conditional distribution of the measurements given the trajectory''
-means.
+One point needs care. Dividing by (a) means dividing by the value of a
+density, and the trajectory has no density: (a) contains the transitions,
+which have none (\cref{prop:degenerate}). So the division above is only
+a way of writing, and the result must be checked against what a
+conditional distribution is when the conditioning variable has no
+density. A family of distributions $K(\x_{0:T},\cdot)$ of the
+measurements, one for each trajectory, is the conditional distribution of
+the measurements given the trajectory when, for every set $B$ of
+trajectories and every set $A$ of measurement sequences,
+\[
+  \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
+  =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr]:
+\]
+the probability of both events is the average, over the trajectories in
+$B$, of the probability that $K$ gives to $A$. (When the trajectory has a
+density this is the division read backwards: joint $=$ conditional
+$\times$ marginal.) Here it holds with $K$ given by (b): the factorisation
+says that a run is produced by drawing the trajectory from (a) and then
+each $\z_t$ from $p(\z_t\mid\x_t)$, so the probability that the
+measurements fall in $A$, for a given trajectory, is
+$K(\x_{0:T},A)=\int_A\prod_tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}$, and
+averaging over the trajectories in $B$ gives the left side.
 
 \emph{Why the controls must be fixed in advance.} If they are computed
 from the measurements, $\x_2=f(\x_1,\pi_1(\z_1)+\bepsilon_1)$ depends on
