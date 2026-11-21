@@ -2270,8 +2270,9 @@ that statement, not a mean heading.
 An exact zero is rare with real data; a small $\rho$ is not. Take $N$
 particles with equal weights $w_j=1/N$ and headings $\theta_j$ drawn
 independently and uniformly over the circle. This is what a particle
-filter holds when it knows nothing about the heading, for instance when
-it starts, or when it has lost the robot and spreads particles over the
+filter holds when it knows nothing about the heading: when it starts
+without knowing where the robot is (\cref{sec:global}), or when it has
+lost the robot and spreads particles over the
 whole lawn to find it again (\cref{sec:amcl}). Write $\vect u_j=(\cos\theta_j,\sin\theta_j)$ for the
 unit vector of heading $\theta_j$. With these weights the definitions of
 $C$ and $S$ read
