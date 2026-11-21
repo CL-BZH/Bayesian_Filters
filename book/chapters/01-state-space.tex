@@ -1163,8 +1163,22 @@ and its direction is the \emph{circular mean}
 \[
   \bar\theta=\operatorname{atan2}(S,C),
 \]
-defined when $(C,S)\neq(0,0)$ (\cref{def:atan2}; Exercise~\ref{ex:circmean}
-says what the case $(C,S)=(0,0)$ means).
+defined when $(C,S)\neq(0,0)$ (\cref{def:atan2}).
+
+The length $\rho=\sqrt{C^2+S^2}$ of the sum says how much the circular
+mean can be trusted. The sum of the vectors is at most as long as the sum
+of their lengths, so, the unit vectors having the lengths $w_j$ once
+weighted, $\rho\le\sum_jw_j$, with equality only when all the angles with
+a positive weight are the same direction. The ratio
+$\rho/\sum_jw_j$, between $0$ and $1$, therefore measures how
+concentrated the angles are. Near $1$ they point nearly the same way, and
+the circular mean summarises them well. Near $0$ the vectors largely
+cancel, and the mean is the direction of a short vector, which a small
+change of the angles can turn completely. At $0$ the mean is not
+defined. This happens even with non-negative weights: two equal weights
+at the opposite headings $0$ and $\pi$ give $C=\tfrac12(1-1)=0$ and
+$S=0$, and so do equal weights at headings spread evenly over the circle
+(Exercise~\ref{ex:circmean}).
 
 \begin{figure}[ht]
 \centering
@@ -2234,16 +2248,32 @@ $(C,S)$ with the unit vector $(\cos m,\sin m)$, that is, the length
 $\rho$ times the cosine of the angle between them.) So the sum is
 $\sum_jw_j-\rho\cos(m-\bar\theta)$. Only the cosine depends on $m$, and
 $\rho>0$, so the sum is smallest where the cosine is largest, equal to
-$1$, at $m=\bar\theta$. If
-$C=S=0$, every $m$ gives the same value: the mean direction is
+$1$, at $m=\bar\theta$.
+
+If $C=S=0$, every $m$ gives the same value: the mean direction is
 undefined, and so is $\operatorname{atan2}(0,0)$ (\cref{def:atan2}); a
 program returns some angle anyway, for instance \code{np.arctan2(0,0)}
 returns $0$, an arbitrary answer. $C=S=0$ means that the weighted unit
-vectors cancel out: for instance two equal weights at opposite headings,
-or headings spread evenly over the whole circle. No single direction
-summarises such a set. If the angles are the headings of a filter's
-particles, the filter does not know which way the robot faces, and the
-right output is that statement, not a mean heading. The same holds,
-less sharply, when $\rho=\sqrt{C^2+S^2}$ is small compared with
-$\sum_jw_j$: the mean then exists, but a small change of the angles moves
-it a lot, because it is the direction of a short vector.
+vectors cancel out, which non-negative weights do not prevent. Two
+equal weights at opposite headings give $C=\tfrac12(\cos0+\cos\pi)=0$ and
+$S=\tfrac12(\sin0+\sin\pi)=0$. Three equal weights at $0$, $2\pi/3$ and
+$4\pi/3$ give $C=\tfrac13(1-\tfrac12-\tfrac12)=0$ and
+$S=\tfrac13(0+\tfrac{\sqrt3}2-\tfrac{\sqrt3}2)=0$: placed head to tail,
+the three unit vectors close a triangle. No single direction summarises
+such a set. If the angles are the headings of a filter's particles, the
+filter does not know which way the robot faces, and the right output is
+that statement, not a mean heading.
+
+An exact zero is rare with real data; a small $\rho$ is not. Take $N$
+particles with equal weights $1/N$ and headings drawn uniformly over the
+circle, as after the robot has been carried elsewhere. The unit vectors
+$\vect u_j$ are independent with mean $\vect0$ and length $1$, so
+\[
+  \E\Bigl\|\sum_j\vect u_j\Bigr\|^2=\sum_j\E\norm{\vect u_j}^2
+  +\sum_{j\neq k}\E[\vect u_j]\T\E[\vect u_k]=N,
+\]
+and $\rho=\norm{\sum_j\vect u_j}/N$ is typically about $1/\sqrt N$, which
+is $0.03$ for $N=1000$. The circular mean is then defined, but it is the
+direction of a short, essentially random vector, it changes from one
+step to the next, and it says nothing about the heading of the robot.
+The ratio $\rho/\sum_jw_j$ of \cref{sec:circular} detects this case.
