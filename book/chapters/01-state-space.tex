@@ -2260,14 +2260,19 @@ $S=\tfrac12(\sin0+\sin\pi)=0$. Three equal weights at $0$, $2\pi/3$ and
 $4\pi/3$ give $C=\tfrac13(1-\tfrac12-\tfrac12)=0$ and
 $S=\tfrac13(0+\tfrac{\sqrt3}2-\tfrac{\sqrt3}2)=0$: placed head to tail,
 the three unit vectors close a triangle. No single direction summarises
-such a set. If the angles are the headings of a filter's particles, the
+such a set. A particle filter (\cref{ch:particle}) represents its
+belief about the pose by many sample poses, called \emph{particles},
+each with a weight, and it reports the heading as the circular mean of
+the headings of its particles. If those headings look like this, the
 filter does not know which way the robot faces, and the right output is
 that statement, not a mean heading.
 
 An exact zero is rare with real data; a small $\rho$ is not. Take $N$
 particles with equal weights $w_j=1/N$ and headings $\theta_j$ drawn
-independently and uniformly over the circle, as after the robot has been
-carried elsewhere. Write $\vect u_j=(\cos\theta_j,\sin\theta_j)$ for the
+independently and uniformly over the circle. This is what a particle
+filter holds when it knows nothing about the heading, for instance when
+it starts, or when it has lost the robot and spreads particles over the
+whole lawn to find it again (\cref{sec:amcl}). Write $\vect u_j=(\cos\theta_j,\sin\theta_j)$ for the
 unit vector of heading $\theta_j$. With these weights the definitions of
 $C$ and $S$ read
 \[
