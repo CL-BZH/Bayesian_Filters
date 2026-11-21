@@ -2204,25 +2204,67 @@ mean (\cref{sec:circular}); these give the same result for every choice
 of the stored numbers. Wrapping after each update is a convention that
 keeps the stored state tidy, not a substitute for them.
 
-\solution{1.5} From the proof of \cref{prop:deadreckoning},
-$\theta_t=\sum_{j=1}^t\varepsilon_{\delta,j}$ and
-$e_t\approx s\sum_{j=1}^t(t-j+1)\varepsilon_{\delta,j}$. With independent
-$\varepsilon_{\delta,j}$ of variance $\sigma_\delta^2$, only the pairs
-with the same $j$ contribute to the covariances, and with $m=t-j+1$
-(which runs from $1$ to $t$) and the classical sums
-$\sum_{m=1}^tm=t(t+1)/2$ and $\sum_{m=1}^tm^2=t(t+1)(2t+1)/6$,
+\solution{1.5} Write $\varepsilon_j$ for the turn error
+$\varepsilon_{\delta,j}$ of step $j$; the $\varepsilon_j$ are independent,
+with mean $0$ and variance $\sigma_\delta^2$.
+
+\emph{Both errors as sums of the same turn errors.} From the proof of
+\cref{prop:deadreckoning},
 \[
-  \Cov(e_t,\theta_t)\approx s\sigma_\delta^2\sum_{m=1}^tm=
-  s\sigma_\delta^2\frac{t(t+1)}2,\quad
-  \Var(e_t)\approx s^2\sigma_\delta^2\frac{t(t+1)(2t+1)}6,\quad
-  \Var(\theta_t)=t\sigma_\delta^2 .
+  \theta_t=\sum_{j=1}^t\varepsilon_j,
+  \qquad
+  e_t\approx s\sum_{j=1}^t(t-j+1)\,\varepsilon_j :
 \]
-Hence the squared correlation is
-$\rho_t^2=\frac{\Cov(e_t,\theta_t)^2}{\Var(e_t)\Var(\theta_t)}
-=\frac{t^2(t+1)^2/4}{t\cdot t(t+1)(2t+1)/6}=
-\frac{3(t+1)}{2(2t+1)}$ (the factors $s^2\sigma_\delta^4$ cancel), which is $1$ for $t=1$ and tends to $3/4$. A
+the heading counts each turn error once, the lateral error counts the
+turn error of step $j$ once per leg from the $j$-th on, that is $t-j+1$
+times.
+
+\emph{The covariance of two such sums.} For coefficients $a_j$ and $b_j$,
+the covariance is bilinear, so
+\[
+  \Cov\Bigl(\sum_ja_j\varepsilon_j,\ \sum_kb_k\varepsilon_k\Bigr)
+  =\sum_j\sum_ka_jb_k\Cov(\varepsilon_j,\varepsilon_k)
+  =\sigma_\delta^2\sum_ja_jb_j ,
+\]
+because $\Cov(\varepsilon_j,\varepsilon_k)$ is $0$ for $j\neq k$
+(independence) and $\sigma_\delta^2$ for $j=k$. With $b=a$ this gives the
+variance, $\sigma_\delta^2\sum_ja_j^2$.
+
+\emph{The three terms.} The coefficients are $a_j=s(t-j+1)$ for $e_t$ and
+$b_j=1$ for $\theta_t$. In the sums, substitute $m=t-j+1$: as $j$ runs
+from $1$ to $t$, $m$ runs from $t$ down to $1$. With the classical sums
+$\sum_{m=1}^tm=t(t+1)/2$ and $\sum_{m=1}^tm^2=t(t+1)(2t+1)/6$,
+\begin{align*}
+  \Cov(e_t,\theta_t)&\approx\sigma_\delta^2\sum_{j=1}^ts(t-j+1)\cdot1
+  =s\sigma_\delta^2\sum_{m=1}^tm=s\sigma_\delta^2\,\frac{t(t+1)}2,\\
+  \Var(e_t)&\approx\sigma_\delta^2\sum_{j=1}^ts^2(t-j+1)^2
+  =s^2\sigma_\delta^2\sum_{m=1}^tm^2
+  =s^2\sigma_\delta^2\,\frac{t(t+1)(2t+1)}6,\\
+  \Var(\theta_t)&=\sigma_\delta^2\sum_{j=1}^t1^2=t\,\sigma_\delta^2 .
+\end{align*}
+
+\emph{The correlation.} The covariance is positive, so
+$\rho_t=\Cov(e_t,\theta_t)/\sqrt{\Var(e_t)\Var(\theta_t)}$ is the
+positive square root of
+\[
+  \rho_t^2=\frac{\Cov(e_t,\theta_t)^2}{\Var(e_t)\Var(\theta_t)}
+  =\frac{s^2\sigma_\delta^4\,t^2(t+1)^2/4}
+        {s^2\sigma_\delta^2\,\frac{t(t+1)(2t+1)}6\cdot t\,\sigma_\delta^2}
+  =\frac{t^2(t+1)^2}4\cdot\frac6{t^2(t+1)(2t+1)}
+  =\frac{3(t+1)}{2(2t+1)} .
+\]
+The factors $s^2\sigma_\delta^4$ cancel first, then $t^2$ and one factor
+$t+1$.
+
+\emph{Its values.} For $t=1$, $\rho_1^2=\frac{3\cdot2}{2\cdot3}=1$:
+after one step $e_1=s\varepsilon_1$ and $\theta_1=\varepsilon_1$ are
+exactly proportional. Writing
+$\frac{t+1}{2t+1}=\frac12+\frac1{2(2t+1)}$ shows that $\rho_t^2$
+decreases with $t$, towards $\frac32\cdot\frac12=\frac34$, so $\rho_t$
+decreases to $\sqrt3/2\approx0.87$. For $t=5$ and $t=25$ the formula
+gives $\rho_t=\sqrt{18/22}=0.905$ and $\sqrt{78/102}=0.875$. A
 Monte Carlo run with the noise of the simulations gives $0.903$ and $0.874$
-after 5 and 25 steps, against $0.905$ and $0.875$. The coupling never
+after 5 and 25 steps. The coupling never
 vanishes because every turn error that contributes to the final heading
 error also pushed the robot sideways for the rest of the path; old turn
 errors weigh more in $e_t$ (by the factor $t-j+1$) than in $\theta_t$,
