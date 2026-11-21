@@ -621,7 +621,7 @@ is a cheap and effective guard.
 
 \subsection*{Solutions}
 
-\textbf{3.1.} $\y=H(\x-\bx)+\vv$; both terms have mean zero given the
+\solution{3.1} $\y=H(\x-\bx)+\vv$; both terms have mean zero given the
 past, and they are independent, so $\Cov(\y)=H\bar PH\T+R=S$. After the
 update, $\x-\hx=(\x-\bx)-K\y$, so
 $\Cov(\x-\hx,\y)=\Cov(\x-\bx,\y)-K\Cov(\y)=\bar PH\T-KS=0$ for the Kalman
@@ -629,7 +629,7 @@ gain. The updated error is uncorrelated with (hence, being Gaussian,
 independent of) the innovation: the filter has extracted everything the
 measurement had to say.
 
-\textbf{3.2.} ``No prior'' is the limit $\bar P\to\infty$, in which the
+\solution{3.2} ``No prior'' is the limit $\bar P\to\infty$, in which the
 information form gives $\bar P^{-1}=0$ and the mean
 $\hx=P(\bar P^{-1}\bx+H\T R^{-1}\z)=PH\T R^{-1}\z$ (from $\hx=\bx+K(\z-H\bx)$
 with $K=PH\T R^{-1}$ and $I-KH=P\bar P^{-1}$). Stack the two measurements:
@@ -640,14 +640,14 @@ average, with variance $r_1r_2/(r_1+r_2)$, smaller than both. When
 $r_2\to\infty$ the second sensor gets weight zero and $\hat x\to z_1$,
 $P\to r_1$: a useless sensor is ignored, never harmful.
 
-\textbf{3.3.} $\bar P_\infty=(0.16+\sqrt{0.0256+40.96})/2=3.28$, so
+\solution{3.3} $\bar P_\infty=(0.16+\sqrt{0.0256+40.96})/2=3.28$, so
 $K_\infty=3.28/67.28=0.049$. In steady state
 $\hat x_t=(1-K)\hat x_{t-1}+Kz_t$ (plus the known displacement): an
 exponential moving average with weights $K(1-K)^k$. Its effective memory
 is $1/K\approx20$ fixes, and the variance of an average of $m$
 independent fixes, $64/m$, equals $P_\infty=3.12$ for $m\approx20$.
 
-\textbf{3.4.} The filter computes its gains from its own recursion,
+\solution{3.4} The filter computes its gains from its own recursion,
 $\bar P'\mapsto F(\bar P'-\bar P'H\T(H\bar P'H\T+R')^{-1}H\bar P')F\T+Q$,
 which uses $R'$ and is what it reports. Its actual error obeys
 $\x-\hx=(I-K'H)(\x-\bx)-K'\vv$ with the true $\vv\sim\Normal(\vect0,R)$, so

@@ -574,7 +574,7 @@ carry several hypotheses until the motion resolves them.
 
 \subsection*{Solutions}
 
-\textbf{2.1.} Order the states $(G,P)$. Predict: the transition matrix is
+\solution{2.1} Order the states $(G,P)$. Predict: the transition matrix is
 symmetric with $0.9$ on the diagonal, so $(0.5,0.5)$ stays
 $(0.5,0.5)$. Update with ``rough'': multiply by $(0.3,0.8)$ to get
 $(0.15,0.40)$, normalise: $(0.273,0.727)$. Predict:
@@ -584,7 +584,7 @@ $(0.149,0.851)$. Without the prediction in between, two readings would
 give $(0.123,0.877)$: the prediction pulled the belief back towards $1/2$,
 because the robot might have left the path in between.
 
-\textbf{2.2.} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
+\solution{2.2} If $X_1\sim\Normal(\vect0,\Sigma_1)$ and
 $X_2\sim\Normal(\vect0,\Sigma_2)$ are independent, the density of
 $X_1+X_2$ is the convolution of their densities, and $X_1+X_2\sim
 \Normal(\vect0,\Sigma_1+\Sigma_2)$ (its characteristic function,
@@ -596,7 +596,7 @@ with $\Normal(\vect0,t\Sigma)$: its width grows like $\sqrt t$, plus the
 heading-induced growth of \cref{prop:deadreckoning} when the heading is
 not known.
 
-\textbf{2.3.} The prediction is the identity, so after $k$ updates the belief is the prior times the product of
+\solution{2.3} The prediction is the identity, so after $k$ updates the belief is the prior times the product of
 $k$ likelihoods, all $\sigma$-invariant by \cref{prop:mirror}. A
 $\sigma$-invariant prior times $\sigma$-invariant factors stays
 $\sigma$-invariant, so the two bumps always have equal mass: $1/2$ each,
@@ -604,7 +604,7 @@ exactly, not only in the limit. (In the limit each bump also shrinks to a
 point, because the ranges are averaged.) Only motion, or a third landmark
 off the axis, can break the tie.
 
-\textbf{2.4.} $600\times600\times360\approx1.3\times10^8$ cells, about
+\solution{2.4} $600\times600\times360\approx1.3\times10^8$ cells, about
 $520$\,MB in single precision. A prediction written as
 $\belbar_i=\sum_jP_{ij}b_j$ costs $n^2\approx1.7\times10^{16}$
 operations, hopeless at any rate. Using the structure (a shift plus a

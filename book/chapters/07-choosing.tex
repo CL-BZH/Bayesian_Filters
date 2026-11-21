@@ -389,7 +389,7 @@ place, or localising with a camera, is a smoothing problem.
 
 \subsection*{Solutions}
 
-\textbf{7.1.} The filtered variance in steady state is
+\solution{7.1} The filtered variance in steady state is
 $P_\infty=\bar P_\infty-q$ (\cref{prop:steady}). The smoothed estimate
 combines two sources of information about $x_t$ that are conditionally
 independent given $x_t$: the past (the filter, variance $P_\infty$,
@@ -403,7 +403,7 @@ $P_\infty=3.12$, $\bar P_\infty=3.28$, and $P^{\mathrm s}=1.60$: the
 smoother halves the variance, because it uses about as many measurements
 from the future as the filter uses from the past.
 
-\textbf{7.2.} Add a class \code{IEKF} that subclasses \code{EKF} and
+\solution{7.2} Add a class \code{IEKF} that subclasses \code{EKF} and
 overrides \code{update} to iterate \eqref{eq:iekf} from $\x_0=\bx$ until
 the step is small, using the covariance $(I-K_iH_i)\bar P$ of the last
 iterate; then add it to the list of filters in the notebook. It should
@@ -413,7 +413,7 @@ identified kidnapping. It will not fix unknown data association: the
 association is decided before the iterations and stays wrong, and the
 belief is still a single Gaussian.
 
-\textbf{7.3.} One possible design: split the cloud into two clusters
+\solution{7.3} One possible design: split the cloud into two clusters
 with a few iterations of weighted $k$-means ($k=2$), and call it unimodal
 when the lighter cluster carries little weight (say under $1\%$) or the
 two cluster means are within a few standard deviations of each other. If

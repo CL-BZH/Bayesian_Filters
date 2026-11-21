@@ -555,7 +555,7 @@ more robust estimator, for instance a particle filter or a GNSS fix.
 
 \subsection*{Solutions}
 
-\textbf{4.1.} If $f(\x,\uu)=F\x+B\uu+\vect{c}$, its Jacobian is $F$ and
+\solution{4.1} If $f(\x,\uu)=F\x+B\uu+\vect{c}$, its Jacobian is $F$ and
 the EKF predicted covariance is $FPF\T+BMB\T$, that of the Kalman filter
 with $Q=BMB\T$; if the noise enters through
 the control as $f(\x,\uu+\bepsilon)$, it is affine in $\bepsilon$ too and
@@ -565,7 +565,7 @@ innovation is $\z-H\bx-\vect{c}$ and the remaining formulas are those of
 \cref{thm:kf}. Linearisation is exact for affine maps, so every step
 coincides.
 
-\textbf{4.2.} At $0$, $\cos'(0)=0$: linearisation gives
+\solution{4.2} At $0$, $\cos'(0)=0$: linearisation gives
 $y\approx1$, with mean $1$ and variance $0$. Exactly,
 $\E[y]=e^{-\sigma^2/2}$ (Exercise~\ref{ex:ecos}) and
 $\E[y^2]=\E[(1+\cos2\theta)/2]=(1+e^{-2\sigma^2})/2$, so
@@ -574,7 +574,7 @@ $\Var(y)=\tfrac12(1-e^{-\sigma^2})^2$. For $\sigma=0.8$: mean $0.726$
 stationary point loses \emph{all} the uncertainty; this is the needle of
 \cref{fig:arc}.
 
-\textbf{4.3.} For $r(\p)=\norm{\bell-\p}$, $\nabla r=-\hat{\vect{d}}$ and
+\solution{4.3} For $r(\p)=\norm{\bell-\p}$, $\nabla r=-\hat{\vect{d}}$ and
 $\nabla^2r=(I-\hat{\vect{d}}\hat{\vect{d}}\T)/r$ with
 $\hat{\vect d}=\vect{d}/r$. So
 $\tfrac12\tr(\nabla^2r\,\Sigma)=\tfrac1{2r}(\tr\Sigma-\hat{\vect{d}}\T
@@ -583,7 +583,7 @@ changes the range linearly (no curvature); moving perpendicular to it
 always increases the range, by Pythagoras, so the errors do not average
 out. The bias is small far from the landmark and large close to it.
 
-\textbf{4.4.} For a consistent filter, the squared Mahalanobis distance
+\solution{4.4} For a consistent filter, the squared Mahalanobis distance
 of a
 correct measurement is $\chi^2_2$, whose $99\%$ quantile is
 $-2\log0.01=9.21$; $1\%$ of correct measurements are rejected. If $S$ is

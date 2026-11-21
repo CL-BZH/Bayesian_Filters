@@ -668,19 +668,19 @@ slope.
 
 \subsection*{Solutions}
 
-\textbf{6.1.} With $\sum_iw_i=1$ and $w_i\ge0$, $\sum_iw_i^2\le
+\solution{6.1} With $\sum_iw_i=1$ and $w_i\ge0$, $\sum_iw_i^2\le
 \sum_iw_i\max_kw_k\le1$, with equality iff one weight is $1$. By
 Cauchy--Schwarz, $1=(\sum_iw_i)^2\le N\sum_iw_i^2$, with equality iff all
 the weights are equal. The empirical mean of the weights is $1/N$, so
 $s^2=\frac1N\sum_iw_i^2-\frac1{N^2}$, i.e.\ $\sum_iw_i^2=Ns^2+1/N$ and
 $\ESS=1/(Ns^2+1/N)=N/(1+N^2s^2)$.
 
-\textbf{6.2.} With one sample the normalised weight is $1$, so
+\solution{6.2} With one sample the normalised weight is $1$, so
 $\hat\varphi_1=X^{(1)}$, whose mean under $q$ is $0$, not $\E_\pi[X]=1$.
 The ratio of two unbiased estimates is not unbiased; the bias of the
 self-normalised estimate shrinks like $1/N$.
 
-\textbf{6.3.} The pointer $U_k\sim\mathcal U[k/N,(k+1)/N)$ falls in
+\solution{6.3} The pointer $U_k\sim\mathcal U[k/N,(k+1)/N)$ falls in
 particle $i$'s interval $I_i$ with probability $N|I_i\cap[k/N,
 (k+1)/N)|=:p_{ik}$, so $\E[N_i]=\sum_kp_{ik}=N|I_i|=Nw^{(i)}$. The
 pointers are independent, so $N_i$ is a sum of independent Bernoulli
@@ -689,7 +689,7 @@ $\Var(N_i)=\sum_kp_{ik}(1-p_{ik})$. For a fixed sum $\sum_kp_{ik}=
 Nw^{(i)}$, $\sum_kp_{ik}^2\ge(\sum_kp_{ik})^2/N=Nw^{(i)2}$ by
 Cauchy--Schwarz, so $\Var(N_i)\le Nw^{(i)}-Nw^{(i)2}$.
 
-\textbf{6.4.} Let $h_t=m_t(1-m_t)$. Given $m_t$,
+\solution{6.4} Let $h_t=m_t(1-m_t)$. Given $m_t$,
 $\E[m_{t+1}^2]=m_t^2+m_t(1-m_t)/N$, so $\E[h_{t+1}\mid m_t]=m_t-m_t^2-
 m_t(1-m_t)/N=h_t(1-1/N)$; take expectations and iterate. For $N=2000$,
 $(1-1/N)^t=1/2$ gives $t=\log2/(-\log(1-1/2000))\approx1386$
