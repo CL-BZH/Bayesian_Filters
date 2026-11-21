@@ -1155,11 +1155,16 @@ direction, just on either side of the cut at $\pm\pi$, and averaging the
 numbers ignores that. The remedy is to average \emph{directions} instead
 of numbers: replace each angle by the unit vector
 $(\cos\theta_j,\sin\theta_j)$, add the vectors with their weights, and
-take the direction of the sum. This is the \emph{circular mean}
+take the direction of the sum. The sum is the vector $(C,S)$ with
 \[
-  \bar\theta=\operatorname{atan2}\Bigl(\sum_jw_j\sin\theta_j,\;
-  \sum_jw_j\cos\theta_j\Bigr).
+  C=\sum_jw_j\cos\theta_j,\qquad S=\sum_jw_j\sin\theta_j ,
 \]
+and its direction is the \emph{circular mean}
+\[
+  \bar\theta=\operatorname{atan2}(S,C),
+\]
+defined when $(C,S)\neq(0,0)$ (\cref{def:atan2}; Exercise~\ref{ex:circmean}
+says what the case $(C,S)=(0,0)$ means).
 
 \begin{figure}[ht]
 \centering
@@ -1935,9 +1940,10 @@ RTK-GNSS or a camera.
   \]
   so that $\rho_1=1$ and $\rho_t$ decreases to $\sqrt3/2\approx0.87$.
   Why does the coupling never vanish?
-\item\label{ex:circmean} Show that for weights $w_j\ge0$ with
-  $C=\sum_jw_j\cos\theta_j$, $S=\sum_jw_j\sin\theta_j$ not both zero, the
-  circular mean minimises $\sum_jw_j(1-\cos(\theta_j-m))$. What goes wrong
+\item\label{ex:circmean} Let $w_j\ge0$, and let $C$ and $S$ be the two
+  components of the sum of the weighted unit vectors, as in the definition
+  of the circular mean (\cref{sec:circular}), not both zero. Show that the
+  circular mean $\bar\theta=\operatorname{atan2}(S,C)$ minimises $\sum_jw_j(1-\cos(\theta_j-m))$. What goes wrong
   if $C=S=0$?
 \end{enumerate}
 
