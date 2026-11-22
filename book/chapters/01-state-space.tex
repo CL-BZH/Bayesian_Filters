@@ -2116,12 +2116,26 @@ $4$.
 
 \emph{The measurements are not independent.} It is enough to see it in
 the simplest model of the same shape: a robot on a line, with
-$x_{t+1}=x_t+s+\varepsilon_t$, a GPS that reads $z_t=x_t+\nu_t$, an
-uncertain start ($\Var x_0=P_0>0$), and all noises independent. Then
-$z_2=x_1+s+\varepsilon_1+\nu_2$ and $z_1=x_1+\nu_1$ share the term $x_1$,
-and every other term is independent of everything else, so
+$x_{t+1}=x_t+s+\varepsilon_t$, where $s$ is the commanded step and
+$\varepsilon_t\sim\Normal(0,\sigma_s^2)$ its error, a GPS that reads
+$z_t=x_t+\nu_t$, an uncertain start ($\Var x_0=P_0>0$), and all noises
+independent of one another and of $x_0$.
+
+Write both measurements in terms of $x_1$. The first is
+$z_1=x_1+\nu_1$. For the second, $x_2=x_1+s+\varepsilon_1$, so
+$z_2=x_1+s+\varepsilon_1+\nu_2$. The covariance is bilinear, and the
+constant $s$ does not contribute, so
 \[
-  \Cov(z_1,z_2)=\Var(x_1)=P_0+\sigma_s^2>0 .
+  \Cov(z_1,z_2)=\Cov(x_1,x_1)+\Cov(x_1,\varepsilon_1+\nu_2)
+  +\Cov(\nu_1,x_1)+\Cov(\nu_1,\varepsilon_1+\nu_2).
+\]
+Only the first term is not zero: $\varepsilon_1$, $\nu_1$ and $\nu_2$ are
+independent of each other and of $x_1$ (which is made of $x_0$ and
+$\varepsilon_0$ only). So $\Cov(z_1,z_2)=\Var(x_1)$. Finally
+$x_1=x_0+s+\varepsilon_0$ is the sum of the constant $s$ and of two
+independent terms, so its variance is the sum of theirs:
+\[
+  \Cov(z_1,z_2)=\Var(x_1)=\Var(x_0)+\Var(\varepsilon_0)=P_0+\sigma_s^2>0 .
 \]
 Two variables with a non-zero covariance are not independent. The reason
 is general: two measurements depend on the same trajectory, which is
