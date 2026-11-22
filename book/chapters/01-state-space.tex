@@ -1485,7 +1485,9 @@ else.
 
 Some notation first. A range of indices denotes a sequence:
 $\x_{0:t}=(\x_0,\x_1,\dots,\x_t)$, and likewise $\uu_{0:t}$ and
-$\z_{1:t}$. The letter $p$ denotes a probability distribution: $p(a)$
+$\z_{1:t}$. The sequence of poses $\x_{0:t}$ is the \emph{trajectory} of
+the robot up to time $t$: where it was at each step, not the continuous
+path between the steps. The letter $p$ denotes a probability distribution: $p(a)$
 that of $a$, and $p(a\mid b)$ that of $a$ given $b$; which one is meant is
 told by its arguments. As in most texts, it is written as a density, a
 function to integrate. When the distribution has a density, $p$ is that
@@ -1947,7 +1949,7 @@ RTK-GNSS or a camera.
 \item\label{ex:condind} With controls fixed in advance, use
   \cref{prop:joint} to show that the measurements are \emph{not}
   independent of one another, but that they
-  are independent given the states: $p(\z_{1:T}\mid\x_{0:T})=
+  are independent given the trajectory $\x_{0:T}$: $p(\z_{1:T}\mid\x_{0:T})=
   \prod_t p(\z_t\mid\x_t)$.
 \item\label{ex:wrapadd} Is $\wrap$ additive, i.e.\ is
   $\wrap(a+b)=\wrap(a)+\wrap(b)$? Give a proof or a counter-example, and
@@ -2233,8 +2235,12 @@ and likewise for $\mathbf 1_A$.
 \emph{The expectation as an ordinary integral.} The trajectory has no
 density, but it is a function of variables that do: the start $\x_0$ and
 the control noises $\bepsilon_0,\dots,\bepsilon_{T-1}$. Applying
-\eqref{eq:motionnoise} step by step turns them into the trajectory; write
-$\x_{0:T}=\Phi(\x_0,\bepsilon_{0:T-1})$. (In the circle example, likewise,
+\eqref{eq:motionnoise} step by step, $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$,
+turns them into the trajectory; write
+$\x_{0:T}=\Phi(\x_0,\bepsilon_{0:T-1};\uu)$. The controls $\uu$ enter
+$\Phi$ too, but they are fixed in advance, not random: they are
+parameters, written after the semicolon, and the expectation does not
+integrate over them. (In the circle example, likewise,
 $X=(\cos\alpha,\sin\alpha)$ with an angle $\alpha$ uniform on
 $[0,2\pi)$, which has a density.) The start, the control noises and the
 measurements, given the trajectory, all have densities, so the
@@ -2247,7 +2253,7 @@ $\z_{1:T}$:
    p(\x_0)\prod_{t=0}^{T-1}\Normal(\bepsilon_t;\vect0,M)\;
    \mathrm d\x_0\,\mathrm d\bepsilon_{0:T-1},
 \end{multline*}
-where $\Phi$ stands for $\Phi(\x_0,\bepsilon_{0:T-1})$ and the $\x_t$ in
+where $\Phi$ stands for $\Phi(\x_0,\bepsilon_{0:T-1};\uu)$ and the $\x_t$ in
 the inner integral are its poses. The inner integral is over the
 measurements only, with the trajectory held fixed: it is the probability
 that the recipe gives to $A$ for that trajectory,
