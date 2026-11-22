@@ -586,59 +586,57 @@ def _conv_example():
 
 
 def fig_conv_read():
-    """Computing one value of a * g: the function, the weights around p, their product."""
+    """Computing a * g: for three points p, the function, the weights around p and their product
+    (whose area is the value at p); last row, the value at every p."""
     y, a, sd, a_g = _conv_example()
-    p = 5.0
-    w = _gauss(y, p, sd**2)
-    prod = a * w
-    value = prod.sum() * (y[1] - y[0])
+    dy = y[1] - y[0]
     blue = viz.COLORS["EKF"]
-    fig, axes = plt.subplots(3, 1, figsize=(W * 0.8, W * 0.62), sharex=True)
-    rows = [(a, "$a(y)$", viz.INK), (w, "weights $g(p-y)$", blue), (prod, "product $a(y)\\,g(p-y)$", blue)]
-    for ax, (f, label, colour) in zip(axes, rows):
-        ax.plot(y, f, color=colour, lw=1.5)
-        ax.axvline(p, color=viz.INK_2, ls="--", lw=0.9)
-        ax.set_ylim(0, f.max() * 1.25)
-        ax.set_ylabel(label, fontsize=10, rotation=0, ha="right", va="center")
-        ax.set_yticks([])
-    axes[2].fill_between(y, 0, prod, color=blue, alpha=0.35, lw=0)
-    axes[0].annotate("$p=5$", (p, axes[0].get_ylim()[1]), xytext=(4, -10), textcoords="offset points",
-                     color=viz.INK_2, fontsize=10)
-    axes[1].annotate("total weight 1", (p + 1.0, 0.45), color=blue, fontsize=10)
-    axes[2].annotate(f"shaded area\n$=(a\\ast g)(5)$\n$\\approx{value:.3f}$", (p + 1.7, prod.max() * 0.25),
-                     color=viz.INK, fontsize=10)
-    axes[2].set_xlabel("$y$")
-    axes[2].set_xlim(-1, 11)
-    plt.tight_layout(h_pad=0.4)
+    ps = (2.0, 5.0, 7.0)
+    fig, axes = plt.subplots(4, 3, figsize=(W, W * 0.55), sharex=True, sharey="row")
+    for c, p in enumerate(ps):
+        w = _gauss(y, p, sd**2)
+        prod = a * w
+        value = prod.sum() * dy
+        axes[0, c].plot(y, a, color=viz.INK, lw=1.1)
+        axes[1, c].plot(y, w, color=blue, lw=1.2)
+        axes[2, c].plot(y, prod, color=blue, lw=1.0)
+        axes[2, c].fill_between(y, 0, prod, color=blue, alpha=0.35, lw=0)
+        axes[2, c].annotate(f"area {value:.3f}", (0.97, 0.75), xycoords="axes fraction", ha="right",
+                            fontsize=8.5, color=viz.INK)
+        axes[3, c].plot(y, a, color=viz.MUTED, lw=0.8)
+        axes[3, c].plot(y, a_g, color=blue, lw=1.4)
+        axes[3, c].plot(p, value, "o", color=blue, ms=4.5)
+        for r in range(4):
+            axes[r, c].axvline(p, color=viz.INK_2, ls="--", lw=0.7)
+        axes[0, c].set_title(f"$p={p:g}$", fontsize=9)
+        print(f"convolution: (a*g)({p:g}) = {value:.4f}")
+    for r, label in enumerate(["$a(y)$", "$g(p-y)$", "product", "$(a\\ast g)(p)$"]):
+        axes[r, 0].set_ylabel(label, fontsize=9)
+    for ax in axes.flat:
+        ax.set_yticks([]); ax.set_xlim(-1, 11); ax.set_xticks([0, 2, 4, 6, 8, 10])
+        ax.tick_params(labelsize=7.5)
+    axes[3, 1].set_xlabel("$y$ (rows 1 to 3), $p$ (row 4)", fontsize=8.5, labelpad=1)
+    for r in range(4):
+        top = max(ax.get_ylim()[1] for ax in axes[r])
+        axes[r, 0].set_ylim(0, top * 1.1)
+    fig.subplots_adjust(left=0.06, right=0.995, top=0.94, bottom=0.11, hspace=0.12, wspace=0.05)
     save(fig, "ch02_conv_read")
-    print(f"convolution: (a*g)(5) = {value:.4f}, plateau height {0.7 / 4:.4f}")
+    print(f"convolution: top of the peak {a.max():.4f}, plateau height {0.7 / 4:.4f}")
 
 
 def fig_conv_result():
-    """The blurred copy a * g, and a * g as the density of X + W."""
+    """a * g as the density of X + W."""
     y, a, sd, a_g = _conv_example()
     blue = viz.COLORS["EKF"]
-    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.42), sharey=True)
-    ax = axes[0]
-    ax.plot(y, a, color=viz.INK, lw=1.2)
-    ax.plot(y, a_g, color=blue, lw=1.8)
-    ax.annotate("$a$", (2.25, 0.38), color=viz.INK, fontsize=11)
-    ax.annotate("$a\\ast g$", (-0.8, 0.12), color=blue, fontsize=11)
-    ax.annotate("peak: lower\nand wider", (2.9, 0.29), color=viz.INK_2, fontsize=9.5)
-    ax.annotate("middle: unchanged", (7.0, 0.215), color=viz.INK_2, fontsize=9.5, ha="center")
-    ax.annotate("ends:\nsoftened", (9.35, 0.09), color=viz.INK_2, fontsize=9.5)
-    ax.set_title("(a) the blurred copy", fontsize=10)
-    ax = axes[1]
+    fig, ax = plt.subplots(figsize=(W * 0.55, W * 0.3))
     rng = np.random.default_rng(0)
     n = 200_000
     X = np.where(rng.random(n) < 0.3, rng.normal(2.0, 0.3, n), rng.uniform(5, 9, n))
     ax.hist(X + rng.normal(0, sd, n), bins=np.arange(-2, 12.01, 0.2), density=True, color="#b9d4f2", lw=0)
-    ax.plot(y, a_g, color=blue, lw=1.8)
-    ax.annotate("histogram of\n$X+W$", (-0.8, 0.2), color=viz.INK_2, fontsize=9.5)
-    ax.annotate("$a\\ast g$", (8.9, 0.2), color=blue, fontsize=11)
-    ax.set_title("(b) the density of $X+W$", fontsize=10)
-    for ax in axes:
-        ax.set_xlim(-1, 11); ax.set_ylim(0, 0.45); ax.set_xlabel("$y$")
+    ax.plot(y, a_g, color=blue, lw=1.6)
+    ax.annotate("histogram of $X+W$", (-0.8, 0.205), color=viz.INK_2, fontsize=8.5)
+    ax.annotate("$a\\ast g$", (8.9, 0.19), color=blue, fontsize=10)
+    ax.set_xlim(-1, 11); ax.set_ylim(0, 0.24); ax.set_xlabel("$y$")
     plt.tight_layout()
     save(fig, "ch02_conv_result")
 
