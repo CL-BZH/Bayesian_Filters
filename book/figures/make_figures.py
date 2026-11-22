@@ -575,70 +575,72 @@ def _gauss(x, m, v):
 
 
 
-def fig_convolution():
-    """How to read a convolution, on the line: a moving average, a weighted average, and the
-    density of a sum of independent variables."""
+def _conv_example():
+    """The function a of the convolution figures (a peak and a plateau) and its blur by g = N(0, 0.7^2)."""
     y = np.linspace(-2, 12, 2801)
     dy = y[1] - y[0]
-    a = 0.3 * _gauss(y, 2.0, 0.3**2) + 0.7 * ((y >= 5) & (y <= 9)) / 4.0   # a peak and a plateau
-    h, sd = 1.0, 0.7
-    box = np.where(np.abs(np.arange(-3, 3 + dy / 2, dy)) <= h, 1 / (2 * h), 0.0) * dy
-    gau = _gauss(np.arange(-3, 3 + dy / 2, dy), 0.0, sd**2) * dy
-    a_box = np.convolve(a, box, mode="same")
-    a_gau = np.convolve(a, gau, mode="same")
-    c_a, c_box, c_gau, shade = viz.INK, viz.COLORS["UKF"], viz.COLORS["EKF"], "#9cc3ee"
-    fig, axes = plt.subplots(2, 2, figsize=(W, W * 0.62), sharex=True, sharey=True)
-    # (a) uniform g: the value at p is the plain average of a over [p-h, p+h]
-    ax = axes[0, 0]
-    ax.plot(y, a, color=c_a, lw=1.2)
-    for p in (2.0, 6.5, 9.0):
-        win = np.abs(y - p) <= h
-        ax.fill_between(y[win], 0, a[win], color=shade, lw=0)
-        v = np.interp(p, y, a_box)
-        ax.plot([p - h, p + h], [v, v], color=c_box, lw=1.5)
-        ax.plot(p, v, "o", color=c_box, ms=4)
-        ax.annotate(f"$p={p:g}$", (p, 0), xytext=(0, -11), textcoords="offset points",
-                    ha="center", color=viz.INK_2, fontsize=7.5)
-    ax.set_title("(a) uniform $g$: the average of $a$ over $[p-h,p+h]$", fontsize=8)
-    # (b) Gaussian g: the shading shows the weights g(p - y) given to the values a(y)
-    ax = axes[0, 1]
-    ax.plot(y, a, color=c_a, lw=1.2)
-    for p in (2.0, 9.0):
-        w = _gauss(y, p, sd**2)
-        w /= w.max()
-        for k in range(0, len(y) - 4, 4):
-            if w[k] > 0.02:
-                ax.fill_between(y[k:k + 5], 0, a[k:k + 5], color=c_gau, alpha=0.55 * w[k], lw=0)
-        v = np.interp(p, y, a_gau)
-        ax.plot(p, v, "o", color=c_gau, ms=4)
-        ax.annotate(f"$p={p:g}$", (p, 0), xytext=(0, -11), textcoords="offset points",
-                    ha="center", color=viz.INK_2, fontsize=7.5)
-    ax.set_title("(b) Gaussian $g$: weights fall off with the distance", fontsize=8)
-    # (c) the blurred copies
-    ax = axes[1, 0]
-    ax.plot(y, a, color=c_a, lw=1.2, label="$a$")
-    ax.plot(y, a_box, color=c_box, lw=1.5, label="$a\\ast g$, $g$ uniform on $[-1,1]$")
-    ax.plot(y, a_gau, color=c_gau, lw=1.5, label="$a\\ast g$, $g=\\mathcal{N}(0,0.7^2)$")
-    ax.legend(fontsize=7, frameon=False, loc="upper right")
-    ax.set_title("(c) the peak spreads, the plateau stays", fontsize=8)
-    ax.set_xlabel("$y$")
-    # (d) a * g is the density of X + W
-    ax = axes[1, 1]
+    a = 0.3 * _gauss(y, 2.0, 0.3**2) + 0.7 * ((y >= 5) & (y <= 9)) / 4.0
+    sd = 0.7
+    a_g = np.convolve(a, _gauss(np.arange(-3, 3 + dy / 2, dy), 0.0, sd**2) * dy, mode="same")
+    return y, a, sd, a_g
+
+
+def fig_conv_read():
+    """Computing one value of a * g: the function, the weights around p, their product."""
+    y, a, sd, a_g = _conv_example()
+    p = 5.0
+    w = _gauss(y, p, sd**2)
+    prod = a * w
+    value = prod.sum() * (y[1] - y[0])
+    blue = viz.COLORS["EKF"]
+    fig, axes = plt.subplots(3, 1, figsize=(W * 0.8, W * 0.62), sharex=True)
+    rows = [(a, "$a(y)$", viz.INK), (w, "weights $g(p-y)$", blue), (prod, "product $a(y)\\,g(p-y)$", blue)]
+    for ax, (f, label, colour) in zip(axes, rows):
+        ax.plot(y, f, color=colour, lw=1.5)
+        ax.axvline(p, color=viz.INK_2, ls="--", lw=0.9)
+        ax.set_ylim(0, f.max() * 1.25)
+        ax.set_ylabel(label, fontsize=10, rotation=0, ha="right", va="center")
+        ax.set_yticks([])
+    axes[2].fill_between(y, 0, prod, color=blue, alpha=0.35, lw=0)
+    axes[0].annotate("$p=5$", (p, axes[0].get_ylim()[1]), xytext=(4, -10), textcoords="offset points",
+                     color=viz.INK_2, fontsize=10)
+    axes[1].annotate("total weight 1", (p + 1.0, 0.45), color=blue, fontsize=10)
+    axes[2].annotate(f"shaded area\n$=(a\\ast g)(5)$\n$\\approx{value:.3f}$", (p + 1.7, prod.max() * 0.25),
+                     color=viz.INK, fontsize=10)
+    axes[2].set_xlabel("$y$")
+    axes[2].set_xlim(-1, 11)
+    plt.tight_layout(h_pad=0.4)
+    save(fig, "ch02_conv_read")
+    print(f"convolution: (a*g)(5) = {value:.4f}, plateau height {0.7 / 4:.4f}")
+
+
+def fig_conv_result():
+    """The blurred copy a * g, and a * g as the density of X + W."""
+    y, a, sd, a_g = _conv_example()
+    blue = viz.COLORS["EKF"]
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.42), sharey=True)
+    ax = axes[0]
+    ax.plot(y, a, color=viz.INK, lw=1.2)
+    ax.plot(y, a_g, color=blue, lw=1.8)
+    ax.annotate("$a$", (2.25, 0.38), color=viz.INK, fontsize=11)
+    ax.annotate("$a\\ast g$", (-0.8, 0.12), color=blue, fontsize=11)
+    ax.annotate("peak: lower\nand wider", (2.9, 0.29), color=viz.INK_2, fontsize=9.5)
+    ax.annotate("middle: unchanged", (7.0, 0.215), color=viz.INK_2, fontsize=9.5, ha="center")
+    ax.annotate("ends:\nsoftened", (9.35, 0.09), color=viz.INK_2, fontsize=9.5)
+    ax.set_title("(a) the blurred copy", fontsize=10)
+    ax = axes[1]
     rng = np.random.default_rng(0)
     n = 200_000
-    peak = rng.random(n) < 0.3
-    X = np.where(peak, rng.normal(2.0, 0.3, n), rng.uniform(5, 9, n))
-    S = X + rng.normal(0, sd, n)
-    ax.hist(S, bins=np.arange(-2, 12.01, 0.2), density=True, color=shade, lw=0,
-            label="histogram of $X+W$")
-    ax.plot(y, a_gau, color=c_gau, lw=1.5, label="$a\\ast g$")
-    ax.legend(fontsize=7, frameon=False, loc="upper right")
-    ax.set_title("(d) $X\\sim a$, $W\\sim g$ independent", fontsize=8)
-    ax.set_xlabel("$y$")
-    for ax in axes.flat:
-        ax.set_xlim(-1, 11); ax.set_ylim(0, 0.46)
+    X = np.where(rng.random(n) < 0.3, rng.normal(2.0, 0.3, n), rng.uniform(5, 9, n))
+    ax.hist(X + rng.normal(0, sd, n), bins=np.arange(-2, 12.01, 0.2), density=True, color="#b9d4f2", lw=0)
+    ax.plot(y, a_g, color=blue, lw=1.8)
+    ax.annotate("histogram of\n$X+W$", (-0.8, 0.2), color=viz.INK_2, fontsize=9.5)
+    ax.annotate("$a\\ast g$", (8.9, 0.2), color=blue, fontsize=11)
+    ax.set_title("(b) the density of $X+W$", fontsize=10)
+    for ax in axes:
+        ax.set_xlim(-1, 11); ax.set_ylim(0, 0.45); ax.set_xlabel("$y$")
     plt.tight_layout()
-    save(fig, "ch02_convolution")
+    save(fig, "ch02_conv_result")
 
 
 def fig_bayes_cycle():
@@ -1056,7 +1058,8 @@ if __name__ == "__main__":
     fig_modes()
     fig_kidnap()
     fig_bayes_cycle()
-    fig_convolution()
+    fig_conv_read()
+    fig_conv_result()
     fig_gaussian()
     fig_linearisation(False, "ch04_linearisation")
     fig_linearisation(True, "ch05_regression")

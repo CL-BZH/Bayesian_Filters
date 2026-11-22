@@ -482,44 +482,38 @@ The \emph{convolution} of two functions on the plane is
 \]
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/ch02_convolution.pdf}
-\caption{Convolution on the line, for a function $a$ with a peak and a
-plateau. (a) With $g$ uniform on $[-1,1]$, the value of $a\ast g$ at $p$
-(dot and bar) is the plain average of $a$ over the shaded window
-$[p-1,p+1]$. (b) With a Gaussian $g$, it is a weighted average: the
-darker the shading, the larger the weight $g(p-y)$ of the value $a(y)$.
-(c) The result: the peak is lowered and spread, the middle of the plateau
-is unchanged, and its ends are softened. (d) When $a$ is the density of
-$X$ and $g$ that of an independent $W$, the histogram of $200\,000$
-draws of $X+W$ follows $a\ast g$. On the plane it is the same, with
-windows that are squares or discs instead of intervals.}
-\label{fig:conv}
+\includegraphics[width=0.8\linewidth]{figures/ch02_conv_read.pdf}
+\caption{Computing one value of $a\ast g$, on the line, at $p=5$, with
+$g=\Normal(0,0.7^2)$. Top: the function $a$, with a peak and a plateau
+that starts at $5$. Middle: the weight $g(p-y)$ given to each value
+$a(y)$, centred at $p$. Bottom: the product of the two; its area is
+$(a\ast g)(5)$. Half of the weight falls on the plateau and half before
+it, so the result is half the height of the plateau ($0.088$ against
+$0.175$).}
+\label{fig:convread}
 \end{figure}
 \emph{How to read it.} To get the value at the point $\p$, look at the
 value of $a$ at every point $\p-\vect q$, that is at the offset $\vect q$
 from $\p$; weight it by $g(\vect q)$; add up over all the offsets. When
 $g$ is a probability density ($g\ge0$, integral $1$), the weights are
 non-negative and add up to $1$, so $(a\ast g)(\p)$ is a \emph{weighted
-average of the values of $a$ around $\p$} (\cref{fig:conv}b, where the
-shading shows the weights). When $g$ is concentrated
+average of the values of $a$ around $\p$}. \Cref{fig:convread} does this
+for one point, on the line. When $g$ is concentrated
 around $\vect0$, only the values at small offsets count, and $a\ast g$
 is a blurred copy of $a$: a sharp peak of $a$ is spread over the region
 where $g$ is not small, and a flat region of $a$ is left unchanged
-(\cref{fig:conv}c).
+(\cref{fig:convresult}a).
 
 \emph{An example.} In one dimension, let $g$ be uniform on $[-h,h]$,
 with density $1/(2h)$ there. Then
 $(a\ast g)(p)=\frac1{2h}\int_{-h}^{h}a(p-q)\,\mathrm dq$ is the plain
-average of $a$ over the interval $[p-h,p+h]$: a moving average
-(\cref{fig:conv}a). In the figure, $a$ has a plateau: in its middle the
-average is the height of the plateau; at its end ($p=9$), half of the
-window is off the plateau, and the average is half that height. A
+average of $a$ over the interval $[p-h,p+h]$: a moving average. A
 Gaussian $g$ gives a moving average whose weights fall off with the
-distance (\cref{fig:conv}b), as in the predict panel of \cref{fig:bayescycle}.
+distance (\cref{fig:convread}, middle), as in the predict panel of \cref{fig:bayescycle}.
 
 \emph{The probabilistic meaning.} If $a$ is the density of a random
 vector $X$ and $g$ that of an independent $W$, then $a\ast g$ is the
-density of the sum $X+W$ (\cref{fig:conv}d). Indeed, for every function $\varphi$, the
+density of the sum $X+W$ (\cref{fig:convresult}b). Indeed, for every function $\varphi$, the
 pair $(X,W)$ has the density $a(\vect x)\,g(\vect w)$, so
 \[
   \E[\varphi(X+W)]
@@ -536,6 +530,16 @@ covariance is that of $X$ plus that of $W$, so blurring widens. Finally,
 the order does not matter: the change of variable $\vect q'=\p-\vect q$
 gives $\int a(\vect q')\,g(\p-\vect q')\,\mathrm d\vect q'$, so
 $a\ast g=g\ast a$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_conv_result.pdf}
+\caption{(a) The function $a$ of \cref{fig:convread} and its blurred
+copy $a\ast g$, with $g=\Normal(0,0.7^2)$. (b) When $a$ is the density
+of $X$ and $g$ that of an independent $W$, the histogram of $200\,000$
+draws of $X+W$ follows $a\ast g$.}
+\label{fig:convresult}
+\end{figure}
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}
 Suppose the heading $\psi_t$ during the drive is known (in the grid
