@@ -140,8 +140,23 @@ These are the only two ways of getting the reading ``rough'', so their sum
 \]
 is the probability of the reading ``rough'' itself, computed from the
 predicted belief: the probability that the filter gave to this reading
-before seeing it. Now the reading has been seen, so only these two cases
-remain possible, and the new belief is the share of each in their total:
+before seeing it. Before the reading arrives, there are four possible
+cases, a surface and a reading, and their probabilities add up to $1$:
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  & ``rough'' & ``smooth'' & total\\
+  \midrule
+  grass ($0.74$) & $0.74\times0.3=0.222$ & $0.74\times0.7=0.518$ & $0.74$\\
+  path ($0.26$)  & $0.26\times0.8=0.208$ & $0.26\times0.2=0.052$ & $0.26$\\
+  \midrule
+  total & $0.43$ & $0.57$ & $1$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+The sensor says ``rough'': the column ``smooth'' becomes impossible and is
+struck out. Only the two cases of the column ``rough'' remain, and the new
+belief is the share of each in their total:
 \[
   \bel(G)=\frac{0.222}{0.43}=0.516,\qquad
   \bel(P)=\frac{0.208}{0.43}=0.484 .
