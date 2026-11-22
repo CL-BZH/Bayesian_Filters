@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayesian Filtering for Robot Localisation</title>
+<meta name="description" content="A free book with Python notebooks: from the Bayes filter to Kalman, extended and unscented Kalman, and particle filters, on a simulated robot lawnmower.">
+<style>
+  :root {
+    --ink: #1d2433; --muted: #5a6475; --line: #e3e6eb; --bg: #ffffff;
+    --soft: #f5f7fa; --accent: #1f6f5c; --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e6e9ef; --muted: #a3acba; --line: #2c3340; --bg: #14181f;
+            --soft: #1b212a; --accent: #4fb397; --accent-ink: #0d1a16; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 17px/1.6 Georgia, "Times New Roman", serif; }
+  main { max-width: 52rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 .4rem; }
+  .subtitle { color: var(--muted); font-size: 1.15rem; margin: 0 0 1.6rem; }
+  h2 { font-size: 1.3rem; margin: 2.6rem 0 .8rem; padding-bottom: .3rem;
+       border-bottom: 1px solid var(--line); }
+  a { color: var(--accent); }
+  .actions { display: flex; flex-wrap: wrap; gap: .7rem; margin: 1.6rem 0 2rem; }
+  .button { display: inline-block; padding: .65rem 1.2rem; border-radius: 6px;
+            text-decoration: none; font: 600 .95rem/1.2 system-ui, sans-serif; }
+  .primary { background: var(--accent); color: var(--accent-ink); }
+  .secondary { border: 1px solid var(--line); color: var(--ink); }
+  figure { margin: 0; }
+  .gifs { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+  .gifs img { width: 100%; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  figcaption { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+  ol.toc { padding-left: 1.4rem; }
+  .part { margin: 1rem 0 .2rem; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  td { padding: .45rem .4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.num { color: var(--muted); width: 2rem; }
+  td.run { width: 7.5rem; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Bayesian Filtering for Robot Localisation</h1>
+<p class="subtitle">From the Bayes filter to Kalman and particle filters &mdash;
+theory, derivations and Python practicals</p>
+
+<p>A robot lawnmower drives around a lawn. It never does exactly what it is told, and its
+sensors are noisy: <em>where is it?</em> This free book answers the question with every classical
+recursive Bayesian filter &mdash; grid, Kalman, extended Kalman, unscented Kalman and particle
+filters &mdash; with complete derivations and proofs, exercises with full solutions, and a Python
+notebook per chapter in which every filter runs on the same simulated world and the same data.</p>
+
+<div class="actions">
+  <a class="button primary" href="main.pdf">Download the book (PDF)</a>
+  <a class="button secondary" href="https://github.com/CL-BZH/Bayesian_Filters">Sources and notebooks on GitHub</a>
+</div>
+
+<div class="gifs">
+  <figure>
+    <img src="media/pf_global_localisation.gif" alt="A particle filter localising the mower from a uniform start">
+    <figcaption>Global localisation with particles.</figcaption>
+  </figure>
+  <figure>
+    <img src="media/kidnapped_ekf_vs_pf.gif" alt="The mower is carried elsewhere: an EKF and a particle filter compared">
+    <figcaption>A kidnapped mower, landmarks not identified: EKF against particle filter.</figcaption>
+  </figure>
+</div>
+
+<h2>Contents</h2>
+<div class="part">Part I &middot; Foundations</div>
+<ol class="toc" start="1">
+  <li>The state-space model</li>
+  <li>The Bayes filter</li>
+</ol>
+<div class="part">Part II &middot; Gaussian filters</div>
+<ol class="toc" start="3">
+  <li>The Kalman filter</li>
+  <li>The extended Kalman filter</li>
+  <li>The unscented Kalman filter</li>
+</ol>
+<div class="part">Part III &middot; Sampling and synthesis</div>
+<ol class="toc" start="6">
+  <li>The particle filter</li>
+  <li>Choosing a filter</li>
+</ol>
+<div class="part">Appendices</div>
+<ol class="toc" type="A">
+  <li>Notation and default values</li>
+  <li>Chord and arc</li>
+  <li>Bayesian networks and d-separation</li>
+  <li>Differentiating under the integral sign</li>
+</ol>
+
+<h2>Notebooks</h2>
+<p>Each notebook derives its filter, implements it, tests it on the mower, and prints every
+simulated number quoted in the book. They run in the browser, with nothing to install.</p>
+<table>
+  <tr><td class="num">00</td><td>The mower's world</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_mower_world.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">01</td><td>The Bayes filter</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/01_bayes_filter.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">02</td><td>Kalman filter</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/02_kalman_filter.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">03</td><td>Extended Kalman filter</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/03_extended_kalman_filter.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">04</td><td>Unscented Kalman filter</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/04_unscented_kalman_filter.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">05</td><td>Particle filter</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/05_particle_filter.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">06</td><td>Showdown: all filters on four scenarios</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/06_showdown.ipynb">Open in Colab</a></td></tr>
+  <tr><td class="num">07</td><td>Closing the loop: steering from the filter's estimate</td>
+      <td class="run"><a href="https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/07_closing_the_loop.ipynb">Open in Colab</a></td></tr>
+</table>
+
+<footer>
+  &copy; 2026 Christophe Louargant. The book is licensed under
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; the code and the notebooks
+  are under the <a href="https://github.com/CL-BZH/Bayesian_Filters/blob/main/LICENSE">MIT licence</a>.
+</footer>
+
+</main>
+</body>
+</html>

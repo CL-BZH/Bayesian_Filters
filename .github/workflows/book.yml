@@ -1,0 +1,64 @@
+# Compile the book on every push that touches it, and keep the PDF as an
+# artifact of the run. The web page (docs/index.html, the media and the PDF)
+# is assembled at the same time, but deployed to GitHub Pages only when the
+# repository variable PUBLISH_SITE is set to 'true'
+# (Settings > Secrets and variables > Actions > Variables), and GitHub Pages
+# is enabled with the source "GitHub Actions" (Settings > Pages).
+name: Book
+
+on:
+  push:
+    branches: [main]
+    paths: ["book/**", "docs/**", ".github/workflows/book.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: book
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile the book
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: book
+
+      - name: Keep the PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: bayesian-filtering-book
+          path: book/main.pdf
+
+      - name: Assemble the web page
+        run: |
+          mkdir -p _site
+          cp docs/index.html _site/
+          cp -r docs/media _site/
+          cp book/main.pdf _site/main.pdf
+
+      - name: Upload the web page
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: vars.PUBLISH_SITE == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

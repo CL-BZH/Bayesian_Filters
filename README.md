@@ -25,16 +25,16 @@ figures from the `bayesian_filters` package, with the notebooks' random seeds.
 
 Read them in order. Each one derives its filter, implements it, and tests it on the mower.
 
-| # | Notebook | What you will see |
-|---|---|---|
-| 00 | [The mower's world](notebooks/00_the_mower_world.ipynb) | State, unicycle motion model with noisy controls, range–bearing / GPS / compass sensors, "banana" uncertainty, dead-reckoning drift |
-| 01 | [The Bayes filter](notebooks/01_bayes_filter.ipynb) | Derivation of predict/update; an exact grid filter; a **bimodal** belief (range-only, two landmarks) that settles on the wrong bump before recovering; why grids do not scale |
-| 02 | [Kalman filter](notebooks/02_kalman_filter.ipynb) | Derivation by Gaussian conditioning; a linear mower (compass + GPS); Riccati convergence of the gain; **NEES** consistency tests with a mis-tuned R |
-| 03 | [Extended Kalman filter](notebooks/03_extended_kalman_filter.ipynb) | Jacobians (checked by finite differences), angle wrapping, ±2σ checks; where linearisation fails: NEES ≈ 300 after an uncertain start |
-| 04 | [Unscented Kalman filter](notebooks/04_unscented_kalman_filter.ipynb) | Sigma points and scaled weights; the same arc, EKF vs UT; the UKF stays consistent where the EKF does not |
-| 05 | [Particle filter](notebooks/05_particle_filter.ipynb) | Importance sampling, weight degeneracy and ESS, systematic vs multinomial resampling, global localisation, sample impoverishment, **multimodal beliefs with unknown data association**, mode collapse, kidnapping and augmented MCL |
-| 06 | [Showdown](notebooks/06_showdown.ipynb) | All filters on four scenarios, several seeds each, and a scorecard |
-| 07 | [Closing the loop](notebooks/07_closing_the_loop.ipynb) | The filter **in the loop**: a controller steers the mower along mowing stripes from the filter's estimate; dead reckoning drives it off the lawn, every real filter keeps it on its stripes |
+| # | Notebook | Run | What you will see |
+|---|---|---|---|
+| 00 | [The mower's world](notebooks/00_the_mower_world.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/00_the_mower_world.ipynb) | State, unicycle motion model with noisy controls, range–bearing / GPS / compass sensors, "banana" uncertainty, dead-reckoning drift |
+| 01 | [The Bayes filter](notebooks/01_bayes_filter.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/01_bayes_filter.ipynb) | Derivation of predict/update; an exact grid filter; a **bimodal** belief (range-only, two landmarks) that settles on the wrong bump before recovering; why grids do not scale |
+| 02 | [Kalman filter](notebooks/02_kalman_filter.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/02_kalman_filter.ipynb) | Derivation by Gaussian conditioning; a linear mower (compass + GPS); Riccati convergence of the gain; **NEES** consistency tests with a mis-tuned R |
+| 03 | [Extended Kalman filter](notebooks/03_extended_kalman_filter.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/03_extended_kalman_filter.ipynb) | Jacobians (checked by finite differences), angle wrapping, ±2σ checks; where linearisation fails: NEES ≈ 300 after an uncertain start |
+| 04 | [Unscented Kalman filter](notebooks/04_unscented_kalman_filter.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/04_unscented_kalman_filter.ipynb) | Sigma points and scaled weights; the same arc, EKF vs UT; the UKF stays consistent where the EKF does not |
+| 05 | [Particle filter](notebooks/05_particle_filter.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/05_particle_filter.ipynb) | Importance sampling, weight degeneracy and ESS, systematic vs multinomial resampling, global localisation, sample impoverishment, **multimodal beliefs with unknown data association**, mode collapse, kidnapping and augmented MCL |
+| 06 | [Showdown](notebooks/06_showdown.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/06_showdown.ipynb) | All filters on four scenarios, several seeds each, and a scorecard |
+| 07 | [Closing the loop](notebooks/07_closing_the_loop.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/CL-BZH/Bayesian_Filters/blob/main/notebooks/07_closing_the_loop.ipynb) | The filter **in the loop**: a controller steers the mower along mowing stripes from the filter's estimate; dead reckoning drives it off the lawn, every real filter keeps it on its stripes |
 
 ### The short version of notebook 06
 
@@ -133,3 +133,10 @@ for f in [EKF.from_world(world, run.truth[0], np.diag([10, 10, 0.05])),
 
 Reference pages (notation, models, pitfalls) are on the
 [project wiki](https://github.com/CL-BZH/Bayesian_Filters/wiki).
+
+## Licence
+
+The book (`book/`: text and figures) is licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): you may copy, redistribute and adapt
+it for any purpose, with credit. The code, including the notebooks, is under the
+[MIT licence](LICENSE). See [`book/LICENSE`](book/LICENSE) and [`LICENSE`](LICENSE).
