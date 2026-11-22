@@ -123,8 +123,10 @@ $\belbar(G)=0.9\times0.8+0.1\times0.2=0.74$, and
 $\belbar(P)=0.1\times0.8+0.9\times0.2=0.26$. The belief has moved towards
 $(0.5,0.5)$: it is less sure than before.
 
-\emph{Update.} The sensor says ``rough''. Multiply each state by the
-probability that it gives this reading: $0.3\times0.74=0.222$ for $G$ and
+\emph{Update.} The sensor says ``rough''. Multiply the predicted
+probability of each state by the probability that this state gives the
+reading ``rough'', $p(\text{rough}\mid G)=0.3$ and
+$p(\text{rough}\mid P)=0.8$: $0.3\times0.74=0.222$ for $G$ and
 $0.8\times0.26=0.208$ for $P$. The sum is $0.43$, and dividing by
 it gives $\bel=(0.516,\,0.484)$. One rough reading has almost cancelled
 the initial confidence in the grass.
