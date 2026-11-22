@@ -275,7 +275,11 @@ sibling leaves whose total probability is below another threshold. The
 mask still decides which leaves are out, and a leaf is split when it is
 mixed or when it carries much probability. Thrun, Burgard and Fox call a
 decomposition fixed in advance \emph{static} and one that follows the
-belief \emph{dynamic} (Chapter~4 of \emph{Probabilistic Robotics}). The
+belief \emph{dynamic} (Section~4.1.4 of \emph{Probabilistic Robotics},
+where the dynamic decomposition is a \emph{density tree}). They also
+describe a simpler variant, \emph{selective updating}: keep the uniform
+grid, but update only the cells whose probability is above a threshold.
+The
 particle filter of \cref{ch:particle} reaches the same goal by other
 means: its particles gather where the belief is, and the quadtree is then
 used only for the map, as in \cref{sec:qt-find}.
