@@ -373,21 +373,74 @@ $\log p(\z_{1:T})$.
 \end{proposition}
 
 \begin{proof}
-The first claim is the identification of the denominator in the proof of
-\cref{thm:bayes}. For the second, the chain rule gives
-$p(\z_{1:T}\mid\uu_{0:T-1})=\prod_tp(\z_t\mid\z_{1:t-1},\uu_{0:T-1})$. In
-the factor of $\z_t$, the controls $\uu_t,\dots,\uu_{T-1}$ are applied
-after $\z_t$ is received. That is not a reason to remove them (the trap
-of \cref{sec:assumptions}); the network of \cref{fig:bayesnet} is. A
-path from such a control $\uu_s$, $s\ge t$, to $\z_t$ starts with the only
-arrow at $\uu_s$, $\uu_s\rightarrow\x_{s+1}$, and must continue with
-$\x_{s+1}\leftarrow\x_s$: the node $\x_{s+1}$ is a collider. Neither it nor
-any of its descendants (later poses and measurements) is given, so every
-such path is blocked (\cref{app:bayesnet}). The factor is then
-$p(\z_t\mid\z_{1:t-1},\uu_{0:t-1})=\eta_t^{-1}$. When the controls are
-computed from the measurements, apply the chain rule to $p(\z_{1:T})$
-instead: given $\z_{1:t-1}$ the controls $\uu_{0:t-1}$ are known, and the
-factor of $\z_t$ is again $\eta_t^{-1}$.
+\emph{The first claim.} It was obtained in the proof of \cref{thm:bayes}
+(update, step~3): the denominator of Bayes' rule is
+$p(\z_{t+1}\mid\z_{1:t},\uu_{0:t})$, and it equals
+$\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x=\eta_{t+1}^{-1}$. With
+the index shifted by one, for every $t\ge1$,
+\begin{equation}\label{eq:etat}
+  \eta_t^{-1}=p(\z_t\mid\z_{1:t-1},\uu_{0:t-1}),
+\end{equation}
+the density of the measurement $\z_t$ given everything the filter had
+before it: the earlier measurements and the controls already applied
+(for $t=1$, $\z_{1:0}$ is empty).
+
+\emph{Controls fixed in advance, step 1: the chain rule.} The density of
+all the measurements together, given all the controls, is a product of
+one factor per measurement, each conditioned on the measurements before
+it (the chain rule, $p(a,b)=p(a)\,p(b\mid a)$ applied repeatedly):
+\begin{align*}
+  p(\z_{1:T}\mid\uu_{0:T-1})
+  &=p(\z_1\mid\uu_{0:T-1})\,p(\z_2\mid\z_1,\uu_{0:T-1})\cdots
+   p(\z_T\mid\z_{1:T-1},\uu_{0:T-1})\\
+  &=\prod_{t=1}^Tp(\z_t\mid\z_{1:t-1},\uu_{0:T-1}).
+\end{align*}
+
+\emph{Step 2: compare each factor with \eqref{eq:etat}.} The factor of
+$\z_t$ is conditioned on all the controls, $\uu_{0:T-1}$; \eqref{eq:etat}
+only on those applied before $\z_t$, $\uu_{0:t-1}$. The difference is the
+later controls $\uu_t,\dots,\uu_{T-1}$, and the factors are equal if
+these carry no information about $\z_t$ given the rest, that is if
+\[
+  \z_t\indep\uu_{t:T-1}\mid\z_{1:t-1},\uu_{0:t-1}.
+\]
+That they are applied after $\z_t$ is not a reason: a conditional density
+is about information, not influence (the trap of \cref{sec:assumptions}),
+and a later control computed from $\z_t$ would carry information about
+it. The reason is the graph of the model (\cref{fig:bayesnet}), read with
+the d-separation rule (\cref{def:dsep}). Take a later control $\uu_s$,
+$s\ge t$. Fixed in advance, it has no parent, and its only arrow is
+$\uu_s\rightarrow\x_{s+1}$. So a path from $\uu_s$ to $\z_t$ starts
+$\uu_s\rightarrow\x_{s+1}$, and from $\x_{s+1}$ it must go on along
+another arrow: to $\z_{s+1}$ or $\x_{s+2}$, which lead only further into
+the future and never back to $\z_t$, or to $\x_s$, along
+$\x_{s+1}\leftarrow\x_s$. On every path that reaches $\z_t$, the node
+$\x_{s+1}$ therefore has two arrows pointing into it,
+$\uu_s\rightarrow\x_{s+1}\leftarrow\x_s$: it is a collider. A collider
+blocks the path unless it, or one of its descendants, is given. The
+descendants of $\x_{s+1}$ are the later poses and their measurements
+$\z_{s+1},\z_{s+2},\dots$, all after $\z_t$; the given variables,
+$\z_{1:t-1}$ and $\uu_{0:t-1}$, contain none of them, nor $\x_{s+1}$.
+So every path is blocked, and \cref{thm:dsep} gives the independence.
+
+\emph{Step 3: conclude.} Each factor is therefore
+$p(\z_t\mid\z_{1:t-1},\uu_{0:t-1})=\eta_t^{-1}$, so
+$p(\z_{1:T}\mid\uu_{0:T-1})=\prod_{t=1}^T\eta_t^{-1}$, and taking the
+logarithm turns the product into the sum
+$-\sum_{t=1}^T\log\eta_t$.
+
+\emph{Controls computed from the measurements.} Now the controls are not
+given in advance: $\uu_t=\pi_t(\z_{1:t})$, and the model is the joint
+distribution $p(\x_{0:T},\z_{1:T})$ of \cref{prop:joint}(ii). Apply the
+chain rule to $p(\z_{1:T})$ itself:
+$p(\z_{1:T})=\prod_{t=1}^Tp(\z_t\mid\z_{1:t-1})$. In the factor of $\z_t$
+the controls $\uu_0,\dots,\uu_{t-1}$ do not appear, but they are known:
+each $\uu_s=\pi_s(\z_{1:s})$, $s\le t-1$, is computed from the
+measurements $\z_{1:t-1}$ that are given. Adding to the condition a
+variable that is a function of what is already given adds no
+information, so
+$p(\z_t\mid\z_{1:t-1})=p(\z_t\mid\z_{1:t-1},\uu_{0:t-1})=\eta_t^{-1}$,
+and the same sum is $\log p(\z_{1:T})$.
 \end{proof}
 
 \begin{inwords}
