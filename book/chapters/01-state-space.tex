@@ -2265,8 +2265,10 @@ contain $\vect z$, so they come out of the inner integral, which becomes
 \]
 the probability that $Z$ falls in $A$ when the point is $X$. What is
 left, $\int_0^{2\pi}\mathbf 1_B(X)\,K(X,A)\,\frac1{2\pi}\,\mathrm d\alpha$,
-is by the rule again (now with $V=\alpha$) the expectation
-$\E[\mathbf 1_B(X)\,K(X,A)]$. So
+is by the rule again the expectation $\E[\mathbf 1_B(X)\,K(X,A)]$: it is
+$\int g(\alpha)\,q(\alpha)\,\mathrm d\alpha$ with $V=\alpha$, the function
+$g(\alpha)=\mathbf 1_B(X)\,K(X,A)$, and $q(\alpha)=1/(2\pi)$ the density of
+$\alpha$; the factor $1/(2\pi)$ is that density, not an extra factor. So
 $\Pr(X\in B,\ Z\in A)=\E[\mathbf 1_B(X)\,K(X,A)]$.
 
 \emph{The trajectory: the same steps.} The variables with a density are
@@ -2309,8 +2311,9 @@ left,
   \int\!\!\int\mathbf 1_B(\Phi)\,K(\Phi,A)\,p(\x_0)\prod_{t=0}^{T-1}
   \Normal(\bepsilon_t;\vect0,M)\,\mathrm d\bepsilon_{0:T-1}\,\mathrm d\x_0 ,
 \]
-is by the rule again (now with $V=(\x_0,\bepsilon_{0:T-1})$) the
-expectation of $\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)$. So
+is by the rule again the expectation of
+$\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)$: now $V=(\x_0,\bepsilon_{0:T-1})$,
+and $p(\x_0)\prod_t\Normal(\bepsilon_t;\vect0,M)$ is its density $q$. So
 \[
   \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
   =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr]
