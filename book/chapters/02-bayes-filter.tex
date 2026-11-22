@@ -509,8 +509,14 @@ where $g$ is not small, and a flat region of $a$ is left unchanged
 \emph{An example.} In one dimension, let $g$ be uniform on $[-h,h]$,
 with density $1/(2h)$ there. Then
 $(a\ast g)(p)=\frac1{2h}\int_{-h}^{h}a(p-q)\,\mathrm dq$ is the plain
-average of $a$ over the interval $[p-h,p+h]$: a moving average. A
-Gaussian $g$ gives a moving average whose weights fall off with the
+average of $a$ over the interval $[p-h,p+h]$: a \emph{centred} moving
+average.\footnote{In time series, a moving average usually uses only past
+values, $g(q)=0$ for $q<0$, because the future has not arrived yet; it
+then lags behind the signal. Here the variable is a position on the
+lawn, which has no past and no future, so a symmetric $g$, which weighs
+both sides of $p$ alike, is the natural choice. In time, the Bayes filter
+is causal: the belief at time $t$ uses only the measurements up to $t$.}
+A Gaussian $g$ gives a centred moving average whose weights fall off with the
 distance (\cref{fig:convread}, row~2), as in the predict panel of \cref{fig:bayescycle}.
 
 \emph{The probabilistic meaning.} If $a$ is the density of a random
