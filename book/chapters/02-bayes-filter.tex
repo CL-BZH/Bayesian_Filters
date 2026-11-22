@@ -477,10 +477,45 @@ $b_i\approx\Pr(\p_t\in C_i\mid\z_{1:t},\uu_{0:t-1})$, with $\sum_ib_i=1$.
 \end{definition}
 
 The \emph{convolution} of two functions on the plane is
-$(a\ast g)(\p)=\int a(\p-\vect q)\,g(\vect q)\,\mathrm d\vect q$. When $g$
-is a probability density concentrated around $\vect0$, $a\ast g$ is a
-blurred copy of $a$: each value is replaced by a weighted average of the
-values around it.
+\[
+  (a\ast g)(\p)=\int a(\p-\vect q)\,g(\vect q)\,\mathrm d\vect q .
+\]
+\emph{How to read it.} To get the value at the point $\p$, look at the
+value of $a$ at every point $\p-\vect q$, that is at the offset $\vect q$
+from $\p$; weight it by $g(\vect q)$; add up over all the offsets. When
+$g$ is a probability density ($g\ge0$, integral $1$), the weights are
+non-negative and add up to $1$, so $(a\ast g)(\p)$ is a \emph{weighted
+average of the values of $a$ around $\p$}. When $g$ is concentrated
+around $\vect0$, only the values at small offsets count, and $a\ast g$
+is a blurred copy of $a$: a sharp peak of $a$ is spread over the region
+where $g$ is not small, and a flat region of $a$ is left unchanged.
+
+\emph{An example.} In one dimension, let $g$ be uniform on $[-h,h]$,
+with density $1/(2h)$ there. Then
+$(a\ast g)(p)=\frac1{2h}\int_{-h}^{h}a(p-q)\,\mathrm dq$ is the plain
+average of $a$ over the interval $[p-h,p+h]$: a moving average. A
+Gaussian $g$ gives a moving average whose weights fall off with the
+distance, as in the predict panel of \cref{fig:bayescycle}.
+
+\emph{The probabilistic meaning.} If $a$ is the density of a random
+vector $X$ and $g$ that of an independent $W$, then $a\ast g$ is the
+density of the sum $X+W$. Indeed, for every function $\varphi$, the
+pair $(X,W)$ has the density $a(\vect x)\,g(\vect w)$, so
+\[
+  \E[\varphi(X+W)]
+  =\iint\varphi(\vect x+\vect w)\,a(\vect x)\,g(\vect w)\,
+   \mathrm d\vect x\,\mathrm d\vect w
+  =\int\varphi(\p)\Bigl(\int a(\p-\vect w)\,g(\vect w)\,\mathrm d\vect w
+   \Bigr)\mathrm d\p ,
+\]
+by the change of variable $\p=\vect x+\vect w$ in the inner integral
+over $\vect x$ (a translation, which keeps areas). The inner integral is
+$(a\ast g)(\p)$. Two consequences: $a\ast g$ integrates to $1$ (take
+$\varphi=1$), so blurring keeps the total probability; and its
+covariance is that of $X$ plus that of $W$, so blurring widens. Finally,
+the order does not matter: the change of variable $\vect q'=\p-\vect q$
+gives $\int a(\vect q')\,g(\p-\vect q')\,\mathrm d\vect q'$, so
+$a\ast g=g\ast a$.
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}
 Suppose the heading $\psi_t$ during the drive is known (in the grid
