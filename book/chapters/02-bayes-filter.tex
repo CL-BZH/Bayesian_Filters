@@ -575,7 +575,8 @@ before. The step after the prediction is an update in disguise. Knowing
 that the robot is on the lawn is an observation whose likelihood is $1$
 on the lawn and $0$ elsewhere, and multiplying by it and renormalising is
 Bayes' rule. It is correct as long as the robot cannot leave the lawn,
-which a real mower guarantees by its boundary wire or its geofence. Near
+which a real mower guarantees by a boundary wire or by a geofence (see
+the box below). Near
 the edge, the convolution of \cref{prop:conv} is therefore no longer the
 whole prediction: the blur puts probability where the robot cannot be,
 and the mask removes it. Away from the edge it is exact, as before. The
@@ -593,6 +594,28 @@ circles are the levels of the Gaussian blur; the $27\%$ of it that falls
 off the lawn is set to zero, and the rest is renormalised.}
 \label{fig:potato}
 \end{figure}
+
+\begin{mower}
+\textbf{Boundary wire or geofence.} A \emph{boundary wire} is buried
+along the edge, and the mower senses it directly: it turns back when it
+reaches the wire, whatever it believes about its position. A
+\emph{geofence} is a virtual boundary in software: the edge is recorded
+once, by walking or driving around the lawn with the RTK GPS, and the
+controller stops the robot, or turns it back, when its position comes
+too close to that edge. The same recorded edge then serves twice: as the
+geofence for the controller and as the mask for the filter. But a
+geofence is enforced with the \emph{estimated} position, so it is only
+as good as the localisation. With an RTK fix the position is good to a
+few centimetres and the geofence is as good as a wall. Under trees, next
+to the house, or when the correction link drops, the fix degrades and
+the error can grow to metres: the robot could cross the real edge while
+it believes it is inside. So the controller keeps a margin from the edge
+that grows with the uncertainty of the filter (a few of its standard
+deviations), or stops when the fix is lost. The assumption of the mask,
+``the robot never leaves the lawn'', holds for a geofenced mower only as
+long as that margin is kept; a wire does not have this weakness, which is
+one reason why some mowers keep one even with an RTK GPS.
+\end{mower}
 
 On a real robot this mask is the \emph{map}. Robot navigation software
 stores it as an \emph{occupancy grid}, whose cells are free, occupied or
@@ -924,7 +947,10 @@ step at several hertz is a lot for an embedded computer.
   \item Store only the $2749$ lawn cells, for example as a list of cell
         indices with their beliefs, or as a sparse array; the
         prediction then computes the blur only at these cells, and the
-        update only touches them. That is $43\%$ of the square. For a
-        lawn with long thin parts, a \emph{quadtree}, with small cells
-        near the edges and large ones inside, saves more.
+        update only touches them. That is $43\%$ of the square. When the
+        cells are small compared with the lawn, a \emph{quadtree}, with
+        small cells along the edge and large ones elsewhere, saves more:
+        its number of cells grows like the length of the edge divided by
+        the side of the smallest cells, not like the area divided by the
+        square of that side (\cref{app:quadtree}).
 \end{enumerate}

@@ -175,6 +175,95 @@ def fig_potato():
     print(f"potato lawn: {100 * lost:.1f}% of the predicted belief falls off the lawn")
 
 
+# ---------------------------------------------------------------- appendix E
+def in_potato(x, y):
+    """Inside the outer edge of the potato lawn (the tree is ignored)."""
+    return np.hypot(x, y) <= potato_radius(np.arctan2(y, x))
+
+
+def classify_cell(x0, y0, s):
+    """'in', 'out' or 'mixed' for the square [x0, x0+s] x [y0, y0+s] and the potato lawn.
+
+    The outer edge is a closed curve around the origin, so the square lies inside it when its
+    sides do, and outside it when its sides do and it does not contain the origin (65 points per
+    side are tested). The test against the round tree is exact."""
+    t = np.linspace(0, 1, 65)
+    one = np.ones_like(t)
+    xs = np.r_[x0 + s * t, (x0 + s) * one, x0 + s * t[::-1], x0 * one]
+    ys = np.r_[y0 * one, y0 + s * t, (y0 + s) * one, y0 + s * t[::-1]]
+    inside = in_potato(xs, ys)
+    has_origin = x0 <= 0 <= x0 + s and y0 <= 0 <= y0 + s
+    potato = "in" if inside.all() else ("out" if not inside.any() and not has_origin else "mixed")
+    (cx, cy), R = TREE
+    nearest = np.hypot(cx - np.clip(cx, x0, x0 + s), cy - np.clip(cy, y0, y0 + s))
+    farthest = max(np.hypot(cx - a, cy - b) for a in (x0, x0 + s) for b in (y0, y0 + s))
+    tree = "apart" if nearest > R else ("inside" if farthest <= R else "mixed")
+    if potato == "out" or tree == "inside":
+        return "out"
+    return "in" if potato == "in" and tree == "apart" else "mixed"
+
+
+def quadtree(x0, y0, s, h, leaves):
+    """Split the square while it is mixed and larger than h; append its leaves (x0, y0, s, kind)."""
+    kind = classify_cell(x0, y0, s)
+    if kind == "mixed" and s > h * (1 + 1e-9):
+        for dx in (0, s / 2):
+            for dy in (0, s / 2):
+                quadtree(x0 + dx, y0 + dy, s / 2, h, leaves)
+    else:
+        leaves.append((x0, y0, s, kind))
+    return leaves
+
+
+def fig_quadtree():
+    from matplotlib.patches import Circle, Rectangle
+    phi = np.linspace(-np.pi, np.pi, 200001)
+    r = potato_radius(phi)
+    x, y = r * np.cos(phi), r * np.sin(phi)
+    edge_length = np.hypot(np.diff(x), np.diff(y)).sum() + 2 * np.pi * TREE[1]
+    print(f"quadtree: edge length P = {edge_length:.1f} (outer edge and tree), "
+          f"lawn area = {0.5 * np.trapezoid(r**2, phi) - np.pi * TREE[1]**2:.0f}")
+    rows = []
+    for m in range(3, 8):
+        h = 320 / 2**m
+        leaves = quadtree(-160.0, -160.0, 320.0, h, [])
+        n = {k: sum(l[3] == k for l in leaves) for k in ("in", "mixed", "out")}
+        lawn_cells = sum((l[2] / h) ** 2 for l in leaves if l[3] == "in") + n["mixed"]
+        bound = 1 + 12 * edge_length / h + 12 * 2 * m
+        rows.append((h, len(leaves), lawn_cells, 4**m, bound))
+        print(f"quadtree h={h:g} (m={m}): {len(leaves)} leaves ({n['in']} in, {n['mixed']} mixed, "
+              f"{n['out']} out); uniform grid: {4**m} cells, {lawn_cells:.0f} of them meet the lawn; "
+              f"bound 1+12P/h+24m = {bound:.0f}; mixed leaves x h / P = {n['mixed'] * h / edge_length:.2f}")
+        if m == 5:
+            drawn = leaves
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.47), gridspec_kw={"width_ratios": [1, 1.15]})
+    ax = axes[0]
+    fill = {"in": "#7fc8a4", "mixed": "#cdeadb", "out": "white"}
+    for x0, y0, s, kind in drawn:
+        ax.add_patch(Rectangle((x0, y0), s, s, fc=fill[kind], ec=viz.INK_2, lw=0.35))
+    ax.plot(x, y, color=viz.INK, lw=1.1)
+    ax.add_patch(Circle(TREE[0], TREE[1], fc="none", ec=viz.INK, lw=0.9))
+    ax.set_title(f"(a) the quadtree of the lawn, $h=10$ ({len(drawn)} leaves)", fontsize=8)
+    ax.set_xlim(-160, 160); ax.set_ylim(-160, 160); ax.set_aspect("equal")
+    ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
+    ax = axes[1]
+    hs = np.array([row[0] for row in rows])
+    series = [("uniform grid, whole square", 3, viz.MUTED, "s"),
+              ("uniform grid, cells meeting the lawn", 2, viz.COLORS["UKF"], "^"),
+              ("quadtree leaves", 1, viz.COLORS["EKF"], "o")]
+    for label, col, colour, marker in series:
+        ax.plot(hs, [row[col] for row in rows], color=colour, lw=1.5, marker=marker, ms=4, label=label)
+    ax.plot(hs, [row[4] for row in rows], color=viz.INK_2, lw=1.0, ls="--", label="upper bound $1+12P/h+24m$")
+    ax.set_xscale("log", base=2); ax.set_yscale("log")
+    ax.set_xticks(hs); ax.set_xticklabels([f"{v:g}" for v in hs])
+    ax.invert_xaxis()
+    ax.set_xlabel("smallest cell side $h$"); ax.set_ylabel("number of cells")
+    ax.set_title("(b) cells needed, as $h$ shrinks", fontsize=8)
+    ax.legend(fontsize=7, frameon=False, loc="upper left")
+    plt.tight_layout()
+    save(fig, "appE_quadtree")
+
+
 # ---------------------------------------------------------------- chapter 3
 def fig_kf_nees():
     world = World.default()
@@ -883,6 +972,7 @@ if __name__ == "__main__":
     fig_dead_reckoning()
     fig_grid()
     fig_potato()
+    fig_quadtree()
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()

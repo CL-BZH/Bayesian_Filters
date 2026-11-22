@@ -1,0 +1,281 @@
+\chapter{Quadtrees}
+\label{app:quadtree}
+
+The grid filter of \cref{ch:bayes} covers the lawn with cells of one
+size, and the mask of \cref{fig:potato} marks each cell as on the lawn or
+not. Most of these cells say nothing interesting: a cell deep inside the
+lawn is on the lawn, and so are all its neighbours. The mask needs small
+cells only along the edge, where the answer changes. A \emph{quadtree}
+uses large cells where the answer is the same over a large region and
+small ones along the edge. This appendix defines it
+(\cref{sec:qt-def}), counts its cells (\cref{sec:qt-count}), shows how to
+find the cell of a point (\cref{sec:qt-find}), and discusses a grid
+filter whose cells are the cells of a quadtree (\cref{sec:qt-filter}).
+The numbers quoted are printed by the script
+\code{book/figures/make\_figures.py}, which also draws
+\cref{fig:quadtree}.
+
+\section{Splitting squares}
+\label{sec:qt-def}
+
+The lawn is a closed set $L$ in the plane, and its \emph{edge} is the
+boundary of $L$: the outer edge, and the edge of each hole (the tree of
+\cref{fig:potato}). A \emph{cell} is a closed square with sides parallel
+to the axes. To \emph{split} a cell is to cut it through its centre,
+parallel to its sides, into four cells of half the side, its
+\emph{quadrants}.
+
+\begin{definition}{Quadtree of a lawn}{quadtree}
+Let $Q_0$ be a cell of side $s_0$ that contains $L$, and let
+$h=s_0/2^m$ for an integer $m\ge1$. A cell is \emph{in} if all its points
+are on the lawn, \emph{out} if none of them is, and \emph{mixed}
+otherwise. Start from the single cell $Q_0$; as long as there is a mixed
+cell of side larger than $h$, replace it by its four quadrants. The cells
+left at the end are the \emph{leaves}. The \emph{quadtree} is the tree
+whose nodes are all the cells met on the way, each split cell being the
+parent of its four quadrants; $Q_0$ is its \emph{root}.
+\end{definition}
+
+Three facts follow from the construction.
+\begin{itemize}[nosep]
+  \item The process stops: a cell at depth $k$ (obtained by $k$ splits
+        from $Q_0$) has the side $s_k=s_0/2^k$, and cells of side $h$,
+        at depth $m$, are never split.
+  \item The leaves cover $Q_0$ without overlapping (except along their
+        sides): this is true of $\{Q_0\}$, and a split replaces a cell by
+        four cells that cover it in the same way.
+  \item A cell at depth $k$ is a cell of the uniform grid of side $s_k$
+        that starts at a corner of $Q_0$: the quadrants of a cell of that
+        grid are cells of the grid of half the side.
+\end{itemize}
+Each leaf is therefore an in cell, an out cell, or a mixed cell of side
+$h$ (\cref{fig:quadtree}, left).
+
+\emph{The quadtree knows the lawn as well as the uniform grid of side
+$h$.} Take a cell $C$ of the uniform grid of side $h$. If $C$ is mixed,
+each cell that contains it contains a lawn point and an off-lawn point,
+so it is mixed too; every ancestor of $C$ was then split, and $C$ itself
+is a leaf. If $C$ is in or out, it lies in a leaf (the leaves cover
+$Q_0$), and this leaf is not a mixed leaf (those have side $h$, so the
+leaf would be $C$), so it is an in leaf or an out leaf, and $C$ has the
+same status. The mixed leaves are therefore exactly the mixed cells of
+the uniform grid, and every other cell of the uniform grid lies in a leaf
+of its own status: a mask on the leaves, built as in \cref{ch:bayes},
+gives the same answer at every point as the mask on the uniform grid.
+
+\emph{Classifying a cell.} How to decide whether a cell is in, out or
+mixed depends on how the edge is stored. For a mower, the edge is a
+polygon recorded with the RTK GPS (the box ``Boundary wire or geofence''
+in \cref{ch:bayes}). A cell that the edge does not meet is in or out,
+because a segment from a lawn point to an off-lawn point inside the cell
+would have to cross the edge; testing one point of the cell, its centre
+for instance, with a point-in-polygon test, says which. A cell that the
+edge meets is treated as mixed. This is safe: a mixed cell always meets
+the edge, by the same segment argument, and a cell that only touches the
+edge without being mixed is split for nothing, which costs a few cells
+but changes no answer. For \cref{fig:quadtree}, whose edge is a formula,
+the script tests points along the sides of each cell and treats the tree
+exactly.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appE_quadtree.pdf}
+\caption{(a) The quadtree of the potato lawn of \cref{fig:potato}, with
+the root $Q_0=[-160,160]^2$ and the smallest side $h=10$: in leaves
+(dark), mixed leaves (light), out leaves (white). (b) The number of cells
+as the smallest side $h$ is halved: the uniform grid of side $h$ on the
+whole square, its cells that meet the lawn, the leaves of the quadtree,
+and the upper bound of \cref{prop:qtcount}.}
+\label{fig:quadtree}
+\end{figure}
+
+\section{How many leaves}
+\label{sec:qt-count}
+
+A uniform grid of side $h$ has about $A/h^2$ cells on a lawn of area
+$A$: halving $h$ multiplies their number by $4$. The leaves of a
+quadtree are governed by the length of the edge instead.
+
+\begin{proposition}{Number of leaves}{qtcount}
+Suppose that the edge is made of $r$ closed curves of total length $P$,
+and build the quadtree by splitting every cell of side larger than $h$
+that meets the edge (this splits at least the mixed cells). Then the
+number of leaves is at most
+\[
+  1+\frac{12P}{h}+12\,r\,m .
+\]
+\end{proposition}
+
+\begin{proof}
+\emph{Step 1: leaves and splits.} At the start there is one leaf. A split
+removes one leaf and adds four, so it adds three. Hence
+\[
+  \text{number of leaves}=1+3\times\text{number of splits}.
+\]
+
+\emph{Step 2: a short arc meets at most four cells of a grid.} Fix a
+side $s$ and the uniform grid of cells of side $s$. Let $\gamma$ be an
+arc of length smaller than $s$. Any two of its points are at a distance
+smaller than $s$, since the straight distance between two points is at
+most the length of any curve that joins them. So the $x$-coordinates of
+the points of $\gamma$ lie in an interval $[a,b]$ with $b-a<s$. The
+interval $[js,(j+1)s]$ of the grid meets $[a,b]$ when $js\le b$ and
+$(j+1)s\ge a$, that is when $a/s-1\le j\le b/s$; this interval of values
+of $j$ has length $(b-a)/s+1<2$, so it contains at most two integers.
+The same holds for the $y$-coordinates, and $\gamma$ meets at most
+$2\times2=4$ cells.
+
+\emph{Step 3: a curve meets few cells.} Cut a curve of length $\ell$
+into $n=\lfloor\ell/s\rfloor+1$ arcs of equal length $\ell/n$, which is
+smaller than $s$ because $n>\ell/s$. By Step~2 each arc meets at most $4$
+cells, so the curve meets at most $4n\le4(\ell/s+1)$ cells. Adding over
+the $r$ curves of the edge, whose lengths add up to $P$, at most
+$4(P/s+r)$ cells of the grid of side $s$ meet the edge.
+
+\emph{Step 4: adding over the depths.} The split cells have the sides
+$s_k=s_0/2^k$ with $0\le k\le m-1$, and at each depth they are cells of
+the grid of side $s_k$ that meet the edge, so by Step~3 there are at most
+$4(P/s_k+r)$ of them. The sum of the $1/s_k$ is a geometric sum:
+\[
+  \sum_{k=0}^{m-1}\frac1{s_k}=\frac1{s_0}\sum_{k=0}^{m-1}2^k
+  =\frac{2^m-1}{s_0}=\frac1h-\frac1{s_0}<\frac1h ,
+\]
+using $s_0=2^mh$. Hence
+\[
+  \text{number of splits}\le\sum_{k=0}^{m-1}4\Bigl(\frac P{s_k}+r\Bigr)
+  <\frac{4P}h+4rm ,
+\]
+and Step~1 gives the bound.
+\end{proof}
+
+\begin{inwords}
+The leaves are about the edge, not about the area. Halving $h$ about
+doubles the bound on the number of leaves, where it quadruples the number
+of cells of a uniform grid. The term $12rm$ grows only like the
+logarithm of $s_0/h$.
+\end{inwords}
+
+\emph{The potato lawn.} Its edge is the outer curve, of length $798.7$,
+and the edge of the tree, of length $2\pi\times16=100.5$: $r=2$ and
+$P=899.2$. The area of the lawn is $A=44\,084$, and $s_0=320$.
+\begin{center}
+\small
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+ & quadtree & \multicolumn{2}{c}{uniform grid} & bound of\\
+\cmidrule(lr){3-4}
+$h$ & leaves & whole square & cells meeting the lawn &
+\cref{prop:qtcount}\\
+\midrule
+$40$  & $55$    & $64$     & $41$    & $343$\\
+$20$  & $139$   & $256$    & $138$   & $637$\\
+$10$  & $313$   & $1\,024$ & $494$   & $1\,200$\\
+$5$   & $661$   & $4\,096$ & $1\,871$ & $2\,303$\\
+$2.5$ & $1\,351$ & $16\,384$ & $7\,277$ & $4\,485$\\
+\bottomrule
+\end{tabular}
+\end{center}
+For large cells the quadtree gains nothing: almost every cell is near the
+edge. Each halving of $h$ then about doubles the number of leaves and
+quadruples the number of lawn cells of the uniform grid (\cref{fig:quadtree},
+right), so the ratio doubles: $1.6$ at $h=10$, $2.8$ at $h=5$, $5.4$ at
+$h=2.5$.
+
+The bound is about three times too large. Step~2 allows four cells per
+arc of length $s$, the worst case; a typical arc of length $s$ meets
+fewer. The script finds between $1.25\,P/h$ and $1.29\,P/h$ mixed leaves
+at the values of $h$ of the table. This agrees with a classical result of integral geometry,
+quoted here without proof (it is Buffon's needle problem): averaged over
+the position and orientation of a grid of side $s$, a curve of length
+$\ell$ crosses $2\ell/(\pi s)$ of its vertical lines and as many
+horizontal ones, and each crossing takes it into a new cell, which gives
+about $4P/(\pi h)\approx1.27\,P/h$ cells along the edge. Putting this
+count in Step~4 instead of $4P/s_k$ gives about
+$1+3\times1.27\,P/h\approx3.8\,P/h$ leaves: about $1\,370$ for $h=2.5$,
+against $1\,351$ in the table.
+
+A leaf costs more memory than a cell of a uniform grid, which is an
+entry of an array: it needs its position and size, or the links of the
+tree. The quadtree pays off when the cells are small compared with the
+lawn, that is when $h$ is much smaller than $A/P$ (here $49$), which is
+when $A/h^2$ is much larger than $P/h$.
+
+\section{Finding the leaf of a point}
+\label{sec:qt-find}
+
+To find the leaf that contains a point $\p$, start at the root; at a
+cell that has been split, compare the coordinates of $\p$ with those of
+the centre of the cell, which tells in which quadrant $\p$ lies (two
+comparisons), and move to that quadrant; stop at a leaf. Each step goes
+one level down, so at most $m=\log_2(s_0/h)$ steps are needed: $7$ for
+$h=2.5$. A uniform grid finds the cell of $\p$ in one step, by dividing
+its coordinates by $h$, but it stores $A/h^2$ cells. This is the trade:
+memory proportional to $P/h$ for a search in $\log_2(s_0/h)$ steps.
+
+The particle filter of \cref{ch:particle} needs exactly this search: a
+particle in an out leaf is off the lawn and gets zero likelihood, a
+particle in an in leaf is on the lawn, and only for a particle in a mixed
+leaf is a finer test needed, against the pieces of the edge that cross
+that leaf. In three dimensions, the same construction with eight
+children per cell is the \emph{octree}, on which the OctoMap library
+builds its 3-D occupancy maps (Hornung et al., in the references).
+
+\section{A grid filter on a quadtree}
+\label{sec:qt-filter}
+
+The grid filter can use the leaves as its cells. The belief is a
+probability $b_\ell$ for each leaf $\ell$, spread evenly inside the leaf,
+as on a uniform grid; the out leaves have $b_\ell=0$ and need not be
+stored. Write $\vect c_\ell$ for the centre of the leaf $\ell$.
+
+\emph{Update.} As in \cref{ch:bayes}, $b_\ell\leftarrow\eta\,
+p(\z\mid\vect c_\ell)\,b_\ell$, with $\eta$ chosen so that the $b_\ell$
+add up to $1$. Taking the likelihood at the centre replaces its average
+over the leaf by one value, which is accurate when the likelihood
+changes little across the leaf.
+
+\emph{Prediction.} By the law of total probability over the leaf that
+contains $\p_t$ (the version of \eqref{eq:predict} for cells),
+$\bar b_{\ell'}=\sum_\ell T_{\ell\ell'}\,b_\ell$ with
+$T_{\ell\ell'}=\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)$. Take the model of
+\cref{prop:conv} with the round noise $\Normal(\vect0,\sigma^2I)$ used by
+the code, and put the robot at the centre of its leaf. Then $\p_{t+1}$
+is Gaussian with the mean $\vect\mu=\vect c_\ell+\vect d_t$ and the
+covariance $\sigma^2I$. Its two coordinates are independent, because the
+covariance is diagonal, and for a Gaussian $X$ with mean $\mu$ and
+standard deviation $\sigma$,
+$\Pr(a\le X\le b)=\Phi\bigl((b-\mu)/\sigma\bigr)-\Phi\bigl((a-\mu)/\sigma\bigr)$,
+where $\Phi$ is the distribution function of the standard Gaussian. So,
+for the leaf $\ell'=[x_0,x_1]\times[y_0,y_1]$,
+\[
+  T_{\ell\ell'}=
+  \Bigl[\Phi\Bigl(\frac{x_1-\mu_x}{\sigma}\Bigr)
+       -\Phi\Bigl(\frac{x_0-\mu_x}{\sigma}\Bigr)\Bigr]
+  \Bigl[\Phi\Bigl(\frac{y_1-\mu_y}{\sigma}\Bigr)
+       -\Phi\Bigl(\frac{y_0-\mu_y}{\sigma}\Bigr)\Bigr].
+\]
+Only the leaves $\ell'$ near $\vect\mu$ receive anything: if $\ell'$
+lies entirely more than $4\sigma$ to the right of $\mu_x$, the first
+factor is at most $1-\Phi(4)=\Phi(-4)\approx3\times10^{-5}$, and the same
+holds on the other three sides. The probability sent to out leaves is
+dropped and the rest is renormalised, which is the mask of
+\cref{ch:bayes}. On a uniform grid the same formula is the shift and the
+blur of \cref{prop:conv}, done cell by cell.
+
+\emph{The weakness.} Both steps put the robot at the centre of its leaf,
+so they are only as fine as the leaves. The quadtree of the lawn has its
+small leaves along the edge, which is where the \emph{map} needs detail,
+but large leaves inside the lawn, where the robot spends most of its
+time. A belief concentrated on a few units cannot be represented inside
+a leaf of side $40$: there it is spread evenly over the whole leaf. The resolution of the
+belief should follow the \emph{belief}. One way is to let the
+probabilities drive the splitting: after each update, split a leaf whose
+probability is above a threshold, down to the side $h$, and merge four
+sibling leaves whose total probability is below another threshold. The
+mask still decides which leaves are out, and a leaf is split when it is
+mixed or when it carries much probability. Thrun, Burgard and Fox call a
+decomposition fixed in advance \emph{static} and one that follows the
+belief \emph{dynamic} (Chapter~4 of \emph{Probabilistic Robotics}). The
+particle filter of \cref{ch:particle} reaches the same goal by other
+means: its particles gather where the belief is, and the quadtree is then
+used only for the map, as in \cref{sec:qt-find}.
