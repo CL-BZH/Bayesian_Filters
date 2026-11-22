@@ -2185,28 +2185,51 @@ the joint distribution divided by that of the trajectory:
 a product of one factor per measurement. It does not depend on the
 controls, so it is also $p(\z_{1:T}\mid\x_{0:T})$.
 
-One point needs care. Dividing by (a) means dividing by the value of a
-density, and the trajectory has no density: (a) contains the transitions,
-which have none (\cref{prop:degenerate}). So the division above is only
-a way of writing, and the result must be checked against what a
-conditional distribution is when the conditioning variable has no
-density. A family of distributions $K(\x_{0:T},\cdot)$ of the
-measurements, one for each trajectory, is the conditional distribution of
-the measurements given the trajectory when, for every set $B$ of
-trajectories and every set $A$ of measurement sequences,
+\emph{One point needs care: the division.} Dividing by (a) means
+dividing by the value of a density of the trajectory. But the trajectory
+has no density: each transition sends a pose onto a thin surface of the
+pose space (\cref{prop:degenerate}), so all the probability of the
+trajectory sits on a thin set of trajectories, where a density would
+have to be infinite, and zero everywhere else. The quotient above is
+therefore only a way of writing, and the result needs another
+justification.
+
+A smaller example has the same feature. Let $X$ be a point drawn
+uniformly on the unit circle of the plane, and $Z=X+V$ a noisy reading of
+it, with $V\sim\Normal(\vect0,\sigma^2I)$ independent of $X$. $X$ has no
+density in the plane: all its probability sits on a curve, which has no
+area. Yet ``given $X=\vect x$, $Z\sim\Normal(\vect x,\sigma^2I)$'' makes
+perfect sense: it says how $Z$ is produced once $X$ is known. This is
+what a conditional distribution is: for each value $\vect x$ of $X$, a
+distribution of $Z$, such that drawing $X$ first and then $Z$ from the
+distribution attached to that value reproduces the joint behaviour of
+$(X,Z)$. When $X$ has a density, this is the familiar ``joint $=$
+conditional $\times$ marginal'', the division read backwards. When $X$
+has none, the recipe still makes sense, and it serves as the definition.
+
+The trajectory and the measurements are in the same situation.
+Equation~\eqref{eq:joint} says how a run is produced: draw the
+trajectory from (a), then each $\z_t$ from $p(\z_t\mid\x_t)$,
+independently. So, for a given trajectory, the measurements have the
+density (b), $\prod_tp(\z_t\mid\x_t)$ (a genuine density in the
+measurements, since each sensor's noise has one), and this is the
+conditional distribution of the measurements given the trajectory. The
+division above only restates this in the notation of densities.
+
+\emph{In formulas}, for the reader who wants the precise statement. Let
+$K(\x_{0:T},A)=\int_A\prod_tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}$ be the
+probability that the recipe gives to a set $A$ of measurement sequences
+when the trajectory is $\x_{0:T}$. ``Drawing the trajectory first, then
+the measurements, reproduces the joint behaviour'' means that for every
+set $B$ of trajectories and every set $A$ of measurement sequences,
 \[
   \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
-  =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr]:
+  =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr],
 \]
-the probability of both events is the average, over the trajectories in
-$B$, of the probability that $K$ gives to $A$. (When the trajectory has a
-density this is the division read backwards: joint $=$ conditional
-$\times$ marginal.) Here it holds with $K$ given by (b): the factorisation
-says that a run is produced by drawing the trajectory from (a) and then
-each $\z_t$ from $p(\z_t\mid\x_t)$, so the probability that the
-measurements fall in $A$, for a given trajectory, is
-$K(\x_{0:T},A)=\int_A\prod_tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}$, and
-averaging over the trajectories in $B$ gives the left side.
+where $\mathbf 1_B(\x_{0:T})$ is $1$ if $\x_{0:T}\in B$ and $0$
+otherwise: the probability of both events is the average, over the
+trajectories, of the probability that the recipe gives to $A$, counting
+only the trajectories in $B$.
 
 \emph{Why the controls must be fixed in advance.} If they are computed
 from the measurements, $\x_2=f(\x_1,\pi_1(\z_1)+\bepsilon_1)$ depends on
