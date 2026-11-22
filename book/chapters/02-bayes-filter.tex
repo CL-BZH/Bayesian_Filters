@@ -284,24 +284,50 @@ densities: functions that can be evaluated and integrated (the initial
 belief $p(\x_0)$ is assumed to have one). The transition
 $p(\x_{t+1}\mid\x_t,\uu_t)$ is a distribution \emph{without} a density
 (\cref{prop:degenerate}), so \eqref{eq:predict} cannot be read as the
-integral of a product of two functions. It is read as follows: $\belbar$
-is the distribution of the next pose $f(\x_t,\uu_t+\bepsilon_t)$ when the
-current pose $\x_t$ is drawn from $\bel$ and the noise $\bepsilon_t$ from
-$\Normal(\vect0,M)$, independently. Written with ordinary densities only,
-this says that for every function $g$ of the pose (as in
-\cref{sec:assumptions}: $g(\x)=\x$ for the mean, the indicator of a region
-for its probability),
+integral of a product of two functions. Here is how it is read instead, in
+three steps.
+
+\emph{What \eqref{eq:predict} means.} Go through every current pose
+$\x_t$, weighted by its belief $\bel(\x_t)$, and spread it over the poses
+it can move to with the control $\uu_t$; $\belbar$ collects all these
+spreads. The trouble is only in the spread of one pose: it lies on a thin
+surface (\cref{fig:transition}), so it has no density to multiply by
+$\bel(\x_t)$.
+
+\emph{The same thing as a recipe.} The spread of one pose $\x$ is the set
+of poses $f(\x,\uu_t+\bepsilon)$ for all the possible control noises
+$\bepsilon$, weighted by the density of the noise. So a predicted pose is
+produced in three moves: draw a current pose $\x$ from $\bel$, draw a
+noise $\bepsilon$ from $\Normal(\vect0,M)$, independently, and compute
+$f(\x,\uu_t+\bepsilon)$. $\belbar$ is the distribution of the poses
+produced this way. The recipe uses only $\bel$, the noise density and the
+function $f$, which all exist.
+
+\emph{The same thing as a formula.} A distribution is known once the
+average under it of every function $g$ of the pose is known (as in
+\cref{sec:assumptions}: $g(\x)=\x$ gives the mean, and the indicator of a
+region, $1$ inside and $0$ outside, gives the probability of the region).
+The average of $g$ over the predicted pose can be computed in two ways.
+With the density $\belbar$, it is $\int g(\x)\,\belbar(\x)\,\mathrm d\x$.
+With the recipe, the predicted pose is $f(\x,\uu_t+\bepsilon)$, where the
+pair $(\x,\bepsilon)$ has the density $\bel(\x)\,\rho(\bepsilon)$ (a
+product, since the two are drawn independently; $\rho$ is the Gaussian
+density of the noise). The two must agree:
 \begin{equation}\label{eq:predictnoise}
   \int g(\x)\,\belbar(\x)\,\mathrm d\x
   =\iint g\bigl(f(\x,\uu_t+\bepsilon)\bigr)\,\bel(\x)\,\rho(\bepsilon)\,
-  \mathrm d\x\,\mathrm d\bepsilon ,
+  \mathrm d\x\,\mathrm d\bepsilon .
 \end{equation}
-where $\rho$ is the Gaussian density of the noise $\bepsilon_t$. This is
-\eqref{eq:predict} with nothing left to interpret. It is also the form in
-which the filters of the next chapters compute the prediction: they push
-poses and noise through $f$, and never evaluate the transition.
-\Cref{sec:shape} explains why $\belbar$ has a density when $\bel$ has
-one. The update \eqref{eq:update} involves densities only.
+Every function in this equation can be evaluated: it is \eqref{eq:predict}
+with nothing left to interpret. With $g(\x)=\x$, for instance, it says
+that the mean of the predicted pose is the average of
+$f(\x,\uu_t+\bepsilon)$ over the current poses and the noises.
+
+This is also how the filters of the next chapters compute the prediction:
+they push poses and noises through $f$, as in the recipe, and never
+evaluate the transition. \Cref{sec:shape} explains why $\belbar$ has a
+density when $\bel$ has one. The update \eqref{eq:update} involves
+densities only.
 
 \begin{inwords}
 \emph{Predict}: push the belief through the motion model. Every possible
