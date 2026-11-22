@@ -709,20 +709,21 @@ def fig_pf_cycle():
     p2 = p1[idx]
     ess = 1.0 / np.sum(w**2)
     print("pf cycle: ESS %.1f of %d, distinct survivors %d" % (ess, N, len(np.unique(idx))))
-    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.3), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.4), sharey=True)
     a1, a2, a3 = axes
     y0, y1 = -0.035, -0.085
-    a1.plot(x, bel, color=viz.INK_2, lw=1.0, alpha=0.7)
-    a1.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8)
+    a1.plot(x, bel, color=viz.INK_2, lw=1.0, alpha=0.7, label=r"$\mathrm{bel}(x_t)$")
+    a1.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8, label=r"$\overline{\mathrm{bel}}(x_{t+1})$")
     a1.scatter(p0, np.full(N, y0), s=9, color=viz.INK_2, lw=0, label="particles at $t$")
     a1.scatter(p1, np.full(N, y1), s=9, color=viz.COLORS["EKF"], lw=0, label="after the move")
     a1.set_title("predict: move every particle", fontsize=8.5)
-    a2.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8)
-    a2.plot(x, lik / lik.max() * 0.3, color=viz.COLORS["UKF"], lw=1.2, ls="--")
+    a2.plot(x, pred, color=viz.COLORS["EKF"], lw=1.2, alpha=0.8, label=r"$\overline{\mathrm{bel}}(x_{t+1})$")
+    a2.plot(x, lik / lik.max() * 0.3, color=viz.COLORS["UKF"], lw=1.2, ls="--",
+            label=r"$p(z_{t+1}\mid x)$ (scaled)")
     a2.scatter(p1, np.full(N, y1), s=4 + 900 * w, color=viz.COLORS["EKF"], lw=0, alpha=0.75,
                label="area = weight")
     a2.set_title("weight by the likelihood", fontsize=8.5)
-    a3.plot(x, post, color=viz.COLORS["PF"], lw=1.4)
+    a3.plot(x, post, color=viz.COLORS["PF"], lw=1.4, label=r"$\mathrm{bel}(x_{t+1})$")
     jitter = np.zeros(N)                                    # stack the copies of one particle
     for v in np.unique(p2):
         m = np.flatnonzero(p2 == v)
@@ -731,8 +732,8 @@ def fig_pf_cycle():
     a3.set_title("resample: copy the heavy ones", fontsize=8.5)
     for a in axes:
         a.axhline(0, color=viz.INK_2, lw=0.4)
-        a.set_xlim(-4, 14); a.set_xlabel("$x$"); a.set_yticks([]); a.set_ylim(-0.26, 0.62)
-        a.legend(fontsize=6.8, loc="upper left")
+        a.set_xlim(-4, 14); a.set_xlabel("$x$"); a.set_yticks([]); a.set_ylim(-0.26, 0.95)
+        a.legend(fontsize=7, loc="upper left", frameon=False)
     plt.tight_layout()
     save(fig, "ch06_pf_cycle")
 
@@ -883,6 +884,7 @@ def fig_amcl():
     for a in (a1, a2):
         a.axvline(200, color=viz.MUTED, lw=0.8, ls=":")
         a.set_xlim(150, 260)
+    a1.set_title("step 200 (dotted): the robot is carried to another part of the lawn", fontsize=8)
     plt.tight_layout()
     save(fig, "ch06_amcl")
     print("amcl injected before/after", inj[150:200].sum(), inj[200:230].sum())

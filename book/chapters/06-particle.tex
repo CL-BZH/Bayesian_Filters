@@ -134,9 +134,12 @@ states the algorithm.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch06_pf_cycle.pdf}
-\caption{One cycle of a particle filter with $60$ particles, on the
-example of \cref{fig:bayescycle}; the curves are the exact densities
-computed there. Left: each particle (grey dots) is moved by the
+\caption{One cycle of a particle filter with $60$ particles, on the example of
+\cref{fig:bayescycle}: a two-bump belief, a commanded displacement of $5$
+with motion noise, and a measurement whose likelihood peaks at $9.6$. The
+curves are the exact
+densities computed there: the belief at $t$ (grey), the predicted belief
+(blue), the likelihood (dashed) and the new belief (green). Left: each particle (grey dots) is moved by the
 commanded displacement plus its own random noise (blue dots). Middle:
 each moved particle is weighted by the likelihood of the measurement
 (dashed); the area of a dot shows its weight. Right: resampling keeps
@@ -588,8 +591,9 @@ kidnapping.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\linewidth]{figures/ch06_amcl.pdf}
-\caption{Augmented MCL around the kidnapping of \cref{fig:kidnap} (step
-200, dotted). Top: after the kidnapping the measurement likelihood is
+\caption{Augmented MCL around the kidnapping of \cref{fig:kidnap}: at step $200$
+(dotted) the robot is carried to another part of the lawn (unknown
+landmark identities, $N=3000$). Top: after the kidnapping the measurement likelihood is
 close to zero, so the fast average decays by the factor
 $1-\alpha_{\mathrm{fast}}=0.9$ per step; the slow one barely moves. Bottom: once
 $w_{\mathrm{fast}}<w_{\mathrm{slow}}$ (step 217), random particles are

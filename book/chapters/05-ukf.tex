@@ -165,8 +165,10 @@ it by a Gaussian.
 \begin{figure}[ht]
 \centering
 \includegraphics{figures/ch05_arc.pdf}
-\caption{The arc of \cref{fig:arc}: EKF (blue) against the unscented
-transform (orange) with its seven transformed sigma points.}
+\caption{The arc of \cref{fig:arc}: forty units driven with a $45^\circ$ heading
+uncertainty. Grey: $5\,000$ samples of the true distribution, with its
+mean and $2\sigma$ ellipse (dashed). Blue: the EKF's prediction. Orange:
+the unscented transform, with its seven transformed sigma points.}
 \label{fig:utarc}
 \end{figure}
 
@@ -251,8 +253,9 @@ obtained by regression instead of differentiation.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch05_regression.pdf}
-\caption{The example of \cref{fig:linearisation} with the unscented
-transform. The UKF evaluates $\cos$ at three sigma points and fits a
+\caption{The example of \cref{fig:linearisation}, with the unscented transform
+added: an angle $\theta\sim\Normal(0.5,0.8^2)$ (grey density, left) is
+passed through $\cos$. The UKF evaluates $\cos$ at three sigma points and fits a
 regression line through them (slope $\tilde H=-0.43$; the tangent's is
 $-0.48$). The two outer points lie on that line; the centre point is off
 it by $0.27$, and the weighted scatter, $\Omega=0.14$, is added to the
@@ -349,8 +352,10 @@ and its error drops slightly faster.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch05_transient.pdf}
-\caption{The uncertain start of \cref{fig:ekftransient}, with both
-filters on the same runs. The UKF is within the band after a few
+\caption{The uncertain start of \cref{fig:ekftransient}, with both filters on the
+same $20$ runs: the initial estimate is drawn from $\Normal(\x_0,P_0)$
+with $\sigma_{xy}=30$ and $\sigma_\theta=0.8$. Left: average NEES (log
+scale) and its $95\%$ band for $n=3$. Right: median position error. The UKF is within the band after a few
 updates; the EKF is over-confident by up to two orders of magnitude.}
 \label{fig:ukftransient}
 \end{figure}
