@@ -2143,12 +2143,21 @@ random, so they inherit its randomness together. If the first reading is
 high, the robot was probably further on, and the second reading is
 probably high too.
 
-\emph{Given the trajectory, they are independent.} By
-\cref{prop:joint}(i) the joint distribution of the trajectory and the
-measurements is a product of two groups of factors:
+\emph{Given the trajectory, they are independent.} Write $\uu$ for the
+controls $\uu_{0:T-1}$. By \cref{prop:joint}(i), equation
+\eqref{eq:joint}, the joint distribution of the trajectory and the
+measurements is
 \[
-  \underbrace{p(\x_0)\prod_tp(\x_{t+1}\mid\x_t,\uu_t)}_{\text{(a)}}\;
-  \underbrace{\prod_tp(\z_t\mid\x_t)}_{\text{(b)}} .
+  p(\x_{0:T},\z_{1:T}\mid\uu)
+  =p(\x_0)\prod_{t=0}^{T-1}p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}).
+\]
+The order of the factors of a product does not matter, so the motion
+factors and the measurement factors can be gathered in two groups; in the
+second group, renaming $t+1$ as $t$ makes the index run from $1$ to $T$:
+\[
+  p(\x_{0:T},\z_{1:T}\mid\uu)
+  =\underbrace{p(\x_0)\prod_{t=0}^{T-1}p(\x_{t+1}\mid\x_t,\uu_t)}_{\text{(a)}}\;
+  \underbrace{\prod_{t=1}^{T}p(\z_t\mid\x_t)}_{\text{(b)}} .
 \]
 Integrate over all the measurements to get the distribution of the
 trajectory alone. Group (a) does not contain any $\z_t$, so it comes out
@@ -2161,7 +2170,9 @@ $\z_{T-1}$, and so on:
 \]
 So the distribution of the trajectory is (a):
 \[
-  p(\x_{0:T}\mid\uu)=p(\x_0)\prod_tp(\x_{t+1}\mid\x_t,\uu_t).
+  p(\x_{0:T}\mid\uu)=\int p(\x_{0:T},\z_{1:T}\mid\uu)\,\mathrm d\z_{1:T}
+  =\text{(a)}\times1
+  =p(\x_0)\prod_{t=0}^{T-1}p(\x_{t+1}\mid\x_t,\uu_t).
 \]
 The conditional distribution of the measurements given the trajectory is
 the joint distribution divided by that of the trajectory:
