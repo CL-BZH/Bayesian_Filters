@@ -871,17 +871,16 @@ def fig_amcl():
         err.append(np.hypot(*(pf.mean[:2] - rk.truth[t + 1, :2])))
     steps = np.arange(1, rk.n_steps + 1)
     inj = np.array(pf.injected_history)
-    fig, (a1, a2) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.5), sharex=True,
-                                 gridspec_kw=dict(height_ratios=[1.3, 1]))
+    fig, (a1, a2, a3) = plt.subplots(3, 1, figsize=(W * 0.8, W * 0.62), sharex=True,
+                                     gridspec_kw=dict(height_ratios=[1.3, 1, 1]))
     a1.plot(steps, slow, color=viz.INK_2, lw=1.4, label=r"$w_{\mathrm{slow}}$")
     a1.plot(steps, fast, color=viz.COLORS["UKF"], lw=1.2, label=r"$w_{\mathrm{fast}}$")
     a1.set_ylabel("average likelihood\n(per landmark)"); a1.legend(fontsize=7.5, loc="lower left", bbox_to_anchor=(0.0, 0.25))
     a2.bar(steps, inj, color=viz.COLORS["PF"], width=1.0, label="injected particles")
-    a2b = a2.twinx()
-    a2b.plot(steps, err, color=viz.INK, lw=1.0, ls="--")
-    a2b.set_ylabel("position error (dashed)", fontsize=8)
-    a2.set_ylabel("injected"); a2.set_xlabel("step")
-    for a in (a1, a2):
+    a2.set_ylabel("injected\nparticles")
+    a3.plot(steps, err, color=viz.INK, lw=1.2)
+    a3.set_ylabel("position\nerror"); a3.set_xlabel("step")
+    for a in (a1, a2, a3):
         a.axvline(200, color=viz.MUTED, lw=0.8, ls=":")
         a.set_xlim(150, 260)
     a1.set_title("step 200 (dotted): the robot is carried to another part of the lawn", fontsize=8)
