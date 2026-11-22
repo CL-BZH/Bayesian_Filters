@@ -2216,20 +2216,57 @@ measurements, since each sensor's noise has one), and this is the
 conditional distribution of the measurements given the trajectory. The
 division above only restates this in the notation of densities.
 
-\emph{In formulas}, for the reader who wants the precise statement. Let
-$K(\x_{0:T},A)=\int_A\prod_tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}$ be the
-probability that the recipe gives to a set $A$ of measurement sequences
-when the trajectory is $\x_{0:T}$. ``Drawing the trajectory first, then
-the measurements, reproduces the joint behaviour'' means that for every
-set $B$ of trajectories and every set $A$ of measurement sequences,
+\emph{In formulas}, for the reader who wants the precise statement. Two
+ingredients are needed.
+
+\emph{A probability is the expectation of an indicator.} For an event
+$E$, let $\mathbf 1_E$ be $1$ when $E$ happens and $0$ otherwise; then
+$\E[\mathbf 1_E]=1\cdot\Pr(E)+0\cdot\Pr(\text{not }E)=\Pr(E)$. Both events
+happen when both indicators are $1$, that is when their product is $1$, so
 \[
   \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
-  =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr],
+  =\E\bigl[\mathbf 1_B(\x_{0:T})\,\mathbf 1_A(\z_{1:T})\bigr],
 \]
-where $\mathbf 1_B(\x_{0:T})$ is $1$ if $\x_{0:T}\in B$ and $0$
-otherwise: the probability of both events is the average, over the
-trajectories, of the probability that the recipe gives to $A$, counting
-only the trajectories in $B$.
+where $\mathbf 1_B(\x_{0:T})$ is $1$ if $\x_{0:T}\in B$ and $0$ otherwise,
+and likewise for $\mathbf 1_A$.
+
+\emph{The expectation as an ordinary integral.} The trajectory has no
+density, but it is a function of variables that do: the start $\x_0$ and
+the control noises $\bepsilon_0,\dots,\bepsilon_{T-1}$. Applying
+\eqref{eq:motionnoise} step by step turns them into the trajectory; write
+$\x_{0:T}=\Phi(\x_0,\bepsilon_{0:T-1})$. (In the circle example, likewise,
+$X=(\cos\alpha,\sin\alpha)$ with an angle $\alpha$ uniform on
+$[0,2\pi)$, which has a density.) The start, the control noises and the
+measurements, given the trajectory, all have densities, so the
+expectation is an ordinary integral over $\x_0$, $\bepsilon_{0:T-1}$ and
+$\z_{1:T}$:
+\begin{multline*}
+  \E\bigl[\mathbf 1_B(\x_{0:T})\,\mathbf 1_A(\z_{1:T})\bigr]\\
+  =\int\mathbf 1_B(\Phi)\Bigl[\int\mathbf 1_A(\z_{1:T})
+   \prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}\Bigr]
+   p(\x_0)\prod_{t=0}^{T-1}\Normal(\bepsilon_t;\vect0,M)\;
+   \mathrm d\x_0\,\mathrm d\bepsilon_{0:T-1},
+\end{multline*}
+where $\Phi$ stands for $\Phi(\x_0,\bepsilon_{0:T-1})$ and the $\x_t$ in
+the inner integral are its poses. The inner integral is over the
+measurements only, with the trajectory held fixed: it is the probability
+that the recipe gives to $A$ for that trajectory,
+\[
+  K(\x_{0:T},A)=\int_A\prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T} .
+\]
+What remains is the average of $\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)$
+over the trajectories, so
+\[
+  \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
+  =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr]
+\]
+for every set $B$ of trajectories and every set $A$ of measurement
+sequences. This identity is the precise meaning of ``$K$ is the
+conditional distribution of the measurements given the trajectory''. When
+the trajectory has a density $p(\x_{0:T})$, its right side is
+$\int_B\int_Ap(\z_{1:T}\mid\x_{0:T})\,p(\x_{0:T})\,\mathrm d\z_{1:T}\,
+\mathrm d\x_{0:T}$, ``joint $=$ conditional $\times$ marginal'' once
+more; the identity says the same thing without needing that density.
 
 \emph{Why the controls must be fixed in advance.} If they are computed
 from the measurements, $\x_2=f(\x_1,\pi_1(\z_1)+\bepsilon_1)$ depends on
