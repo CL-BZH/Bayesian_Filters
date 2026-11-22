@@ -625,19 +625,31 @@ def fig_conv_read():
 
 
 def fig_conv_result():
-    """a * g as the density of X + W."""
-    y, a, sd, a_g = _conv_example()
-    blue = viz.COLORS["EKF"]
-    fig, ax = plt.subplots(figsize=(W * 0.55, W * 0.3))
+    """a * g is the density of X + W: draws of X, of W and of X + W, with their densities."""
+    y = np.linspace(-4, 12, 3201)
+    dy = y[1] - y[0]
+    a = 0.3 * _gauss(y, 2.0, 0.3**2) + 0.7 * ((y >= 5) & (y <= 9)) / 4.0
+    sd = 0.7
+    g = _gauss(y, 0.0, sd**2)
+    a_g = np.convolve(a, _gauss(np.arange(-3, 3 + dy / 2, dy), 0.0, sd**2) * dy, mode="same")
     rng = np.random.default_rng(0)
     n = 200_000
     X = np.where(rng.random(n) < 0.3, rng.normal(2.0, 0.3, n), rng.uniform(5, 9, n))
-    ax.hist(X + rng.normal(0, sd, n), bins=np.arange(-2, 12.01, 0.2), density=True, color="#b9d4f2", lw=0)
-    ax.plot(y, a_g, color=blue, lw=1.6)
-    ax.annotate("histogram of $X+W$", (-0.8, 0.205), color=viz.INK_2, fontsize=8.5)
-    ax.annotate("$a\\ast g$", (8.9, 0.19), color=blue, fontsize=10)
-    ax.set_xlim(-1, 11); ax.set_ylim(0, 0.24); ax.set_xlabel("$y$")
-    plt.tight_layout()
+    Wn = rng.normal(0, sd, n)
+    blue, light = viz.COLORS["EKF"], "#b9d4f2"
+    bins = np.arange(-4, 12.01, 0.2)
+    panels = [(X, a, "(a) $X$, density $a$", viz.INK), (Wn, g, "(b) $W$, density $g$", viz.INK),
+              (X + Wn, a_g, "(c) $X+W$, density $a\\ast g$", blue)]
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.28), sharex=True, sharey=True)
+    for ax, (draws, dens, title, colour) in zip(axes, panels):
+        ax.hist(draws, bins=bins, density=True, color=light, lw=0)
+        ax.plot(y, dens, color=colour, lw=1.4)
+        ax.set_title(title, fontsize=9)
+        ax.set_xlabel("$y$", fontsize=8.5, labelpad=1)
+        ax.tick_params(labelsize=7.5)
+    axes[0].set_xlim(-3, 11); axes[0].set_ylim(0, 0.62)
+    axes[0].set_xticks([-2, 0, 2, 4, 6, 8, 10])
+    plt.tight_layout(w_pad=0.6)
     save(fig, "ch02_conv_result")
 
 
