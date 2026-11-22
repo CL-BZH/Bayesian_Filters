@@ -195,41 +195,87 @@ the measurements (the two cases of \cref{prop:joint}),
 \end{theorem}
 
 \begin{proof}
-\emph{Predict.} By the law of total probability, conditioning on
-$\x_t$,
-\[
-  p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})=\int p(\x_{t+1}\mid\x_t,\z_{1:t},
-  \uu_{0:t})\,p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t .
-\]
-In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$:
-it says that, given $\x_t$ and $\uu_t$, the next pose is independent of
-all the earlier variables together, hence also of those that appear here,
-$\z_{1:t}$ and $\uu_{0:t-1}$. This includes the last measurement $\z_t$:
-the next pose is $f(\x_t,\uu_t+\bepsilon_t)$, in which no measurement
-appears. A measurement can act on the motion only through the control,
-when the control is computed from it, and the control $\uu_t$ is given.
-In the second, the control $\uu_t$ carries no information about $\x_t$
-beyond what is already given (it is fixed in advance, or computed from the
-measurements $\z_{1:t}$), so it can be dropped, which leaves $\bel(\x_t)$
-(\cref{sec:bayesnet-mower}, statement~(c), checks this independence on the
-graph of the model).
+Recall what the two beliefs are (\cref{def:belief}):
+$\bel(\x_t)=p(\x_t\mid\z_{1:t},\uu_{0:t-1})$, the pose given all the data
+up to step $t$, and $\belbar(\x_{t+1})=p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})$,
+the next pose given the same data and the control $\uu_t$. The proof
+follows \cref{ex:grassgravel} step by step, with integrals in place of
+sums.
 
-\emph{Update.} Bayes' rule with everything conditioned on
-$(\z_{1:t},\uu_{0:t})$ gives
+\emph{Predict, step 1: go through every current pose.} The robot reaches
+$\x_{t+1}$ from some current pose $\x_t$. The law of total probability,
+with everything conditioned on the data $(\z_{1:t},\uu_{0:t})$, adds up
+the ways of reaching $\x_{t+1}$, one for each $\x_t$:
 \[
-  p(\x_{t+1}\mid\z_{1:t+1},\uu_{0:t})=
-  \frac{p(\z_{t+1}\mid\x_{t+1},\z_{1:t},\uu_{0:t})\,
+  \underbrace{p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})}_{\belbar(\x_{t+1})}
+  =\int p(\x_{t+1}\mid\x_t,\z_{1:t},\uu_{0:t})\;
+  p(\x_t\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x_t .
+\]
+In the example this was $\belbar(G)=0.9\times0.8+0.1\times0.2$: the
+probability of moving to $G$ from each state, times the probability of
+that state.
+
+\emph{Predict, step 2: the first factor is the motion model.} \ref{A1}
+removes everything but $\x_t$ and $\uu_t$: it says that, given $\x_t$ and
+$\uu_t$, the next pose is independent of all the earlier variables
+together, hence also of those that appear here, $\z_{1:t}$ and
+$\uu_{0:t-1}$. This includes the last measurement $\z_t$: the next pose
+is $f(\x_t,\uu_t+\bepsilon_t)$, in which no measurement appears. A
+measurement can act on the motion only through the control, when the
+control is computed from it, and the control $\uu_t$ is given. So the
+first factor is $p(\x_{t+1}\mid\x_t,\uu_t)$.
+
+\emph{Predict, step 3: the second factor is the belief.} The control
+$\uu_t$ carries no information about $\x_t$ beyond what is already given
+(it is fixed in advance, or computed from the measurements $\z_{1:t}$),
+so it can be dropped, which leaves
+$p(\x_t\mid\z_{1:t},\uu_{0:t-1})=\bel(\x_t)$ (\cref{sec:bayesnet-mower},
+statement~(c), checks this independence on the graph of the model).
+Substituting both factors gives \eqref{eq:predict}.
+
+\emph{Update, step 1: Bayes' rule.} Now the measurement $\z_{t+1}$
+arrives. Bayes' rule, with everything conditioned on the data
+$(\z_{1:t},\uu_{0:t})$ already in hand, gives
+\[
+  \underbrace{p(\x_{t+1}\mid\z_{1:t+1},\uu_{0:t})}_{\bel(\x_{t+1})}=
+  \frac{p(\z_{t+1}\mid\x_{t+1},\z_{1:t},\uu_{0:t})\;
   p(\x_{t+1}\mid\z_{1:t},\uu_{0:t})}
   {p(\z_{t+1}\mid\z_{1:t},\uu_{0:t})}.
 \]
-\ref{A2} reduces the first factor of the numerator to
-$p(\z_{t+1}\mid\x_{t+1})$ (given $\x_{t+1}$, the measurement is
+(Bayes' rule itself comes from writing the probability of $\x_{t+1}$ and
+$\z_{t+1}$ together in two ways: $p(\x_{t+1}\mid\z_{t+1})\,p(\z_{t+1})=
+p(\z_{t+1}\mid\x_{t+1})\,p(\x_{t+1})$, all conditioned on the data, and
+dividing by $p(\z_{t+1})$.)
+
+\emph{Update, step 2: the numerator.} \ref{A2} reduces its first factor
+to $p(\z_{t+1}\mid\x_{t+1})$ (given $\x_{t+1}$, the measurement is
 independent of all the earlier variables, hence of $\z_{1:t}$ and
-$\uu_{0:t}$), and the second is $\belbar(\x_{t+1})$. The
-denominator does not depend on $\x_{t+1}$. Since the left-hand side is a
-density in $\x_{t+1}$ and integrates to one, the denominator must be the
-integral of the numerator over $\x_{t+1}$, which is the integral in
-\eqref{eq:update}.
+$\uu_{0:t}$), and its second factor is $\belbar(\x_{t+1})$. The numerator
+is therefore $p(\z_{t+1}\mid\x_{t+1})\,\belbar(\x_{t+1})$: the probability
+of being at $\x_{t+1}$ \emph{and} receiving the reading $\z_{t+1}$, the
+products $0.222$ and $0.208$ of the example.
+
+\emph{Update, step 3: the denominator.} It is the probability of the
+reading $\z_{t+1}$ given the data, before knowing where the robot is: the
+$0.43$ of the example. It is computed like $0.43=0.222+0.208$, by going
+through every possible next pose (total probability again, then \ref{A2}
+in the first factor):
+\[
+  p(\z_{t+1}\mid\z_{1:t},\uu_{0:t})
+  =\int p(\z_{t+1}\mid\x,\z_{1:t},\uu_{0:t})\,
+   p(\x\mid\z_{1:t},\uu_{0:t})\,\mathrm d\x
+  =\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x ,
+\]
+the integral of the numerator over all the poses. This is
+$\eta_{t+1}^{-1}$, and the three steps together give \eqref{eq:update}.
+
+\emph{A check.} The denominator does not depend on $\x_{t+1}$, and
+dividing by it is exactly what makes the new belief integrate to one:
+integrating \eqref{eq:update} over $\x_{t+1}$ gives
+$\eta_{t+1}\int p(\z_{t+1}\mid\x)\,\belbar(\x)\,\mathrm d\x=1$. As in the
+example, the division fixes the total, not the shape: the shape of the
+new belief is set by the numerator alone. This is why the denominator is
+often called a \emph{normalising constant}.
 \end{proof}
 
 \paragraph{What is a density in these formulas, and what is not.} The
