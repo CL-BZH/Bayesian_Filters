@@ -444,10 +444,20 @@ and the same sum is $\log p(\z_{1:T})$.
 \end{proof}
 
 \begin{inwords}
-A filter can tell how surprised it is: a small $\eta^{-1}$ means that
-the measurement was unlikely under the current belief. A sudden run of
-surprising measurements is the signature of a model failure, for example a
-robot that has been picked up and moved.
+The proposition gives the filter a measure of its own surprise, which it
+computes anyway, since $\eta_t$ is the normaliser of every update.
+$\eta_t^{-1}$ is the density that the filter, \emph{before} $\z_t$
+arrived, gave to the value that then arrived: the $0.43$ of
+\cref{ex:grassgravel}. A value as large as usual means the reading was
+about as expected; a much smaller one means the filter had considered it
+unlikely. One small value can be bad luck. A run of them cannot be
+explained that way: by the second part of the proposition, the product of
+the $\eta_t^{-1}$ over a stretch of time is the density that the model
+gives to that whole stretch of readings, and a run of small factors makes
+it tiny. The model then no longer explains the data: for example the
+robot has been picked up and moved. \Cref{sec:amcl} uses exactly this
+test to detect such a kidnapping, comparing a short-term average of
+$\eta_t^{-1}$ with a long-term one.
 \end{inwords}
 
 \section{The grid filter}
