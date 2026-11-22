@@ -397,10 +397,10 @@ $320\times320\times2\pi\approx6\times10^5$ units of pose space. After
 four ranges and four bearings the posterior has standard deviations of
 about $2.6$ and $1.6$ in position and $0.026$\,rad in heading (the
 information form of \cref{prop:information}, evaluated at the start
-pose): a box of volume $2.6\times1.6\times0.026\approx0.1$. A uniform
+pose; notebook~05 computes them): a box of volume $2.6\times1.6\times0.026\approx0.1$. A uniform
 particle falls in that box with probability $0.1/(6\times10^5)\approx
 2\times10^{-7}$, so the expected number of particles inside it is about
-$N\times10^{-7}$: far below one for any affordable $N$. The best particle
+$2N\times10^{-7}$: far below one for any affordable $N$. The best particle
 is a few units from the truth, and the filter must then crawl to it
 through the motion noise. This is \emph{sample impoverishment}: the
 posterior is much narrower than the spacing between the particles.
@@ -454,7 +454,7 @@ estimates drift.}
 
 The cloud correctly splits into four clusters. But the masses
 ($0.20$, $0.35$, $0.21$, $0.16$ after one step) drift: after 30 steps one
-mode holds $0.70$ and another $0.005$, fewer than a hundred particles. A
+mode holds $0.70$ and another $0.005$ (notebook~05 prints them), fewer than a hundred particles. A
 mode that loses its last particle never comes back. With fewer particles
 it happens much sooner: with $N=2000$ only one mode is left by step 30 in
 each of three runs.

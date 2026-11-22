@@ -1847,11 +1847,12 @@ motion, and will reappear in Chapter~\ref{ch:ekf}.
 
 With the noise of the simulations ($s=4$, $\sigma_\delta=0.03$) and
 $t=100$, \eqref{eq:drlateral} predicts a lateral standard deviation of
-$69.8$ and \eqref{eq:drshort} a shortfall of $9.1$. A Monte Carlo run with
-20\,000 robots gives $67.5$ and $8.9$. On the figure-eight path of the
-simulations the loops partly cancel the error (rotating a closed loop about
-its start leaves its end in place), and over 200 runs the median error
-after 100 steps is about 20; but it still grows without bound
+$69.8$ and \eqref{eq:drshort} a shortfall of $9.1$. Notebook~00
+simulates 20\,000 robots driving these 100 steps and finds $67.7$ and
+$8.9$. On the figure-eight path of the simulations the loops partly cancel
+the error (rotating a closed loop about its start leaves its end in
+place): over 200 runs, the median error after 100 steps is $19.5$
+(notebook~00 again). It still grows without bound
 (\cref{fig:deadreckoning}).
 
 \begin{figure}[ht]
@@ -1883,7 +1884,12 @@ part of the \emph{command}, so the filters know it (the filters that do
 not read the GPS and the compass ignore what it says about the pose: end
 of \cref{sec:bayesnet-mower}). In
 \cref{sec:closedloop} the pilot is replaced by a controller that steers
-from the filter's own estimate. The notebook draws \cref{fig:transition,fig:deadreckoning}.
+from the filter's own estimate. The notebook draws
+\cref{fig:transition,fig:deadreckoning}, and checks by simulation the
+numbers quoted in this chapter: the dead-reckoning formulas of
+\cref{prop:deadreckoning}, the correlation of Exercise~\ref{ex:corr}, and
+the concentration of uniformly spread headings (solution of
+Exercise~\ref{ex:circmean}).
 \end{practice}
 
 \begin{mower}
@@ -2387,8 +2393,9 @@ $\Var(\rho)=\E[\rho^2]-\E[\rho]^2\ge0$,
 \[
   \E[\rho]\le\sqrt{\E[\rho^2]}=\frac1{\sqrt N},
 \] which is $0.03$ for $N=1000$ (while
-$\sum_jw_j=1$). The bound is close: a simulation gives
-$\E[\rho]\approx0.89/\sqrt N$. The circular mean is then defined, but it is the
+$\sum_jw_j=1$). The bound is close: notebook~00 simulates $5000$ such
+clouds for $N=10$, $100$ and $1000$ and finds $\E[\rho]\approx0.89/\sqrt
+N$. The circular mean is then defined, but it is the
 direction of a short, essentially random vector, it changes from one
 step to the next, and it says nothing about the heading of the robot.
 The ratio $\rho/\sum_jw_j$ of \cref{sec:circular} detects this case.
