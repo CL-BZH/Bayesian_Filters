@@ -562,6 +562,45 @@ Probability that leaves the lawn is lost, and the table is renormalised.
 The update is the cell-wise product
 $b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
 
+\paragraph{A lawn of any shape.} Nothing in the grid filter needs a
+square lawn. A lawn of any shape, with a tree or a flower bed in it, is
+covered by the grid of a rectangle that contains it, and each cell is
+marked as \emph{lawn} or \emph{not lawn}: the \emph{mask}
+(\cref{fig:potato}, left). A cell cut by the edge can be marked by its
+centre, or weighted by the fraction of its area on the lawn. The filter
+then does three things: it starts with a belief spread over the lawn
+cells only; after each prediction it sets the belief of the other cells
+to zero and renormalises (\cref{fig:potato}, right); and it updates as
+before. The step after the prediction is an update in disguise. Knowing
+that the robot is on the lawn is an observation whose likelihood is $1$
+on the lawn and $0$ elsewhere, and multiplying by it and renormalising is
+Bayes' rule. It is correct as long as the robot cannot leave the lawn,
+which a real mower guarantees by its boundary wire or its geofence. Near
+the edge, the convolution of \cref{prop:conv} is therefore no longer the
+whole prediction: the blur puts probability where the robot cannot be,
+and the mask removes it. Away from the edge it is exact, as before. The
+square lawn of the simulations is the simplest case of this: there, the
+probability that leaves the lawn is the part outside a square.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_potato.pdf}
+\caption{A potato-shaped lawn with a tree. Left: the mask on a grid of
+16-unit cells (the filter uses 4-unit cells): cells entirely on the lawn
+(dark), cells cut by the edge or by the tree (light), the others (white).
+Right: a predicted belief next to the edge, with 4-unit cells. The dashed
+circles are the levels of the Gaussian blur; the $27\%$ of it that falls
+off the lawn is set to zero, and the rest is renormalised.}
+\label{fig:potato}
+\end{figure}
+
+On a real robot this mask is the \emph{map}. Robot navigation software
+stores it as an \emph{occupancy grid}, whose cells are free, occupied or
+unknown, and Monte Carlo localisation gives zero weight to particles in
+occupied cells; the particle filter of \cref{ch:particle} gives zero
+likelihood to particles more than 5 units off the lawn. For a mower with an RTK GPS, walking once around the lawn
+records its edge, and the mask follows.
+
 \section{Two bumps}
 \label{sec:twobumps}
 
@@ -783,6 +822,20 @@ carry several hypotheses until the motion resolves them.
   pose grid of $5$\,cm and $1^\circ$. How many cells is that, and how many
   bytes in single precision? How many floating-point operations does one
   prediction cost if it is done as a full sum over pairs of cells?
+\item\label{ex:potato} \emph{A potato-shaped lawn.} The lawn of
+  \cref{fig:potato} has a curved edge and a tree.
+  \begin{enumerate}[nosep]
+    \item Show that setting the belief of the cells off the lawn to zero
+          and renormalising is Bayes' rule for an observation ``the
+          robot is on the lawn''. What is its likelihood?
+    \item Why is the convolution of \cref{prop:conv} still the exact
+          prediction far from the edge, but not next to it? What does the
+          masking assume about the robot?
+    \item The lawn fits in a $320\times320$ square. With 4-unit cells,
+          $2749$ of the $6400$ cells of the square have their centre on
+          the lawn. How can the filter avoid storing and updating the
+          others?
+  \end{enumerate}
 \end{enumerate}
 
 \subsection*{Solutions}
@@ -846,3 +899,32 @@ local blur, \cref{prop:conv}) brings it down to $O(n)$ per step times the
 kernel size, which is why the grid filters that work in practice are
 built on convolutions or sparse transitions. Even then, $10^8$ cells per
 step at several hertz is a lot for an embedded computer.
+
+\solution{2.5}
+\begin{enumerate}[nosep]
+  \item Let $L$ be the set of lawn cells, and take as observation the
+        statement ``$\p_{t+1}\in L$'', with the likelihood
+        $\Pr(\p_{t+1}\in L\mid\p_{t+1}\in C_i)=1$ for a lawn cell and $0$
+        for the others. Bayes' rule multiplies the predicted belief by
+        this likelihood and divides by the sum: the belief of the lawn
+        cells is kept, that of the other cells becomes $0$, and the
+        division by $\sum_{i\in L}\bar b_i$ is the renormalisation. The
+        sum is the probability that the prediction gave to the lawn,
+        like the $0.43$ of \cref{ex:grassgravel}; in \cref{fig:potato} it
+        is $0.73$.
+  \item The convolution moves every bit of probability by the
+        commanded displacement and spreads it by the noise, whatever is
+        around. Far from the edge, every pose that the blur reaches is on
+        the lawn, so nothing is removed and the convolution is the
+        prediction. Next to the edge, the blur reaches poses off the
+        lawn, where the robot cannot be. The masking assumes that the
+        robot never leaves the lawn (a boundary wire or a geofence stops
+        it): the transition is the convolution, conditioned on staying on
+        the lawn.
+  \item Store only the $2749$ lawn cells, for example as a list of cell
+        indices with their beliefs, or as a sparse array; the
+        prediction then computes the blur only at these cells, and the
+        update only touches them. That is $43\%$ of the square. For a
+        lawn with long thin parts, a \emph{quadtree}, with small cells
+        near the edges and large ones inside, saves more.
+\end{enumerate}

@@ -108,6 +108,73 @@ def fig_grid():
     save(fig, "ch02_grid_bimodal")
 
 
+def potato_radius(phi):
+    """Distance from the centre to the edge of the potato-shaped lawn, in the direction phi."""
+    return 118 + 22 * np.cos(2 * phi + 0.4) + 14 * np.sin(3 * phi) + 7 * np.cos(5 * phi - 1.0)
+
+
+TREE = (np.array([35.0, -25.0]), 16.0)  # a tree in the lawn: centre and radius
+
+
+def on_potato_lawn(x, y):
+    """True where (x, y) is on the lawn: inside the potato, outside the tree."""
+    inside = np.hypot(x, y) <= potato_radius(np.arctan2(y, x))
+    return inside & (np.hypot(x - TREE[0][0], y - TREE[0][1]) > TREE[1])
+
+
+def fig_potato():
+    from matplotlib.colors import ListedColormap, PowerNorm
+    from matplotlib.patches import Circle
+    phi = np.linspace(-np.pi, np.pi, 400)
+    edge = potato_radius(phi) * np.array([np.cos(phi), np.sin(phi)])
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.48))
+    # (a) the mask: fraction of each 16-unit cell that is on the lawn (8 x 8 sample points per cell)
+    cell, half = 16.0, 160.0
+    edges = np.arange(-half, half + cell, cell)
+    sub = (np.arange(8) + 0.5) / 8 * cell
+    frac = np.zeros((len(edges) - 1, len(edges) - 1))
+    for i, y0 in enumerate(edges[:-1]):
+        for j, x0 in enumerate(edges[:-1]):
+            X, Y = np.meshgrid(x0 + sub, y0 + sub)
+            frac[i, j] = on_potato_lawn(X, Y).mean()
+    kind = np.where(frac == 1, 2, np.where(frac > 0, 1, 0))
+    ax = axes[0]
+    ax.imshow(kind, origin="lower", extent=[-half, half, -half, half], interpolation="nearest",
+              cmap=ListedColormap(["white", "#cdeadb", "#7fc8a4"]), vmin=0, vmax=2)
+    for e in edges:
+        ax.axhline(e, color=viz.GRID, lw=0.5); ax.axvline(e, color=viz.GRID, lw=0.5)
+    ax.plot(*edge, color=viz.INK, lw=1.2)
+    ax.add_patch(Circle(TREE[0], TREE[1], fc="none", ec=viz.INK, lw=1.0))
+    ax.annotate("tree", TREE[0], color=viz.INK_2, ha="center", va="center", fontsize=8)
+    ax.set_title("(a) the mask", fontsize=8)
+    ax.set_xlim(-half, half); ax.set_ylim(-half, half); ax.set_aspect("equal")
+    ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
+    # (b) a predicted belief next to the edge, before and after masking (4-unit cells)
+    c4 = 4.0
+    centres = np.arange(-half + c4 / 2, half, c4)
+    X, Y = np.meshgrid(centres, centres)
+    mu, sd = np.array([136.0, 15.0]), 14.0
+    pred = np.exp(-((X - mu[0]) ** 2 + (Y - mu[1]) ** 2) / (2 * sd**2))
+    pred /= pred.sum()
+    lawn = on_potato_lawn(X, Y)
+    kept = pred * lawn
+    lost = 1 - kept.sum()
+    post = kept / kept.sum()
+    ax = axes[1]
+    ax.imshow(np.ma.masked_where(post == 0, post), origin="lower", extent=[-half, half, -half, half],
+              cmap=viz.SEQ_CMAP, interpolation="nearest", norm=PowerNorm(0.6, vmin=0, vmax=post.max()))
+    ax.contour(X, Y, pred, levels=[pred.max() * np.exp(-2), pred.max() * np.exp(-0.5)],
+               colors=[viz.INK_2], linestyles="--", linewidths=0.8)
+    ax.plot(*edge, color=viz.INK, lw=1.2)
+    ax.add_patch(Circle(TREE[0], TREE[1], fc="none", ec=viz.INK, lw=1.0))
+    ax.set_title("(b) a predicted belief at the edge, masked", fontsize=8)
+    ax.set_xlim(40, 175); ax.set_ylim(-55, 80); ax.set_aspect("equal")
+    ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
+    plt.tight_layout()
+    save(fig, "ch02_potato")
+    print(f"potato lawn: {100 * lost:.1f}% of the predicted belief falls off the lawn")
+
+
 # ---------------------------------------------------------------- chapter 3
 def fig_kf_nees():
     world = World.default()
@@ -815,6 +882,7 @@ if __name__ == "__main__":
     fig_coupling()
     fig_dead_reckoning()
     fig_grid()
+    fig_potato()
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()
