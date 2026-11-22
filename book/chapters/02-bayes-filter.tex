@@ -204,7 +204,10 @@ $\x_t$,
 In the first factor, \ref{A1} removes everything but $\x_t$ and $\uu_t$:
 it says that, given $\x_t$ and $\uu_t$, the next pose is independent of
 all the earlier variables together, hence also of those that appear here,
-$\z_{1:t}$ and $\uu_{0:t-1}$.
+$\z_{1:t}$ and $\uu_{0:t-1}$. This includes the last measurement $\z_t$:
+the next pose is $f(\x_t,\uu_t+\bepsilon_t)$, in which no measurement
+appears. A measurement can act on the motion only through the control,
+when the control is computed from it, and the control $\uu_t$ is given.
 In the second, the control $\uu_t$ carries no information about $\x_t$
 beyond what is already given (it is fixed in advance, or computed from the
 measurements $\z_{1:t}$), so it can be dropped, which leaves $\bel(\x_t)$
