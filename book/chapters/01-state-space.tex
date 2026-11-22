@@ -2232,36 +2232,84 @@ happen when both indicators are $1$, that is when their product is $1$, so
 where $\mathbf 1_B(\x_{0:T})$ is $1$ if $\x_{0:T}\in B$ and $0$ otherwise,
 and likewise for $\mathbf 1_A$.
 
-\emph{The expectation as an ordinary integral.} The trajectory has no
-density, but it is a function of variables that do: the start $\x_0$ and
-the control noises $\bepsilon_0,\dots,\bepsilon_{T-1}$. Applying
-\eqref{eq:motionnoise} step by step, $\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$,
-turns them into the trajectory; write
+\emph{How an expectation is computed.} If random variables $V$ have a
+joint density $q$, the expectation of a function of them is
+\[
+  \E[g(V)]=\int g(\vect v)\,q(\vect v)\,\mathrm d\vect v .
+\]
+This rule cannot be applied with $V$ the trajectory, which has no
+density. The way out is to compute with other variables, which have a
+density and determine the trajectory.
+
+\emph{Warm-up: the point on the circle.} $X=(\cos\alpha,\sin\alpha)$,
+where the angle $\alpha$ is uniform on $[0,2\pi)$, with density
+$1/(2\pi)$; and, once $\alpha$ is drawn, $Z$ has the density
+$\Normal(\vect z;X,\sigma^2I)$. So the pair $(\alpha,Z)$ has the joint
+density $\frac1{2\pi}\,\Normal(\vect z;X,\sigma^2I)$, marginal times
+conditional (legitimate now: $\alpha$ has a density). By the rule, with
+$V=(\alpha,Z)$,
+\[
+  \Pr(X\in B,\ Z\in A)=\E\bigl[\mathbf 1_B(X)\,\mathbf 1_A(Z)\bigr]
+  =\int_0^{2\pi}\!\!\int_{\R^2}\mathbf 1_B(X)\,\mathbf 1_A(\vect z)\,
+   \frac1{2\pi}\,\Normal(\vect z;X,\sigma^2I)\,\mathrm d\vect z\,
+   \mathrm d\alpha ,
+\]
+with $X=(\cos\alpha,\sin\alpha)$ inside the integral. Integrate over
+$\vect z$ first. The factors $\mathbf 1_B(X)$ and $1/(2\pi)$ do not
+contain $\vect z$, so they come out of the inner integral, which becomes
+\[
+  \int_{\R^2}\mathbf 1_A(\vect z)\,\Normal(\vect z;X,\sigma^2I)\,
+  \mathrm d\vect z=\int_A\Normal(\vect z;X,\sigma^2I)\,\mathrm d\vect z
+  =K(X,A),
+\]
+the probability that $Z$ falls in $A$ when the point is $X$. What is
+left, $\int_0^{2\pi}\mathbf 1_B(X)\,K(X,A)\,\frac1{2\pi}\,\mathrm d\alpha$,
+is by the rule again (now with $V=\alpha$) the expectation
+$\E[\mathbf 1_B(X)\,K(X,A)]$. So
+$\Pr(X\in B,\ Z\in A)=\E[\mathbf 1_B(X)\,K(X,A)]$.
+
+\emph{The trajectory: the same steps.} The variables with a density are
+the start $\x_0$ (density $p(\x_0)$), the control noises
+$\bepsilon_0,\dots,\bepsilon_{T-1}$ (each $\Normal(\vect0,M)$, independent
+of each other and of $\x_0$), and, once these are drawn, the measurements
+(density $\prod_tp(\z_t\mid\x_t)$). The start and the noises determine the
+trajectory: applying \eqref{eq:motionnoise} step by step,
+$\x_{t+1}=f(\x_t,\uu_t+\bepsilon_t)$; write
 $\x_{0:T}=\Phi(\x_0,\bepsilon_{0:T-1};\uu)$. The controls $\uu$ enter
 $\Phi$ too, but they are fixed in advance, not random: they are
-parameters, written after the semicolon, and the expectation does not
-integrate over them. (In the circle example, likewise,
-$X=(\cos\alpha,\sin\alpha)$ with an angle $\alpha$ uniform on
-$[0,2\pi)$, which has a density.) The start, the control noises and the
-measurements, given the trajectory, all have densities, so the
-expectation is an ordinary integral over $\x_0$, $\bepsilon_{0:T-1}$ and
-$\z_{1:T}$:
-\begin{multline*}
-  \E\bigl[\mathbf 1_B(\x_{0:T})\,\mathbf 1_A(\z_{1:T})\bigr]\\
-  =\int\mathbf 1_B(\Phi)\Bigl[\int\mathbf 1_A(\z_{1:T})
-   \prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}\Bigr]
-   p(\x_0)\prod_{t=0}^{T-1}\Normal(\bepsilon_t;\vect0,M)\;
-   \mathrm d\x_0\,\mathrm d\bepsilon_{0:T-1},
-\end{multline*}
-where $\Phi$ stands for $\Phi(\x_0,\bepsilon_{0:T-1};\uu)$ and the $\x_t$ in
-the inner integral are its poses. The inner integral is over the
-measurements only, with the trajectory held fixed: it is the probability
-that the recipe gives to $A$ for that trajectory,
+parameters, written after the semicolon, and nothing is integrated over
+them. As for the circle, the joint density of $\x_0$, the noises and the
+measurements is marginal times conditional:
 \[
-  K(\x_{0:T},A)=\int_A\prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T} .
+  q(\x_0,\bepsilon_{0:T-1},\z_{1:T})
+  =\underbrace{p(\x_0)\prod_{t=0}^{T-1}\Normal(\bepsilon_t;\vect0,M)}
+   _{\text{independent start and noises}}\;
+   \underbrace{\prod_{t=1}^Tp(\z_t\mid\x_t)}_{\text{sensor model}},
 \]
-What remains is the average of $\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)$
-over the trajectories, so
+where the $\x_t$ are the poses of $\Phi(\x_0,\bepsilon_{0:T-1};\uu)$. By
+the rule, writing $\Phi$ for $\Phi(\x_0,\bepsilon_{0:T-1};\uu)$,
+\[
+  \E\bigl[\mathbf 1_B(\x_{0:T})\,\mathbf 1_A(\z_{1:T})\bigr]
+  =\int\!\!\int\!\!\int\mathbf 1_B(\Phi)\,\mathbf 1_A(\z_{1:T})\,
+   q(\x_0,\bepsilon_{0:T-1},\z_{1:T})\,
+   \mathrm d\z_{1:T}\,\mathrm d\bepsilon_{0:T-1}\,\mathrm d\x_0 .
+\]
+Integrate over the measurements first. The factors $\mathbf 1_B(\Phi)$,
+$p(\x_0)$ and $\prod_t\Normal(\bepsilon_t;\vect0,M)$ do not contain the
+$\z_t$, so they come out of the inner integral, which becomes
+\[
+  \int\mathbf 1_A(\z_{1:T})\prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}
+  =\int_A\prod_{t=1}^Tp(\z_t\mid\x_t)\,\mathrm d\z_{1:T}
+  =K(\x_{0:T},A),
+\]
+the probability that the recipe gives to $A$ for that trajectory. What is
+left,
+\[
+  \int\!\!\int\mathbf 1_B(\Phi)\,K(\Phi,A)\,p(\x_0)\prod_{t=0}^{T-1}
+  \Normal(\bepsilon_t;\vect0,M)\,\mathrm d\bepsilon_{0:T-1}\,\mathrm d\x_0 ,
+\]
+is by the rule again (now with $V=(\x_0,\bepsilon_{0:T-1})$) the
+expectation of $\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)$. So
 \[
   \Pr(\x_{0:T}\in B,\ \z_{1:T}\in A)
   =\E\bigl[\mathbf 1_B(\x_{0:T})\,K(\x_{0:T},A)\bigr]
