@@ -127,12 +127,30 @@ $(0.5,0.5)$: it is less sure than before.
 probability of each state by the probability that this state gives the
 reading ``rough'', $p(\text{rough}\mid G)=0.3$ and
 $p(\text{rough}\mid P)=0.8$: $0.3\times0.74=0.222$ for $G$ and
-$0.8\times0.26=0.208$ for $P$. The sum is $0.43$, and dividing by
-it gives $\bel=(0.516,\,0.484)$. One rough reading has almost cancelled
-the initial confidence in the grass.
+$0.8\times0.26=0.208$ for $P$.
 
-The number $0.43$ is the probability that the filter gave to the reading
-``rough'' before seeing it.
+These two products are not yet the new belief. Each is the probability of
+two things together: $0.222$ is the probability that the robot is on the
+grass \emph{and} the sensor says ``rough'' (probability $0.74$ to be on
+the grass, then $0.3$ that the grass gives ``rough''), and $0.208$ the
+probability that it is on the path \emph{and} the sensor says ``rough''.
+These are the only two ways of getting the reading ``rough'', so their sum
+\[
+  0.222+0.208=0.43
+\]
+is the probability of the reading ``rough'' itself, computed from the
+predicted belief: the probability that the filter gave to this reading
+before seeing it. Now the reading has been seen, so only these two cases
+remain possible, and the new belief is the share of each in their total:
+\[
+  \bel(G)=\frac{0.222}{0.43}=0.516,\qquad
+  \bel(P)=\frac{0.208}{0.43}=0.484 .
+\]
+Dividing by $0.43$ is what makes the two new probabilities add up to $1$;
+it does not change their ratio, which the products already fixed. One
+rough reading has almost cancelled the initial confidence in the grass.
+(The sum is the rule of total probability, and the division is Bayes'
+rule, both recalled below.)
 \end{example}
 
 The general recursion is the same computation, with integrals over the
