@@ -580,12 +580,91 @@ $(a\ast g)(\p)$, with the offset called $\vect w$ instead of $\vect q$.}%
 This holds for every
 region $B$, so $a\ast g$ is the density of $X+W$.
 
-Two consequences. With $B$ the whole plane, $\int(a\ast g)=\Pr(X+W\in
-\R^2)=1$: blurring keeps the total probability. And the covariance of
-$X+W$ is that of $X$ plus that of $W$, because the cross terms
-$\E[(X-\E X)(W-\E W)^\top]$ and its transpose vanish for independent
-vectors: blurring widens. Finally,
-the order does not matter: the change of variable $\vect q'=\p-\vect q$
+Three consequences follow.
+
+\emph{Consequence 1: blurring keeps the total probability.} With $B$ the
+whole plane, $\int(a\ast g)(\p)\,\mathrm d\p=\Pr(X+W\in\R^2)=1$.
+
+\emph{Consequence 2: the covariances add.} Write $\tilde X=X-\E X$ and
+$\tilde W=W-\E W$ for the centred vectors; their expectations are $\vect0$.
+By linearity, $\E[X+W]=\E X+\E W$, so $X+W-\E[X+W]=\tilde X+\tilde W$, and
+\begin{align*}
+  \Cov(X+W)
+  &=\E\bigl[(\tilde X+\tilde W)(\tilde X+\tilde W)\T\bigr]
+  &&\text{definition of the covariance}\\
+  &=\E[\tilde X\tilde X\T]+\E[\tilde X\tilde W\T]
+    +\E[\tilde W\tilde X\T]+\E[\tilde W\tilde W\T]
+  &&\text{expand; linearity of }\E\\
+  &=\Cov X+\Cov(X,W)+\Cov(X,W)\T+\Cov W .
+\end{align*}
+The two middle terms are the \emph{cross-covariance} matrix
+$\Cov(X,W)=\E[\tilde X\tilde W\T]$ and its transpose. Its entry $(i,j)$,
+$\E[\tilde X_i\tilde W_j]$, is the covariance between the $i$-th
+coordinate of $X$ and the $j$-th coordinate of $W$. It is not to be
+confused with the off-diagonal entries of $\Cov X$, which are covariances
+between two coordinates of the \emph{same} vector $X$. For independent
+vectors, the expectation of a product is the product of the
+expectations, so $\E[\tilde X_i\tilde W_j]=\E[\tilde X_i]\,\E[\tilde
+W_j]=0\times0=0$. Hence $\Cov(X,W)=0$, and
+\[
+  \Cov(X+W)=\Cov X+\Cov W .
+\]
+The off-diagonal entries of $\Cov X$ and $\Cov W$ are not removed: they
+are added like the others.
+
+\emph{Consequence 3: blurring widens, in every direction.} Take a unit
+vector $\vect u$. The coordinate of a random vector $Y$ along $\vect u$ is
+the number $\vect u\T Y$, and its variance is
+\[
+  \Var(\vect u\T Y)=\E\bigl[(\vect u\T\tilde Y)^2\bigr]
+  =\E\bigl[\vect u\T\tilde Y\,\tilde Y\T\vect u\bigr]
+  =\vect u\T\,\Cov(Y)\,\vect u ,
+\]
+where $\tilde Y=Y-\E Y$, and $(\vect u\T\tilde Y)^2=(\vect u\T\tilde
+Y)(\tilde Y\T\vect u)$ because a number is equal to its transpose. With
+$Y=X+W$ and Consequence~2,
+\[
+  \Var\bigl(\vect u\T(X+W)\bigr)
+  =\vect u\T\Cov(X)\,\vect u+\vect u\T\Cov(W)\,\vect u
+  =\Var(\vect u\T X)+\Var(\vect u\T W)\ \ge\ \Var(\vect u\T X),
+\]
+because a variance is never negative. Along every direction, $X+W$ is at
+least as spread as $X$, and strictly more as soon as $W$ has some spread
+in that direction: this is what ``blurring widens'' means. On the
+covariance ellipses of \cref{fig:covsum}, the ellipse of $X+W$ reaches at
+least as far as that of $X$ in every direction, because the reach of a
+$2\sigma$ ellipse along $\vect u$ is twice the standard deviation along
+$\vect u$.\footnote{The $2\sigma$ ellipse of a covariance $P$ centred at
+$\vect c$ is the set of the points $\vect x$ with
+$(\vect x-\vect c)\T P^{-1}(\vect x-\vect c)\le4$, that is, of the
+points $\vect c+2P^{1/2}\vect v$ with $\norm{\vect v}\le1$, where
+$P^{1/2}$ is the symmetric square root of $P$. Its reach along $\vect u$
+is the largest value of $\vect u\T(2P^{1/2}\vect v)=2(P^{1/2}\vect
+u)\T\vect v$ over $\norm{\vect v}\le1$. By the Cauchy--Schwarz
+inequality it is $2\norm{P^{1/2}\vect u}=2\sqrt{\vect u\T P\vect u}$,
+reached for $\vect v$ along $P^{1/2}\vect u$.}
+
+\emph{Widening does not keep the shape.} In \cref{fig:covsum}a, $X$ has
+the standard deviations $3$ and $0.3$ along two perpendicular axes turned
+by $30^\circ$: $\Cov X=R\,\mathrm{diag}(9,\,0.09)\,R\T$, with $R$ the
+rotation by $30^\circ$. Its ellipse is $3/0.3=10$ times longer than wide.
+The noise $W$ is round, $\Cov W=I$, which can also be written $R\,I\,R\T$
+because $RR\T=I$. So
+\[
+  \Cov(X+W)=R\,\mathrm{diag}(9,\,0.09)\,R\T+R\,I\,R\T
+  =R\,\mathrm{diag}(10,\,1.09)\,R\T :
+\]
+the same axes, with the standard deviations $\sqrt{10}\approx3.16$ and
+$\sqrt{1.09}\approx1.04$, a ratio of about $3$ instead of $10$. The round
+noise adds the same variance $1$ along both axes, which changes the long
+axis little and the short one a lot: the ellipse becomes rounder. The
+shape is kept only when $\Cov W$ is a multiple $c\Cov X$: then
+$\Cov(X+W)=(1+c)\Cov X$, the same ellipse enlarged by $\sqrt{1+c}$
+(\cref{fig:covsum}b, with $c=0.5$). And the covariance is only a
+summary: the density itself changes shape too, as the peak of
+\cref{fig:convread} shows, lowered and spread.
+
+\emph{Finally, the order does not matter.} The change of variable $\vect q'=\p-\vect q$
 gives $\int a(\vect q')\,g(\p-\vect q')\,\mathrm d\vect q'$, so
 $a\ast g=g\ast a$.
 
@@ -600,6 +679,19 @@ $g=\Normal(0,0.7^2)$. (c) The sum $X+W$ has the density $a\ast g$. In
 each panel, the histogram is that of $200\,000$ draws, and the curve is
 the density.}
 \label{fig:convresult}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_cov_sum.pdf}
+\caption{The $2\sigma$ covariance ellipses of $X$ (black), of an
+independent $W$ (orange, dashed) and of $X+W$ (blue), with $2\,000$
+draws of $X+W$. $X$ has the standard deviations $3$ and $0.3$ along axes
+turned by $30^\circ$. (a) A round $W$, $\Cov W=I$: the ellipse of $X+W$
+contains that of $X$ and is rounder (axis ratio $3.0$ instead of $10$).
+(b) $\Cov W=0.5\Cov X$: the ellipse of $X+W$ has the shape of that of
+$X$, enlarged by $\sqrt{1.5}\approx1.22$.}
+\label{fig:covsum}
 \end{figure}
 
 \begin{proposition}{Prediction with a known heading is a convolution}{conv}

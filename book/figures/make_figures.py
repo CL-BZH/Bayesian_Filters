@@ -653,6 +653,37 @@ def fig_conv_result():
     save(fig, "ch02_conv_result")
 
 
+def fig_cov_sum():
+    """Covariance ellipses of X, W and X + W: a round W makes a thin X rounder; a W shaped like X
+    keeps the shape."""
+    th = np.radians(30.0)
+    R = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
+    Px = R @ np.diag([9.0, 0.09]) @ R.T
+    cases = [(np.eye(2), "(a) round $W$: the sum is rounder"),
+             (0.5 * Px, "(b) $\\mathrm{Cov}\\,W=0.5\\,\\mathrm{Cov}\\,X$: same shape, larger")]
+    rng = np.random.default_rng(0)
+    n = 20_000
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.45))
+    for ax, (Pw, title) in zip(axes, cases):
+        X = rng.multivariate_normal([0, 0], Px, n)
+        Wn = rng.multivariate_normal([0, 0], Pw, n)
+        S = X + Wn
+        ax.scatter(*S[::10].T, s=1.5, color=viz.COLORS["EKF"], alpha=0.25, lw=0)
+        viz.cov_ellipse(ax, np.zeros(2), Px, ec=viz.INK, lw=1.4, label="$X$")
+        viz.cov_ellipse(ax, np.zeros(2), Pw, ec=viz.COLORS["UKF"], lw=1.4, ls="--", label="$W$")
+        viz.cov_ellipse(ax, np.zeros(2), Px + Pw, ec=viz.COLORS["EKF"], lw=1.8, label="$X+W$")
+        ax.set_xlim(-8, 8); ax.set_ylim(-5.5, 5.5); ax.set_aspect("equal")
+        ax.set_title(title, fontsize=9); ax.tick_params(labelsize=7.5)
+        ax.legend(fontsize=8, loc="lower right", frameon=False)
+        vals = np.linalg.eigvalsh(Px + Pw)
+        print(f"cov sum {title[:3]}: variances along the axes {vals[::-1].round(3)}, standard deviations "
+              f"{np.sqrt(vals[::-1]).round(3)}, axis ratio {np.sqrt(vals[1] / vals[0]):.2f} "
+              f"(X alone: {np.sqrt(9 / 0.09):.0f}); sample covariance of X+W {np.cov(S.T).round(2).tolist()}, "
+              f"Cov X + Cov W {(Px + Pw).round(2).tolist()}")
+    plt.tight_layout()
+    save(fig, "ch02_cov_sum")
+
+
 def fig_bayes_cycle():
     """One predict/update cycle of the Bayes filter, exactly, on a 1-D grid."""
     x = np.linspace(-10, 20, 3001)
@@ -1071,6 +1102,7 @@ if __name__ == "__main__":
     fig_bayes_cycle()
     fig_conv_read()
     fig_conv_result()
+    fig_cov_sum()
     fig_gaussian()
     fig_linearisation(False, "ch04_linearisation")
     fig_linearisation(True, "ch05_regression")
