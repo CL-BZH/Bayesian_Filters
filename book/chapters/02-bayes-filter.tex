@@ -955,38 +955,63 @@ lawn.
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[scale=1.0,>=Stealth]
-  \draw[dashed,black!45] (-0.6,0) -- (8.2,0) node[right,black!60]
+\begin{tikzpicture}[scale=1.0,>=Stealth,
+    lab/.style={font=\small,anchor=west,inner sep=1pt,text=black},
+    lead/.style={black!35,thin}]
+  \coordinate (A) at (0,0);
+  \coordinate (B) at (4,0);
+  \def\ra{2.9}\def\rb{2.3}\def\dx{1.0}\def\dy{1.0}
+  % the robot before the step: the intersection of the old circles (as in Fig. 2.7)
+  \pgfmathsetmacro{\xi}{(\ra*\ra-\rb*\rb+16)/8}
+  \pgfmathsetmacro{\yi}{sqrt(\ra*\ra-\xi*\xi)}
+  % the robot after the step, and its new ranges
+  \pgfmathsetmacro{\xn}{\xi+\dx}
+  \pgfmathsetmacro{\yn}{\yi+\dy}
+  \pgfmathsetmacro{\rna}{sqrt(\xn*\xn+\yn*\yn)}
+  \pgfmathsetmacro{\rnb}{sqrt((\xn-4)*(\xn-4)+\yn*\yn)}
+  \begin{scope}
+    \clip (-1.3,-3.3) rectangle (6.5,3.3);
+    \draw[dashed,black!30] (A) circle (\ra);
+    \draw[dashed,black!30] (B) circle (\rb);
+    \draw[orange!85!black,thick] (A) circle (\rna);
+    \draw[orange!85!black,thick] (B) circle (\rnb);
+  \end{scope}
+  \draw[dashed,black!45] (-1.3,0) -- (6.5,0) node[right,black!60]
     {\small axis of $\sigma$};
-  \coordinate (P) at (1.2,1.4);
-  \coordinate (Q) at (1.2,-1.4);
-  \def\dx{2.6}\def\dy{0.8}
-  % the robot
-  \draw[->,very thick,blue!70!black] (P) -- ++(\dx,\dy)
-    node[pos=0.5,above left=-1pt,font=\small] {$\vect d$};
-  \fill[green!50!black] (P) circle (2.4pt) node[left=3pt,black] {$\p$};
-  \fill[green!50!black] ($(P)+(\dx,\dy)$) circle (2.4pt)
-    node[right=3pt,black,font=\small] {robot after the step};
-  % its mirror image
-  \draw[->,thick,black!55] (Q) -- ++(\dx,-\dy)
-    node[pos=0.55,below left=-1pt,font=\small] {$\sigma(\vect d)$};
-  \fill[black!55] (Q) circle (2.4pt) node[left=3pt,black] {$\sigma(\p)$};
-  \fill[black!55] ($(Q)+(\dx,-\dy)$) circle (2.4pt)
-    node[right=3pt,black,font=\small] {mirror image of the robot};
-  % the wrong hypothesis, moved by the filter
-  \draw[->,very thick,orange!85!black] (Q) -- ++(\dx,\dy)
-    node[pos=0.6,above left=-1pt,font=\small] {$\vect d$};
-  \fill[orange!85!black] ($(Q)+(\dx,\dy)$) circle (2.4pt)
-    node[right=3pt,black,font=\small] {wrong hypothesis after the step};
-  \draw[<->,densely dotted,black!60] ($(Q)+(\dx,\dy)+(0,-0.12)$) --
-    ($(Q)+(\dx,-\dy)+(0,0.12)$);
+  \node[star,star points=5,fill=black!70,inner sep=1.6pt] at (A) {};
+  \node[star,star points=5,fill=black!70,inner sep=1.6pt] at (B) {};
+  \node[below left] at (A) {$\bell_1$};
+  \node[below right] at (B) {$\bell_2$};
+  % the robot moves by d
+  \draw[->,very thick,blue!70!black] (\xi,\yi) -- (\xn,\yn)
+    node[pos=0.45,above left=-1pt,font=\small] {$\vect d$};
+  \fill[green!50!black] (\xi,\yi) circle (2.4pt) node[left=3pt,black] {$\p$};
+  \fill[green!50!black] (\xn,\yn) circle (2.4pt);
+  \draw[lead] (\xn,\yn) -- (6.8,2.9) node[lab] {robot after the step};
+  % its mirror image moves by sigma(d)
+  \draw[->,thick,black!55] (\xi,-\yi) -- (\xn,-\yn)
+    node[pos=0.5,below left=-1pt,font=\small,black] {$\sigma(\vect d)$};
+  \fill[black!55] (\xi,-\yi) circle (2.4pt) node[left=3pt,black] {$\sigma(\p)$};
+  \fill[black!55] (\xn,-\yn) circle (2.4pt);
+  \draw[lead] (\xn,-\yn) -- (6.8,-2.9) node[lab] {mirror image of the robot};
+  % the wrong hypothesis is moved by d
+  \draw[->,very thick,red!75!black] (\xi,-\yi) -- (\xi+\dx,-\yi+\dy)
+    node[pos=0.55,above left=-1pt,font=\small] {$\vect d$};
+  \fill[red!75!black] (\xi+\dx,-\yi+\dy) circle (2.4pt);
+  \draw[lead] (\xi+\dx,-\yi+\dy) -- (6.8,-1.0) node[lab] {wrong hypothesis};
+  \draw[<->,densely dotted,black!60] (\xn+0.15,-\yi+\dy-0.1) --
+    (\xn+0.15,-\yn+0.1);
 \end{tikzpicture}
-\caption{Why motion breaks the tie. The robot moves by $\vect d$ (blue),
-so its mirror image moves by the mirrored displacement $\sigma(\vect d)$
-(grey). The filter knows the heading and moves every hypothesis by the
-same $\vect d$, also the wrong one that sat at $\sigma(\p)$ (orange). The
-wrong hypothesis is then no longer at the mirror image of the robot
-(dotted gap), and its ranges stop agreeing with the measurements.}
+\caption{Why motion breaks the tie, with the two landmarks of
+\cref{fig:mirror}. Before the step, the ranges give two circles (dashed)
+that meet at the robot $\p$ and at its mirror image $\sigma(\p)$. The
+robot moves by $\vect d$ (blue). The new ranges give two new circles
+(orange), which meet at the new position and at its mirror image, reached
+from $\sigma(\p)$ by the mirrored displacement $\sigma(\vect d)$ (grey).
+The filter knows the heading and moves every hypothesis by the same
+$\vect d$, also the one at $\sigma(\p)$ (red). That wrong hypothesis is
+not at an intersection of the new circles (dotted gap): its ranges no
+longer agree with the measurements.}
 \label{fig:mirrormotion}
 \end{figure}
 
