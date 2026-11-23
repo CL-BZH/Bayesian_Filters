@@ -783,13 +783,16 @@ worked out, is the one the Kalman filter will use in
 
 On the grid, the prediction of \cref{prop:conv} is done in two moves:
 shift the table by $\vect d_t$, then blur it with a discrete Gaussian
-filter. A grid cannot represent a blur narrower than a cell. Here the
-motion noise has a standard deviation of about $0.4$ units, a tenth of a
-cell 4 units wide, so the filter blurs by more than the noise, and the
-predicted belief comes out a little wider than the noise warrants. This
-costs nothing at this resolution, since the grid cannot place the robot
-more precisely than a cell anyway. Notebook~01 shows the code of the
-prediction and its exact choices, and prints these numbers.
+filter. The shift is rarely a whole number of cells, so it is done by
+interpolation: a shift by a fraction $f$ of a cell sends the fraction
+$1-f$ of the mass of each cell to one cell and $f$ to its neighbour. That
+is a blur of its own, of up to half a cell, whereas the motion noise, with
+a standard deviation of about $0.4$ units, is a tenth of a cell 4 units
+wide. So the predicted belief spreads faster than the noise warrants.
+This costs little at this resolution, since the grid cannot place the
+robot more precisely than a cell anyway. Notebook~01 shows the code of the
+prediction and its exact choices, and measures how fast a grid belief
+spreads.
 
 The update \eqref{eq:update} multiplies the predicted density by the
 likelihood and renormalises. On the grid, write $\bar b_i$ for the
@@ -1386,17 +1389,21 @@ they give $\Normal(\vect0,3\Sigma)$, and after the $(t-1)$-th merge, which
 brings in the last blur, one blur with $\Normal(\vect0,t\Sigma)$. Along a direction
 $\vect u$, the standard deviation of that blur is
 $\sqrt{t\,\vect u\T\Sigma\vect u}=\sqrt t\,\sqrt{\vect u\T\Sigma\vect u}$:
-the width of the belief grows like $\sqrt t$. On the grid of \cref{sec:grid}, with cells $4$ units wide, the numbers
-are these. The motion noise has two parts: the step noise $\sigma_s=0.4$
-along the heading, and the compass noise $\sigma_c=0.02$\,rad, which over
-a step of length $s=4$ becomes a sideways error
-$s\sigma_c=4\times0.02=0.08$. A grid cannot blur by less than a cell, so the filter never blurs by a
-standard deviation below $0.3$ cell, that is $0.3\times4=1.2$ units. Both
-$0.4$ and $0.08$ are well below that floor, so each blur has the standard
-deviation $1.2$ units in every direction (notebook~01 prints these
-numbers). After $t$ predictions the blur alone
-has the standard deviation $1.2\sqrt t$: for example
-$1.2\times\sqrt{100}=12$ units, three cells, after $100$ predictions. This assumes a known heading, as in
+the width of the belief grows like $\sqrt t$. On the grid of \cref{sec:grid}, with cells $4$ units wide, the width
+also grows like $\sqrt t$, but faster than the motion noise alone would
+make it. That noise has two parts: the step noise $\sigma_s=0.4$ along the
+heading, and the compass noise $\sigma_c=0.02$\,rad, which over a step of
+length $s=4$ becomes a sideways error $s\sigma_c=4\times0.02=0.08$.
+Averaged over the two axes, its standard deviation is
+$\sqrt{(0.4^2+0.08^2)/2}=0.29$ units per step, so $0.29\sqrt{50}=2.0$
+units after 50 predictions. Notebook~01 starts a grid belief in a single
+cell and predicts 50 times without update. With the heading along an
+axis, each shift is exactly one cell, and the belief spreads by $2.5$
+units, close to the model. With a heading of $30^\circ$, the shift is a
+fraction of a cell, its interpolation blurs at every step (as explained in
+\cref{sec:grid}), and the belief spreads by $12.4$ units. In both cases
+the spread is multiplied by about $\sqrt{10}=3.2$ between 1 and 10
+predictions: each step adds the same variance. This assumes a known heading, as in
 \cref{prop:conv}. When the heading itself is
 uncertain, its errors accumulate and turn into sideways errors that grow
 faster. On a straight path with steps of length $s$ and a heading noise
