@@ -1379,8 +1379,11 @@ the summed covariance.
 known heading, each prediction is
 $\belbar=\bel(\,\cdot-\vect d)\ast\Normal(\vect0,\Sigma)$: it shifts the
 belief by the displacement $\vect d$ and blurs it with
-$\Normal(\vect0,\Sigma)$. The shifts only move the belief. Applying the result $t-1$ times, the $t$
-blurs are one blur with $\Normal(\vect0,t\Sigma)$. Along a direction
+$\Normal(\vect0,\Sigma)$. The shifts only move the belief. The result merges two blurs into one; each merge removes one blur, so
+$t-1$ merges turn the $t$ blurs into one. Step by step: the first two
+blurs are one blur with $\Normal(\vect0,2\Sigma)$, merged with the third
+they give $\Normal(\vect0,3\Sigma)$, and after the $(t-1)$-th merge, which
+brings in the last blur, one blur with $\Normal(\vect0,t\Sigma)$. Along a direction
 $\vect u$, the standard deviation of that blur is
 $\sqrt{t\,\vect u\T\Sigma\vect u}=\sqrt t\,\sqrt{\vect u\T\Sigma\vect u}$:
 the width of the belief grows like $\sqrt t$. On the grid of \cref{sec:grid}, with cells $4$ units wide, the numbers
