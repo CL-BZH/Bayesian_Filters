@@ -1263,14 +1263,37 @@ carry several hypotheses until the motion resolves them.
 
 \solution{2.1} Each step is a prediction followed by an update, as in
 \cref{ex:grassgravel}: the robot may change surface between two readings.
-Order the states as $(G,P)$; the sensor says ``rough'' with probability
-$0.3$ on the grass and $0.8$ on the path.
+The values of that example are:
+\begin{itemize}[nosep]
+  \item the states, ordered as $(G,P)$: the grass and the gravel path;
+  \item the motion: at each step the robot stays on the same surface with
+        probability $p(G\mid G)=p(P\mid P)=0.9$, and changes surface with
+        probability $p(P\mid G)=p(G\mid P)=0.1$;
+  \item the sensor: it says ``rough'' with probability
+        $p(\text{rough}\mid G)=0.3$ on the grass and
+        $p(\text{rough}\mid P)=0.8$ on the path.
+\end{itemize}
+The two formulas used at each step are the prediction and the update of
+\cref{thm:bayes}, written for two states:
+\begin{align*}
+  \belbar(G)&=p(G\mid G)\,\bel(G)+p(G\mid P)\,\bel(P),
+  &\belbar(P)&=p(P\mid G)\,\bel(G)+p(P\mid P)\,\bel(P),\\
+  \bel(G)&=\frac{p(\text{rough}\mid G)\,\belbar(G)}{\eta^{-1}},
+  &\bel(P)&=\frac{p(\text{rough}\mid P)\,\belbar(P)}{\eta^{-1}},
+\end{align*}
+with $\eta^{-1}=p(\text{rough}\mid G)\,\belbar(G)+p(\text{rough}\mid
+P)\,\belbar(P)$, the probability of the reading ``rough''.
 
-\emph{First step.} Predict: $\belbar(G)=0.9\times0.5+0.1\times0.5=0.5$,
-and likewise $\belbar(P)=0.5$. The belief $(0.5,0.5)$ does not change: as
-much probability flows from the grass to the path as back. Update with
-``rough'': multiply each predicted probability by the probability of the
-reading in that state, add, and divide by the sum.
+\emph{First step.} Predict, from $\bel=(0.5,0.5)$:
+\[
+  \belbar(G)=p(G\mid G)\,\bel(G)+p(G\mid P)\,\bel(P)
+  =0.9\times0.5+0.1\times0.5=0.5,
+\]
+and likewise $\belbar(P)=0.1\times0.5+0.9\times0.5=0.5$. The belief
+$(0.5,0.5)$ does not change: as much probability flows from the grass to
+the path as back. Update with ``rough'': multiply each predicted
+probability by the probability of the reading in that state, add, and
+divide by the sum.
 \begin{center}
 \begin{tabular}{lccc}
   \toprule
@@ -1286,12 +1309,14 @@ reading in that state, add, and divide by the sum.
 The sum $0.55$ is the probability that the filter gave to the reading
 ``rough'' before seeing it.
 
-\emph{Second step.} Predict: the robot is on the grass if it was there and
-stayed, or on the path and left it:
-\[
-  \belbar(G)=0.9\times0.273+0.1\times0.727=0.318,\qquad
-  \belbar(P)=0.1\times0.273+0.9\times0.727=0.682 .
-\]
+\emph{Second step.} Predict, from $\bel=(0.273,0.727)$: the robot is on
+the grass if it was there and stayed, or on the path and left it:
+\begin{align*}
+  \belbar(G)&=p(G\mid G)\,\bel(G)+p(G\mid P)\,\bel(P)
+  =0.9\times0.273+0.1\times0.727=0.318,\\
+  \belbar(P)&=p(P\mid G)\,\bel(G)+p(P\mid P)\,\bel(P)
+  =0.1\times0.273+0.9\times0.727=0.682 .
+\end{align*}
 Update with ``rough'':
 \begin{center}
 \begin{tabular}{lccc}
@@ -1309,11 +1334,14 @@ The belief after the two readings is $(0.149,\,0.851)$.
 
 \emph{What the prediction did.} Without the prediction between the two
 readings, that is if the robot could not change surface, the two readings
-would multiply $(0.5,0.5)$ by $0.3\times0.3=0.09$ and $0.8\times0.8=0.64$,
-which gives $(0.09,0.64)/0.73=(0.123,\,0.877)$. The filter is less sure
+would multiply $(0.5,0.5)$ by $p(\text{rough}\mid G)^2=0.3\times0.3=0.09$
+and $p(\text{rough}\mid P)^2=0.8\times0.8=0.64$, which gives, after
+dividing by $0.5\times0.09+0.5\times0.64=0.365$,
+$(0.045,0.32)/0.365=(0.123,\,0.877)$. The filter is less sure
 of the path, $0.851$ instead of $0.877$: between the readings, the
-prediction moved $0.1\times0.727=0.073$ of probability from the path to
-the grass, and only $0.1\times0.273=0.027$ back. A reading taken
+prediction moved $p(G\mid P)\,\bel(P)=0.1\times0.727=0.073$ of
+probability from the path to the grass, and only
+$p(P\mid G)\,\bel(G)=0.1\times0.273=0.027$ back. A reading taken
 \emph{before} a possible change of surface says less about the surface
 \emph{after} it.
 
