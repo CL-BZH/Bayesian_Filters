@@ -461,6 +461,7 @@ $\eta_t^{-1}$ with a long-term one.
 \end{inwords}
 
 \section{The grid filter}
+\label{sec:grid}
 
 Neither integral of \cref{thm:bayes} has a closed form in general. The
 most direct approximation replaces the state space by a finite grid. To
@@ -1260,91 +1261,220 @@ carry several hypotheses until the motion resolves them.
 
 \subsection*{Solutions}
 
-\solution{2.1} Order the states $(G,P)$. Predict: the transition matrix is
-symmetric with $0.9$ on the diagonal, so $(0.5,0.5)$ stays
-$(0.5,0.5)$. Update with ``rough'': multiply by $(0.3,0.8)$ to get
-$(0.15,0.40)$, normalise: $(0.273,0.727)$. Predict:
-$(0.9\cdot0.273+0.1\cdot0.727,\ 0.1\cdot0.273+0.9\cdot0.727)=
-(0.318,0.682)$. Update with ``rough'': $(0.0955,0.5455)$, normalise:
-$(0.149,0.851)$. Without the prediction in between, two readings would
-multiply $(0.5,0.5)$ by $(0.3^2,0.8^2)=(0.09,0.64)$, which normalises to
-$(0.09,0.64)/0.73=(0.123,0.877)$: the prediction pulled the belief back towards $1/2$,
-because the robot might have left the path in between.
+\solution{2.1} Each step is a prediction followed by an update, as in
+\cref{ex:grassgravel}: the robot may change surface between two readings.
+Order the states as $(G,P)$; the sensor says ``rough'' with probability
+$0.3$ on the grass and $0.8$ on the path.
 
-\solution{2.2} Blurring a density $b$ with $\Normal(\vect0,\Sigma_1)$
-gives the density of $X+X_1$, where $X$ has the density $b$ and
-$X_1\sim\Normal(\vect0,\Sigma_1)$ is independent of $X$: by the change
-of variable used in the proof of \cref{prop:conv}, the density of $X+X_1$
-is $\int g_1(\p-\vect q)\,b(\vect q)\,\mathrm d\vect q=(b\ast g_1)(\p)$,
-with $g_1$ the density of $X_1$. Blurring again with
-$\Normal(\vect0,\Sigma_2)$ adds a second independent
-$X_2\sim\Normal(\vect0,\Sigma_2)$, which gives the density of
-$X+(X_1+X_2)$. By \cref{lem:affine} (the sum of two independent
-Gaussians), $X_1+X_2\sim\Normal(\vect0,\Sigma_1+\Sigma_2)$, and it is
-independent of $X$. So the two blurs together add to $X$ one independent
-$\Normal(\vect0,\Sigma_1+\Sigma_2)$ noise: they are one blur with the
-summed covariance. After $t$ predictions with per-step noise $\Sigma$ and
-no update, the belief has, by the same argument repeated, been convolved
-with $\Normal(\vect0,t\Sigma)$. Its standard deviations are those of
-$\Sigma$ multiplied by $\sqrt t$: the width grows like $\sqrt t$, plus the
-heading-induced growth of \cref{prop:deadreckoning} when the heading is
-not known.
+\emph{First step.} Predict: $\belbar(G)=0.9\times0.5+0.1\times0.5=0.5$,
+and likewise $\belbar(P)=0.5$. The belief $(0.5,0.5)$ does not change: as
+much probability flows from the grass to the path as back. Update with
+``rough'': multiply each predicted probability by the probability of the
+reading in that state, add, and divide by the sum.
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  & predicted & $\times\,p(\text{rough}\mid\cdot)$ & new belief\\
+  \midrule
+  grass & $0.5$ & $0.5\times0.3=0.15$ & $0.15/0.55=0.273$\\
+  path  & $0.5$ & $0.5\times0.8=0.40$ & $0.40/0.55=0.727$\\
+  \midrule
+  total & $1$ & $0.55$ & $1$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+The sum $0.55$ is the probability that the filter gave to the reading
+``rough'' before seeing it.
 
-\solution{2.3} The prediction is the identity, so after $k$ updates the belief is the prior times the product of
-$k$ likelihoods, all $\sigma$-invariant by \cref{prop:mirror}. A
-$\sigma$-invariant prior times $\sigma$-invariant factors stays
-$\sigma$-invariant, so the two bumps always have equal mass: $1/2$ each,
-exactly, not only in the limit. Each bump also shrinks to a point. For
-one landmark at distance $d(\p)=\norm{\bell-\p}$, the readings
-$r_1,\dots,r_k$ have independent noises $\Normal(0,\sigma_r^2)$, so the
-product of their likelihoods is
+\emph{Second step.} Predict: the robot is on the grass if it was there and
+stayed, or on the path and left it:
 \[
-  \prod_{i=1}^k e^{-(r_i-d(\p))^2/(2\sigma_r^2)}
-  =C\,e^{-k\,(\bar r-d(\p))^2/(2\sigma_r^2)},
-  \qquad\bar r=\tfrac1k\textstyle\sum_ir_i ,
+  \belbar(G)=0.9\times0.273+0.1\times0.727=0.318,\qquad
+  \belbar(P)=0.1\times0.273+0.9\times0.727=0.682 .
 \]
-where $C$ does not depend on $\p$: expanding,
-$\sum_i(r_i-d)^2=k(\bar r-d)^2+\sum_i(r_i-\bar r)^2$, and the last sum
-does not contain $\p$. This is the likelihood of a single reading
-$\bar r$ with the standard deviation $\sigma_r/\sqrt k$: the ring of
-positions compatible with the readings narrows like $1/\sqrt k$, and the
-two rings, one per landmark, meet in two shrinking spots. Only motion, or
-a third landmark off the axis, can break the tie.
+Update with ``rough'':
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  & predicted & $\times\,p(\text{rough}\mid\cdot)$ & new belief\\
+  \midrule
+  grass & $0.318$ & $0.318\times0.3=0.0955$ & $0.0955/0.641=0.149$\\
+  path  & $0.682$ & $0.682\times0.8=0.5455$ & $0.5455/0.641=0.851$\\
+  \midrule
+  total & $1$ & $0.641$ & $1$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+The belief after the two readings is $(0.149,\,0.851)$.
 
-\solution{2.4} $600\times600\times360\approx1.3\times10^8$ cells, about
-$520$\,MB in single precision. A prediction written as
-$\belbar_i=\sum_jP_{ij}b_j$ costs $n^2\approx1.7\times10^{16}$
-operations, hopeless at any rate. Using the structure (a shift plus a
-local blur, \cref{prop:conv}) brings it down to $O(n)$ per step times the
-kernel size, which is why the grid filters that work in practice are
-built on convolutions or sparse transitions. Even then, $10^8$ cells per
-step at several hertz is a lot for an embedded computer.
+\emph{What the prediction did.} Without the prediction between the two
+readings, that is if the robot could not change surface, the two readings
+would multiply $(0.5,0.5)$ by $0.3\times0.3=0.09$ and $0.8\times0.8=0.64$,
+which gives $(0.09,0.64)/0.73=(0.123,\,0.877)$. The filter is less sure
+of the path, $0.851$ instead of $0.877$: between the readings, the
+prediction moved $0.1\times0.727=0.073$ of probability from the path to
+the grass, and only $0.1\times0.273=0.027$ back. A reading taken
+\emph{before} a possible change of surface says less about the surface
+\emph{after} it.
+
+\solution{2.2} The idea: blurring a density with a Gaussian is adding an
+independent Gaussian noise to a random vector that has this density, and
+two independent Gaussian noises add up to one.
+
+\emph{Step 1: a blur is an added noise.} Let $X$ have the density $b$, and
+let $X_1\sim\Normal(\vect0,\Sigma_1)$ be independent of $X$, with the
+density $g_1$. By the probabilistic meaning of the convolution
+(\cref{sec:grid}), $b\ast g_1$ is the density of $X+X_1$.
+
+\emph{Step 2: the second blur.} Let $X_2\sim\Normal(\vect0,\Sigma_2)$,
+with the density $g_2$, be independent of $(X,X_1)$, hence of $X+X_1$. By
+the same result, $(b\ast g_1)\ast g_2$ is the density of $(X+X_1)+X_2$.
+
+\emph{Step 3: the two noises are one.} Group the terms the other way:
+$(X+X_1)+X_2=X+(X_1+X_2)$. The sum $X_1+X_2$ is Gaussian, as a sum of two
+independent Gaussians (\cref{lem:affine}, in \cref{ch:kalman}); its mean
+is $\vect0$, and its covariance is $\Sigma_1+\Sigma_2$, because the
+covariances of independent vectors add (\cref{sec:grid}). It is
+independent of $X$, since $X_1$ and $X_2$ are. So, by Step~1 again, the
+density of $X+(X_1+X_2)$ is $b\ast g_{12}$, with $g_{12}$ the density of
+$\Normal(\vect0,\Sigma_1+\Sigma_2)$.
+
+\emph{Conclusion.} Steps 2 and 3 give the density of the same random
+vector, so $(b\ast g_1)\ast g_2=b\ast g_{12}$: two blurs are one blur with
+the summed covariance.
+
+\emph{After $t$ predictions without update.} Each prediction shifts the
+belief and blurs it with $\Normal(\vect0,\Sigma)$ (\cref{prop:conv}). The
+shifts only move the belief. Applying the result $t-1$ times, the $t$
+blurs are one blur with $\Normal(\vect0,t\Sigma)$. Along a direction
+$\vect u$, the standard deviation of that blur is
+$\sqrt{t\,\vect u\T\Sigma\vect u}=\sqrt t\,\sqrt{\vect u\T\Sigma\vect u}$:
+the width of the belief grows like $\sqrt t$. On the grid of
+\cref{sec:grid}, each blur has the standard deviation $1.2$ units (the
+floor of $0.3$ cell, notebook~01), so after $t$ predictions the blur alone
+has the standard deviation $1.2\sqrt t$: for example $12$ units, three
+cells, after $100$ predictions. This assumes a known heading, as in
+\cref{prop:conv}. When the heading itself is uncertain, its errors
+accumulate and turn into sideways errors that grow faster: on a straight
+path the variance of the lateral error grows like $t^3$
+(\cref{prop:deadreckoning}), so its standard deviation grows like
+$t^{3/2}$.
+
+\solution{2.3} There are two claims: the two bumps keep equal masses, and
+the belief stays made of two bumps, which become narrower.
+
+\emph{The belief after $k$ readings.} The prediction is the identity, so
+each step only multiplies the belief by the likelihood of the new
+readings $\z_i$ and renormalises. After $k$ steps, collecting the
+constants into one,
+\[
+  \bel_k(\p)=\eta\,\bel_0(\p)\prod_{i=1}^kp(\z_i\mid\p).
+\]
+
+\emph{Equal masses.} By \cref{prop:mirror}, each likelihood is
+$\sigma$-invariant: $p(\z_i\mid\sigma(\p))=p(\z_i\mid\p)$. If the prior is
+$\sigma$-invariant too, every factor of the product takes the same value
+at $\p$ and at $\sigma(\p)$, so $\bel_k(\sigma(\p))=\bel_k(\p)$ for every
+$k$. The reflection maps the half-plane on one side of the axis onto the
+other half-plane and keeps areas, so the two half-planes have the same
+mass. The axis itself has zero area, so each half-plane has the mass
+$1/2$, exactly, at every step, not only in the limit. If the prior is not
+symmetric, the same argument shows that the ratio
+$\bel_k(\sigma(\p))/\bel_k(\p)=\bel_0(\sigma(\p))/\bel_0(\p)$ never
+changes: the readings cannot correct an asymmetry of the prior either.
+
+\emph{Two narrowing bumps.} Take one landmark $\bell$, at the distance
+$\rho(\p)=\norm{\bell-\p}$ from $\p$, and its $k$ readings
+$r_1,\dots,r_k$, with independent noises $\Normal(0,\sigma_r^2)$. Write
+$\bar r=\frac1k\sum_ir_i$ for their mean. The product of their
+likelihoods is
+\[
+  \prod_{i=1}^ke^{-(r_i-\rho(\p))^2/(2\sigma_r^2)}
+  =\exp\Bigl(-\frac{1}{2\sigma_r^2}\sum_{i=1}^k\bigl(r_i-\rho(\p)\bigr)^2\Bigr).
+\]
+Write $r_i-\rho=(r_i-\bar r)+(\bar r-\rho)$ and expand the square:
+\[
+  \sum_i(r_i-\rho)^2
+  =\sum_i(r_i-\bar r)^2+2(\bar r-\rho)\sum_i(r_i-\bar r)+k(\bar r-\rho)^2
+  =\sum_i(r_i-\bar r)^2+k(\bar r-\rho)^2 ,
+\]
+because $\sum_i(r_i-\bar r)=\sum_ir_i-k\bar r=0$. The first sum does not
+contain $\p$, so
+\[
+  \prod_{i=1}^ke^{-(r_i-\rho(\p))^2/(2\sigma_r^2)}
+  =C\,\exp\Bigl(-\frac{(\bar r-\rho(\p))^2}{2\,\sigma_r^2/k}\Bigr),
+\]
+with a constant $C$. This is the likelihood of a single reading $\bar r$
+with the standard deviation $\sigma_r/\sqrt k$. The positions that agree
+with the readings of this landmark form a ring around it, of radius about
+$\bar r$ and width proportional to $\sigma_r/\sqrt k$. The two rings, one
+per landmark, meet in two spots around $\p$ and $\sigma(\p)$, which shrink
+like $1/\sqrt k$. Only a motion that is not parallel to the axis, or a
+third landmark off the axis, can break the tie (\cref{sec:twobumps}).
+
+\solution{2.4} \emph{Cells.} Along each side, $30\,\text{m}/5\,\text{cm}
+=600$ cells; for the heading, $360$ cells of $1^\circ$. In total
+$600\times600\times360=129\,600\,000\approx1.3\times10^8$ cells.
+
+\emph{Memory.} In single precision a number takes $4$ bytes, so the
+belief takes $4\times1.3\times10^8\approx5.2\times10^8$ bytes, about
+$520$\,MB.
+
+\emph{A prediction as a full sum.} Write the prediction
+\eqref{eq:predict} on the cells as $\bar b_i=\sum_jT_{ij}b_j$, with
+$T_{ij}$ the probability of going from the cell $j$ to the cell $i$. Each
+of the $n\approx1.3\times10^8$ new values is a sum of $n$ products, so the
+prediction costs $n^2\approx1.7\times10^{16}$ multiplications and as many
+additions. At $10^{10}$ operations per second, a fast processor, that is
+$3.4\times10^6$ seconds, about $39$ days, for one prediction. The matrix
+$T$ itself, with $n^2$ entries, would not fit in any memory.
+
+\emph{Using the structure.} The probability of going from $j$ to $i$ is
+negligible unless $i$ is near the cell reached from $j$ by the commanded
+motion: the prediction is a shift and a local blur (\cref{prop:conv}).
+A Gaussian blur over $5$ cells along each of the three axes, done one
+axis at a time, costs $3\times5=15$ multiplications per cell, about
+$2\times10^9$ per prediction: a fraction of a second. So the grid filters
+that work in practice are built on such shifts and blurs, or on sparse
+transitions. Even then, $520$\,MB of belief updated several times per
+second is a lot for an embedded computer.
 
 \solution{2.5}
 \begin{enumerate}[nosep]
-  \item Let $L$ be the set of lawn cells, and take as observation the
-        statement ``$\p_{t+1}\in L$'', with the likelihood
-        $\Pr(\p_{t+1}\in L\mid\p_{t+1}\in C_i)=1$ for a lawn cell and $0$
-        for the others. Bayes' rule multiplies the predicted belief by
-        this likelihood and divides by the sum: the belief of the lawn
-        cells is kept, that of the other cells becomes $0$, and the
-        division by $\sum_{i\in L}\bar b_i$ is the renormalisation. The
-        sum is the probability that the prediction gave to the lawn,
-        like the $0.43$ of \cref{ex:grassgravel}; in \cref{fig:potato} it
-        is $0.73$.
-  \item The convolution moves every bit of probability by the
-        commanded displacement and spreads it by the noise, whatever is
-        around. Far from the edge, every pose that the blur reaches is on
-        the lawn, so nothing is removed and the convolution is the
-        prediction. Next to the edge, the blur reaches poses off the
-        lawn, where the robot cannot be. The masking assumes that the
-        robot never leaves the lawn (a boundary wire or a geofence stops
-        it): the transition is the convolution, conditioned on staying on
-        the lawn.
-  \item Store only the $2749$ lawn cells, for example as a list of cell
-        indices with their beliefs, or as a sparse array; the
-        prediction then computes the blur only at these cells, and the
-        update only touches them. That is $43\%$ of the square. When the
+  \item Let $L$ be the set of the lawn cells, and take as observation
+        the statement ``the robot is on the lawn''. Its likelihood in the
+        cell $C_i$ is the probability of that statement when the robot
+        is in $C_i$: $1$ if $i\in L$ and $0$ otherwise. Bayes' rule
+        \eqref{eq:update} on the grid multiplies each predicted
+        probability by the likelihood and divides by the sum:
+        \[
+          b_i=\frac{\mathbf 1_L(i)\,\bar b_i}{\sum_j\mathbf 1_L(j)\,\bar b_j}
+          =\begin{cases}\bar b_i/\sum_{j\in L}\bar b_j,&i\in L,\\
+          0,&i\notin L.\end{cases}
+        \]
+        That is the mask: the cells off the lawn get $0$, and the others
+        are renormalised. The sum $\sum_{j\in L}\bar b_j$ is the
+        probability that the prediction gave to the lawn, like the
+        $0.43$ of \cref{ex:grassgravel}; in \cref{fig:potato}, $27\%$
+        falls off the lawn, so it is $0.73$.
+  \item The convolution moves every bit of probability by the commanded
+        displacement and spreads it by the noise, whatever is around: it
+        describes a robot that moves as if there were no edge. Far from
+        the edge, the blur only reaches cells on the lawn, nothing is
+        removed, and the convolution is the whole prediction. Next to the
+        edge, the blur reaches cells off the lawn, where the robot cannot
+        be, and the mask removes that probability. Masking is then exact
+        under one assumption: the robot moves as if there were no edge,
+        and we learn afterwards that it is still on the lawn, as in~(a).
+        A real mower does not move like that near the edge: its boundary
+        wire or its geofence stops it or turns it back. So the masking is
+        an approximation, good when little of the belief lies within a
+        few standard deviations of the blur from the edge.
+  \item Store only the $2749$ lawn cells, for example as a list of the
+        cell indices with their probabilities, or as a sparse array. The
+        prediction computes the blur only at these cells, from their
+        neighbours on the lawn, and the update only touches them. That is
+        $2749/6400=43\%$ of the square, in memory and in time. When the
         cells are small compared with the lawn, a \emph{quadtree}, with
         small cells along the edge and large ones elsewhere, saves more:
         its number of cells grows like the length of the edge divided by
