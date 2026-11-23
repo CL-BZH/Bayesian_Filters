@@ -1037,20 +1037,47 @@ the likelihood, the prediction only moves and blurs the bumps.
 landmark $\bell_j$. The measured range is $z_j=\rho_j(\p)+v_j$, with a
 noise $v_j\sim\Normal(0,\sigma_r^2)$, $\sigma_r=5$. Call $\vect w$ the
 position of the wrong bump, and $e_j=\rho_j(\vect w)-\rho_j(\p)$ its
-\emph{range errors}. The likelihood at a point $\vect x$ is proportional
-to $\prod_je^{-(z_j-\rho_j(\vect x))^2/(2\sigma_r^2)}$. At the robot,
-$z_j-\rho_j(\p)=v_j$; at the wrong bump, $z_j-\rho_j(\vect w)=v_j-e_j$.
-So the update multiplies the ratio of the two masses by
+\emph{range errors}.
+
+First, the update acts on the ratio of the two masses through the ratio
+of the likelihoods. Treat each bump as if its mass were at one point: $m_{\vect w}$
+at $\vect w$ and $m_{\p}$ at $\p$ before the update. The update
+\eqref{eq:update} multiplies each mass by the likelihood at its point and
+by the same constant $\eta$, so after the update
 \[
-  \frac{p(\z\mid\vect w)}{p(\z\mid\p)}
-  =\exp\Bigl(-\sum_j\frac{(v_j-e_j)^2-v_j^2}{2\sigma_r^2}\Bigr)
-  =\exp\Bigl(-\sum_j\frac{e_j^2}{2\sigma_r^2}
-   +\sum_j\frac{e_jv_j}{\sigma_r^2}\Bigr),
+  \frac{\eta\,p(\z\mid\vect w)\,m_{\vect w}}{\eta\,p(\z\mid\p)\,m_{\p}}
+  =\frac{p(\z\mid\vect w)}{p(\z\mid\p)}\cdot\frac{m_{\vect w}}{m_{\p}} :
 \]
-using $(v_j-e_j)^2-v_j^2=e_j^2-2e_jv_j$. The first term always favours
+$\eta$ cancels, and the ratio of the masses is multiplied by the ratio of
+the likelihoods.
+
+Next, that ratio. The two ranges have independent Gaussian noises, so the
+likelihood at a point $\vect x$ is
+$p(\z\mid\vect x)=C\prod_je^{-(z_j-\rho_j(\vect x))^2/(2\sigma_r^2)}$,
+with a constant $C$ that does not depend on $\vect x$. At the robot,
+$z_j-\rho_j(\p)=v_j$. At the wrong bump,
+$z_j-\rho_j(\vect w)=\bigl(z_j-\rho_j(\p)\bigr)-\bigl(\rho_j(\vect w)
+-\rho_j(\p)\bigr)=v_j-e_j$. Then, line by line:
+\begin{align*}
+  \frac{p(\z\mid\vect w)}{p(\z\mid\p)}
+  &=\frac{C\prod_je^{-(v_j-e_j)^2/(2\sigma_r^2)}}
+         {C\prod_je^{-v_j^2/(2\sigma_r^2)}}
+  &&\text{the two likelihoods}\\
+  &=\prod_j\exp\Bigl(-\frac{(v_j-e_j)^2-v_j^2}{2\sigma_r^2}\Bigr)
+  &&\text{$C$ cancels; $e^a/e^b=e^{a-b}$, factor by factor}\\
+  &=\prod_j\exp\Bigl(-\frac{e_j^2-2e_jv_j}{2\sigma_r^2}\Bigr)
+  &&(v_j-e_j)^2=v_j^2-2e_jv_j+e_j^2\\
+  &=\exp\Bigl(-\sum_j\frac{e_j^2}{2\sigma_r^2}
+   +\sum_j\frac{e_jv_j}{\sigma_r^2}\Bigr)
+  &&\textstyle\prod_je^{a_j}=e^{\sum_ja_j}.
+\end{align*}
+In the exponent, the first term always favours
 the right bump, and it grows like the \emph{square} of the range errors.
-The second is random, zero on average, with the standard deviation
-$\sqrt{\sum_je_j^2}/\sigma_r$: it grows only like the errors themselves.
+The second is random: the noises $v_j$ are independent, with mean $0$
+and variance $\sigma_r^2$, so it has the mean $0$ and the variance
+$\sum_je_j^2\sigma_r^2/\sigma_r^4=\sum_je_j^2/\sigma_r^2$, that is the
+standard deviation $\sqrt{\sum_je_j^2}/\sigma_r$: it grows only like the
+errors themselves.
 While the range errors are smaller than $\sigma_r$, both terms are small,
 and the second can favour either bump. Once they are larger than
 $\sigma_r$, the first term wins, and the wrong bump loses most of its mass
