@@ -118,9 +118,12 @@ sight by about $a/r$.}
 \label{fig:hgeom}
 \end{figure}
 
-Hand-derived Jacobians are a classic source of bugs. The notebook and the
-tests compare them with central finite differences; the largest
-discrepancy is about $2\times10^{-9}$.
+Hand-derived Jacobians are a classic source of bugs. Notebook~03 and the
+tests compare them with central finite differences, the derivative
+$\partial g/\partial x_j$ being approximated by
+$\bigl(g(\x+\varepsilon\vect e_j)-g(\x-\varepsilon\vect e_j)\bigr)/(2
+\varepsilon)$ for a small $\varepsilon$; the largest discrepancy is about
+$2.5\times10^{-9}$.
 
 \section{The filter}
 
@@ -138,9 +141,12 @@ same way, around the predicted mean $\bx$,
 \[
   \z=h(\x)+\vv\approx h(\bx)+H(\x-\bx)+\vv,
 \]
-a linear measurement of $\x$, up to the known constant $h(\bx)-H\bx$. The
-Kalman update of \cref{thm:kf} then applies, with the innovation
-$\z-h(\bx)$.
+a linear measurement of $\x$, up to the known constant $h(\bx)-H\bx$.
+Move that constant to the left: the number
+$\z'=\z-h(\bx)+H\bx\approx H\x+\vv$ is an exactly linear measurement, to
+which the Kalman update of \cref{thm:kf} applies. Its innovation is
+$\z'-H\bx=\z-h(\bx)$, so the constant disappears from the formulas, and
+only $\z-h(\bx)$ remains.
 
 \begin{definition}{Extended Kalman filter}{ekf}
 \begin{align*}
@@ -179,8 +185,8 @@ measured one is $-3.12$, the raw innovation is $-3.12-3.10=-6.22$
 instead of $-6.22+2\pi=+0.063$ (\cref{lem:wrap}), and the update throws the robot across the lawn.
 
 \Cref{fig:ekftrack} shows the filter on the standard run, with four
-landmarks always in view. The EKF's position RMSE is $1.01$, well below the
-range noise $\sigma_r=5$ and the $\approx5$ units of position uncertainty
+landmarks always in view. The EKF's position RMSE is $1.01$ (notebook~03), well below the range
+noise $\sigma_r=5$ and the $\approx5$ units of position uncertainty
 that a bearing error of $0.05$\,rad produces at 100 units: combining four
 landmarks and the motion model over time pays off. Each error component
 stays inside its own $\pm2\sigma$ band $96\%$ to $99\%$ of the time
@@ -221,16 +227,38 @@ biased by $\tfrac12\tr(\nabla^2g_i\Sigma)$, to first order in $\Sigma$.
 \end{proposition}
 
 \begin{proof}
-Taylor's theorem around $\bmu$ with $\vect{e}=X-\bmu$:
-$g_i(X)=g_i(\bmu)+\nabla g_i\T\vect{e}+\tfrac12\vect{e}\T\nabla^2g_i
-\vect{e}+\tfrac16D^3g_i[\vect{e},\vect{e},\vect{e}]+\rho(\vect{e})$ with
-$|\rho(\vect{e})|\le C\norm{\vect{e}}^4$. Take expectations:
-$\E[\vect{e}]=\vect0$,
-$\E[\vect{e}\T A\vect{e}]=\E[\tr(A\vect e\vect e\T)]=\tr(A\Sigma)$, the
-cubic term has expectation zero because the odd moments of a centred
-Gaussian vanish (the vector $-\vect e$ has the same distribution as
-$\vect e$, so a function that changes sign with $\vect e$ has mean zero),
-and $\E|\rho(\vect{e})|\le C\,\E\norm{\vect{e}}^4=O(\norm{\Sigma}^2)$.
+Write $\vect e=X-\bmu\sim\Normal(\vect0,\Sigma)$, and take the expectation
+of each term of the Taylor expansion of $g_i$ around $\bmu$.
+
+\emph{The expansion.} By Taylor's theorem,
+\[
+  g_i(X)=g_i(\bmu)+\nabla g_i\T\vect e+\tfrac12\vect e\T\nabla^2g_i\,
+  \vect e+\tfrac16D^3g_i[\vect e,\vect e,\vect e]+\rho(\vect e),
+  \qquad\abs{\rho(\vect e)}\le C\norm{\vect e}^4,
+\]
+where the derivatives are taken at $\bmu$, $D^3g_i[\vect e,\vect e,\vect
+e]$ is the third-order term (a sum of third derivatives times products of
+three coordinates of $\vect e$), and $C$ comes from the bound on the
+fourth derivatives.
+
+\emph{The linear term.} $\E[\nabla g_i\T\vect e]=\nabla g_i\T\E[\vect e]
+=0$.
+
+\emph{The quadratic term.} A number equals its trace, and
+$\tr(AB)=\tr(BA)$, so, with $A=\nabla^2g_i$,
+\[
+  \E[\vect e\T A\vect e]=\E\bigl[\tr(\vect e\T A\vect e)\bigr]
+  =\E\bigl[\tr(A\vect e\vect e\T)\bigr]
+  =\tr\bigl(A\,\E[\vect e\vect e\T]\bigr)=\tr(A\Sigma) .
+\]
+
+\emph{The cubic term.} It changes sign when $\vect e$ is replaced by
+$-\vect e$, and $-\vect e$ has the same distribution as $\vect e$ (a
+centred Gaussian is symmetric). So its expectation equals minus itself,
+and is zero.
+
+\emph{The remainder.} $\E\abs{\rho(\vect e)}\le C\,\E\norm{\vect e}^4
+=O(\norm\Sigma^2)$.
 For the last bound, write $\vect e=L\vect g$ with $LL\T=\Sigma$ and
 $\vect g\sim\Normal(\vect0,I)$ (as in the proof of
 \cref{lem:dichotomy}); then $\norm{\vect e}^2\le\norm L^2\norm{\vect g}^2
@@ -254,11 +282,13 @@ Exercise~\ref{ex:ecos}.)
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch04_linearisation.pdf}
-\caption{Linearisation in one dimension. Left: $g(\theta)=\cos\theta$, the
-input density (grey) and the tangent at its mean, which is all the EKF
-uses. Right: the true density of $g(\theta)$ (histogram of $200\,000$
-samples) and the EKF's Gaussian. The EKF's mean misses the curvature: it
-is too high by $0.24$.}
+\caption{Linearisation in one dimension, for an angle
+$\theta\sim\Normal(0.5,0.8^2)$ passed through $g(\theta)=\cos\theta$.
+Left: $g$, the input density (grey) and the tangent at its mean, which is
+all the EKF uses. Right: the true density of $g(\theta)$ (histogram of
+$200\,000$ samples) and the EKF's Gaussian. The EKF's mean, $\cos0.5=0.88$,
+misses the curvature: the true mean is $0.64$, so it is too high by
+$0.24$.}
 \label{fig:linearisation}
 \end{figure}
 
@@ -295,8 +325,8 @@ grows with the uncertainty on the heading. \Cref{fig:arc} shows an extreme
 case. A robot known to within $1$ unit but
 with a heading uncertainty of $\sigma_\theta=0.8$\,rad (about $45^\circ$)
 drives 10 steps of 4 units straight ahead. The true distribution is an
-arc. The EKF puts its mean at the tip of the arc, $11.05$ units ahead of
-the true mean, and its ellipse is a needle, much too thin along the
+arc. The EKF puts its mean at the tip of the arc, $11.05$ units ahead of the
+mean of the samples (notebook~04), and its ellipse is a needle, much too thin along the
 direction of travel. In theory the gap is $40(1-e^{-0.32})=10.95$: the
 heading error $e\sim\Normal(0,0.8^2)$ is the same for the ten steps,
 which therefore add up to one straight drive of $40$ units in the
@@ -320,14 +350,16 @@ Linearisation has a second effect, this time in the update: it makes the
 EKF \emph{over-confident} after an uncertain start. Twenty runs start from an estimate drawn from
 $\Normal(\x_0,P_0)$ with $\sigma_{xy}=30$ and $\sigma_\theta=0.8$; the
 sensor range is limited to 110 units, so that mostly two landmarks are
-seen at a time (between one and four). The average NEES (\cref{fig:ekftransient}) is $297$ after
-the first update, $63$ after five and $6.5$ after twenty, against an
-expected value of $3$.
+seen at a time (between one and four). The average NEES (\cref{fig:ekftransient}) is $297$ after the first
+update, $63$ after five and $6.5$ after twenty (notebook~03), against an
+expected value of $3$, the dimension of the pose.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch04_transient.pdf}
-\caption{EKF after an uncertain start (20 runs). Left: average NEES (log
+\caption{EKF after an uncertain start: 20 runs, each starting from an
+estimate drawn from $\Normal(\x_0,P_0)$ with $\sigma_{xy}=30$ and
+$\sigma_\theta=0.8$\,rad, with a sensor range of 110 units. Left: average NEES (log
 scale) and the $95\%$ band for $n=3$. Right: median position error. The
 filter converges, but for about twenty steps its covariance claims up to
 about a hundred times more precision than it has.}
@@ -495,10 +527,16 @@ $S_j=H_j\bar PH_j\T+R_1$, and choose
 \[
   j^\star=\arg\min_j\;\y_{kj}\T S_j^{-1}\y_{kj}+\log\det S_j,
 \]
-the landmark under which the measurement is most likely. Indeed, if
-landmark $j$ produced the measurement, the innovation is approximately
-$\Normal(\vect0,S_j)$, and $-2\log\Normal(\y;\vect0,S)=\y\T S^{-1}\y+
-\log\det S+\text{constant}$. The quantity $\y\T S^{-1}\y$ is the squared
+the landmark under which the measurement is most likely. Indeed, if landmark $j$ produced the measurement, the innovation is
+approximately $\Normal(\vect0,S_j)$, and by \eqref{eq:gaussdensity}
+\[
+  -2\log\Normal(\y;\vect0,S)
+  =-2\log\Bigl(\det(2\pi S)^{-1/2}e^{-\frac12\y\T S^{-1}\y}\Bigr)
+  =\y\T S^{-1}\y+\log\det S+2\log(2\pi)
+\]
+for a two-dimensional $\y$, using $\det(2\pi S)=(2\pi)^2\det S$. The
+largest likelihood is the smallest value of this expression, and the
+constant $2\log(2\pi)$ does not change which $j$ is chosen. The quantity $\y\T S^{-1}\y$ is the squared
 \emph{Mahalanobis distance}: the size of the innovation counted in
 standard deviations. For the right landmark and a consistent filter it
 follows a $\chi^2_2$ distribution (this is the NIS of
@@ -556,10 +594,9 @@ seen landmark 2.}
 \end{figure}
  The update then pulls the estimate \emph{further} in the wrong
 direction and shrinks its covariance, which makes the next wrong
-association even more likely. In the showdown of
-Chapter~\ref{ch:choosing}, an EKF with nearest-neighbour association loses
-the robot in four uncertain starts out of eight and in three kidnappings
-out of eight.
+association even more likely. In the showdown of Chapter~\ref{ch:choosing}, an EKF with
+nearest-neighbour association loses the robot in four uncertain starts
+out of eight and in three kidnappings out of eight (notebook~06).
 
 \begin{practice}[\nb{03\_extended\_kalman\_filter.ipynb}, \code{ekf.py}]
 \code{motion\_jacobians} and \code{range\_bearing\_jacobian} implement
@@ -621,60 +658,108 @@ more robust estimator, for instance a particle filter or a GNSS fix.
 
 \subsection*{Solutions}
 
-\solution{4.1} If $f(\x,\uu)=F\x+B\uu+\vect{c}$, its Jacobian is $F$ and
-the EKF predicted covariance is $FPF\T+BMB\T$, that of the Kalman filter
-with $Q=BMB\T$; if the noise enters through
-the control as $f(\x,\uu+\bepsilon)$, it is affine in $\bepsilon$ too and
-$VMV\T$ is the exact covariance of the noise term. The mean $f(\hx,\uu)$
-is the exact mean by linearity. For an affine $h(\x)=H\x+\vect{c}$, the
-innovation is $\z-H\bx-\vect{c}$ and the remaining formulas are those of
-\cref{thm:kf}. Linearisation is exact for affine maps, so every step
-coincides.
+\solution{4.1} Take $f(\x,\uu)=F\x+B\uu+\vect c$ and $h(\x)=H\x+\vect d$,
+with constant $F$, $B$, $H$, $\vect c$, $\vect d$, and the noise entering
+through the control, as in \cref{def:ekf}: $\x_{t+1}=f(\x_t,\uu_t+
+\bepsilon_t)=F\x_t+B\uu_t+\vect c+B\bepsilon_t$.
 
-\solution{4.2} At $0$, $\cos'(0)=0$: linearisation gives
-$y\approx1$, with mean $1$ and variance $0$. Exactly,
-$\E[y]=e^{-\sigma^2/2}$ (Exercise~\ref{ex:ecos}). For the variance, use
-$\cos^2\theta=(1+\cos2\theta)/2$ and $\E[\cos(a\theta)]=
-e^{-a^2\sigma^2/2}$ (the function $m(a)$ of solution~\ref{ex:ecos}) with
-$a=2$: $\E[y^2]=(1+e^{-2\sigma^2})/2$. So
+\emph{The Jacobians are the matrices.} The Jacobian of an affine map is
+its matrix, at every point: $\partial f/\partial\x=F$,
+$\partial f/\partial\uu=V=B$ and $\partial h/\partial\x=H$.
+
+\emph{Predict.} The EKF mean is $f(\hx,\uu)=F\hx+B\uu+\vect c$, which is
+the exact mean of $F\x_t+B\uu_t+\vect c+B\bepsilon_t$, since
+$\E[\x_t]=\hx$ and $\E[\bepsilon_t]=\vect0$. The EKF covariance is
+$FPF\T+BMB\T$, the exact covariance of the same sum (\cref{lem:affine}):
+it is the Kalman prediction with the process noise $\w_t=B\bepsilon_t$,
+of covariance $Q=BMB\T$, and the known input $B\uu_t+\vect c$.
+
+\emph{Update.} The EKF innovation is $\z-h(\bx)=\z-H\bx-\vect d$. The
+measurement $\z-\vect d=H\x+\vv$ is linear, and its Kalman innovation is
+$(\z-\vect d)-H\bx$: the same. The gain and the covariance use the same
+$H$ and $R$ in both filters.
+
+So every formula of \cref{def:ekf} is the corresponding formula of
+\cref{thm:kf}: for affine models, linearisation loses nothing, and the
+EKF is the Kalman filter.
+
+\solution{4.2} \emph{Linearisation at $0$.} The tangent of $\cos$ at $0$
+is $y\approx\cos0+\cos'(0)\,\theta=1+0\times\theta=1$. Linearisation
+therefore gives the mean $1$ and the variance $0$: it sees no uncertainty
+at all.
+
+\emph{The true mean.} By Exercise~\ref{ex:ecos},
+$\E[\cos(a\theta)]=e^{-a^2\sigma^2/2}$ for $\theta\sim\Normal(0,
+\sigma^2)$; with $a=1$, $\E[y]=e^{-\sigma^2/2}$.
+
+\emph{The true variance.} Use $\cos^2\theta=(1+\cos2\theta)/2$ and the
+same formula with $a=2$:
+$\E[y^2]=\tfrac12\bigl(1+\E[\cos2\theta]\bigr)=\tfrac12\bigl(1+e^{-2
+\sigma^2}\bigr)$. Then
 \[
   \Var(y)=\E[y^2]-\E[y]^2=\tfrac12\bigl(1+e^{-2\sigma^2}\bigr)-e^{-\sigma^2}
   =\tfrac12\bigl(1-2e^{-\sigma^2}+e^{-2\sigma^2}\bigr)
   =\tfrac12\bigl(1-e^{-\sigma^2}\bigr)^2 .
-\] For $\sigma=0.8$: mean $0.726$
-(not $1$) and standard deviation $0.334$ (not $0$). Linearising at a
-stationary point loses \emph{all} the uncertainty; this is the needle of
-\cref{fig:arc}.
+\]
 
-\solution{4.3} For $r(\p)=\norm{\bell-\p}$, with $\vect d=\bell-\p$ and
-$\hat{\vect d}=\vect{d}/r$, the gradient is $\nabla r=-\vect d/r$
-(\cref{prop:jacobians}). Differentiating it once more, with
-$\partial\vect d/\partial\p=-I$ and $\nabla r=-\vect d/r$,
+\emph{For $\sigma=0.8$.} $\sigma^2=0.64$, so
+$\E[y]=e^{-0.32}=0.726$ and
+$\Var(y)=\tfrac12(1-e^{-0.64})^2=\tfrac12(1-0.527)^2=0.112$, a standard
+deviation of $\sqrt{0.112}=0.334$. Linearisation says $1$ and $0$.
+Linearising at a stationary point, where the derivative is zero, loses
+\emph{all} the uncertainty; this is the needle of \cref{fig:arc}.
+
+\solution{4.3} \emph{The formula used.} By \cref{prop:secondorder}, the
+mean of $r(X)$ for $X\sim\Normal(\bmu,\Sigma)$ is
+$r(\bmu)+\tfrac12\tr\bigl(\nabla^2r(\bmu)\,\Sigma\bigr)$ to first order
+in $\Sigma$, so the bias of the linearised range is
+$\tfrac12\tr(\nabla^2r\,\Sigma)$.
+
+\emph{The Hessian of the range.} For $r(\p)=\norm{\bell-\p}$, with
+$\vect d=\bell-\p$ and the unit vector $\hat{\vect d}=\vect d/r$, the
+gradient is $\nabla r=-\vect d/r$ (\cref{prop:jacobians}).
+Differentiating it once more, with $\partial\vect d/\partial\p=-I$ and
+$\partial(1/r)/\partial\p=-\nabla r/r^2$,
 \[
   \nabla^2r=\frac{\partial}{\partial\p}\Bigl(-\frac{\vect d}{r}\Bigr)
   =\frac{I}{r}+\vect d\,\frac{(\nabla r)\T}{r^2}
   =\frac{I}{r}-\frac{\vect d\vect d\T}{r^3}
   =\frac{I-\hat{\vect{d}}\hat{\vect{d}}\T}{r}.
 \]
-So $\tfrac12\tr(\nabla^2r\,\Sigma)=\tfrac1{2r}(\tr\Sigma-\hat{\vect{d}}\T
-\Sigma\hat{\vect{d}})$. Here $\tr\Sigma$ is the sum of the variances in
-any two perpendicular directions, for instance along $\hat{\vect d}$ and
-across it, and $\hat{\vect d}\T\Sigma\hat{\vect d}$ is the variance along
-$\hat{\vect d}$; the difference is the variance $\sigma_\perp^2$ across
-the line of sight, and the bias is $\sigma_\perp^2/(2r)$. Moving along
-the line of sight changes the range linearly (no curvature). Moving
-perpendicular to it by $a$ changes it to $\sqrt{r^2+a^2}\approx
-r+a^2/(2r)$, by Pythagoras: always an increase, whatever the sign of $a$,
-so the errors do not average out, and the mean increase is
-$\E[a^2]/(2r)=\sigma_\perp^2/(2r)$. The bias is small far from the landmark and large close to it.
 
-\solution{4.4} For a consistent filter, the squared Mahalanobis distance
-of a
-correct measurement is $\chi^2_2$. A $\chi^2_2$ variable exceeds $x$
-with probability $e^{-x/2}$ by \eqref{eq:chi2tail}, so its $99\%$
-quantile solves $e^{-x/2}=0.01$: $x=-2\log0.01=9.21$, and $1\%$ of correct
-measurements are rejected. If $S$ is ten times too small, the true
-innovation covariance is $10S$, and the computed distance is ten times a
-$\chi^2_2$ variable $X$. It exceeds $9.21$ when $X>0.921$, with
-probability $e^{-0.921/2}=0.63$: the filter rejects most of the measurements that
-would correct it.
+\emph{The bias.} Then
+$\tfrac12\tr(\nabla^2r\,\Sigma)=\tfrac1{2r}\bigl(\tr\Sigma-\tr(\hat{\vect
+d}\hat{\vect d}\T\Sigma)\bigr)=\tfrac1{2r}\bigl(\tr\Sigma-\hat{\vect
+d}\T\Sigma\hat{\vect d}\bigr)$. Here $\tr\Sigma$ is the sum of the
+variances in any two perpendicular directions, for instance along
+$\hat{\vect d}$ and across it, and $\hat{\vect d}\T\Sigma\hat{\vect d}$
+is the variance along $\hat{\vect d}$. The difference is the variance
+$\sigma_\perp^2$ across the line of sight, and the bias is
+$\sigma_\perp^2/(2r)$.
+
+\emph{Why perpendicular.} Moving along the line of sight changes the range
+linearly: no curvature, no bias. Moving across it by $a$ changes it to
+$\sqrt{r^2+a^2}$, by Pythagoras, and
+$\sqrt{r^2+a^2}=r\sqrt{1+a^2/r^2}\approx r\bigl(1+a^2/(2r^2)\bigr)
+=r+a^2/(2r)$. That is always an increase, whatever the sign of $a$, so
+the errors do not average out, and the mean increase is
+$\E[a^2]/(2r)=\sigma_\perp^2/(2r)$. The bias is small far from the
+landmark and large close to it.
+
+\solution{4.4} \emph{A consistent filter.} The squared Mahalanobis
+distance of a correct measurement is then $\chi^2_2$. By
+\eqref{eq:chi2tail}, a $\chi^2_2$ variable exceeds $x$ with probability
+$e^{-x/2}$, so the $99\%$ quantile is the $x$ with $e^{-x/2}=0.01$:
+\[
+  x=-2\log0.01=2\log100=9.21 .
+\]
+The gate rejects the correct measurements whose distance exceeds $9.21$:
+$1\%$ of them.
+
+\emph{An $S$ ten times too small.} The filter computes the distance with
+$S$, but the true innovation covariance is $10S$. Then $\y=\sqrt{10}\,
+\y_0$ with $\y_0\sim\Normal(\vect0,S)$, and the computed distance is
+$\y\T S^{-1}\y=10\,\y_0\T S^{-1}\y_0=10X$, with $X\sim\chi^2_2$. It
+exceeds $9.21$ when $X>0.921$, which happens with probability
+$e^{-0.921/2}=e^{-0.46}=0.63$: the filter rejects most of the
+measurements that would correct it.

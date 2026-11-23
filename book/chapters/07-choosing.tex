@@ -2,7 +2,8 @@
 \label{ch:choosing}
 
 All the filters of this book have now run on the same robot and the same
-data. This chapter collects the results of the showdown notebook, draws
+data. This chapter collects the results of the showdown notebook
+(notebook~06, which prints every table of the first section), draws
 the practical conclusions, and closes with the bridge from filtering to
 the smoothing view used by modern localisation and mapping systems.
 
@@ -26,15 +27,17 @@ runs:
 \toprule
 & RMSE & mean NEES & ms/step & lost\\
 \midrule
-KF (compass + GPS) & 2.01 & 1.81 ($n=2$) & 0.04 & 0/10\\
-EKF & 1.16 & 3.03 & 0.11 & 0/10\\
-UKF & 1.16 & 2.92 & 0.16 & 0/10\\
-PF ($N=1000$) & 1.22 & 2.68 & 0.75 & 0/10\\
+KF (compass + GPS) & 2.01 & 1.81 ($n=2$) & 0.03 & 0/10\\
+EKF & 1.16 & 3.03 & 0.10 & 0/10\\
+UKF & 1.16 & 2.92 & 0.15 & 0/10\\
+PF ($N=1000$) & 1.22 & 2.68 & 0.72 & 0/10\\
 \bottomrule
 \end{tabular}
 \end{center}
-The three landmark filters are equally accurate and all consistent. The
-EKF is the cheapest. This is the common case, and the EKF is the right
+The times depend on the machine; their ratios are what matter. The three
+landmark filters are equally accurate and all consistent: their mean NEES
+is close to $3$, the dimension of the pose ($2$ for the KF, which
+estimates only the position). The EKF is the cheapest. This is the common case, and the EKF is the right
 tool for it.
 
 \paragraph{Uncertain start.} $\sigma_{xy}=30$, $\sigma_\theta=0.8$, sensor
@@ -174,8 +177,9 @@ turn limited to $0.5$\,rad per step.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch07_closed_loop.pdf}
-\caption{The filter in the loop, on a mowing pattern (seed 1). Grey: the
-planned stripes. Colour: where the robot believes it is. Black: where it
+\caption{The filter in the loop, on a mowing pattern (seed 1): parallel
+stripes 40 units apart, followed by a controller that aims 12 units ahead
+of the estimated position. Grey: the planned stripes. Colour: where the robot believes it is. Black: where it
 really is. Left: with dead reckoning the believed path lies on the plan
 (up to the corners, which the controller cuts by up to 3 units), while the
 true robot drifts and leaves the lawn. Right: with the
@@ -190,7 +194,7 @@ estimate is by construction where the controller wants it: the robot
 believes that it follows the stripes perfectly, and nothing tells it that
 it does not. With a filter in the loop, an error of the true position
 shows up in the measurements, then in the estimate, and the controller
-removes it. Over 10 runs:
+removes it. Over 10 runs (notebook~07):
 \begin{center}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
@@ -267,16 +271,35 @@ $\Normal(\vect e;\vect0,A)$ is $-\tfrac12\norm{\vect e}_A^2$ plus a
 constant, so $-\log p(\x_{0:T}\mid\z_{1:T},\uu)=J(\x_{0:T})
 +\text{const}$.
 
-$J$ is a quadratic function of the stacked trajectory, and its quadratic
-part is positive definite: that part is $J$ with $\hx_0$, the controls and
-the measurements set to zero, and it vanishes only if $\x_0=\vect0$ (prior
-term), then $\x_1=F_0\x_0=\vect0$ (first motion term), and so on along
-the chain. A quadratic with a positive definite quadratic part $A$ has a
-unique minimiser $\x^\star_{0:T}$, and completing the square writes it as
-$J=\tfrac12(\x_{0:T}-\x^\star_{0:T})\T A(\x_{0:T}-\x^\star_{0:T})
-+\text{const}$. So the posterior, proportional to $e^{-J}$, is the
-Gaussian density with mean $\x^\star_{0:T}$ and covariance $A^{-1}$
-\eqref{eq:gaussdensity}: its mode is its mean. The mean of one block of
+\emph{$J$ is a quadratic with a positive definite part.} Stack the
+trajectory into one vector $\vect X=\x_{0:T}$. Every term of $J$ is the
+square of an affine function of $\vect X$, so
+$J(\vect X)=\tfrac12\vect X\T A\vect X-\vect b\T\vect X+c$ for some
+symmetric matrix $A$, vector $\vect b$ and number $c$. The quadratic part
+$\tfrac12\vect X\T A\vect X$ is $J$ with $\hx_0$, the controls and the
+measurements set to zero. It is a sum of squares, so it is never
+negative, and it vanishes only if every term does: $\x_0=\vect0$ (prior
+term), then $\x_1=F_0\x_0=\vect0$ (first motion term), and so on along the
+chain. So $A$ is positive definite, hence invertible.
+
+\emph{Completing the square.} With $\vect X^\star=A^{-1}\vect b$,
+\[
+  \tfrac12(\vect X-\vect X^\star)\T A(\vect X-\vect X^\star)
+  =\tfrac12\vect X\T A\vect X-\vect X\T A\vect X^\star
+   +\tfrac12\vect X^{\star\mathsf T}A\vect X^\star
+  =\tfrac12\vect X\T A\vect X-\vect b\T\vect X+\text{const},
+\]
+because $A\vect X^\star=\vect b$ (and $A$ is symmetric, so
+$\vect X^{\star\mathsf T}A\vect X=\vect X\T A\vect X^\star$). Hence
+$J(\vect X)=\tfrac12(\vect X-\vect X^\star)\T A(\vect X-\vect X^\star)
++\text{const}$. This is smallest, and only there, at $\vect X=\vect
+X^\star=\x^\star_{0:T}$.
+
+\emph{The posterior is Gaussian.} The posterior is proportional to
+$e^{-J}$, that is to
+$e^{-\frac12(\vect X-\vect X^\star)\T A(\vect X-\vect X^\star)}$: by
+\eqref{eq:gaussdensity} it is the Gaussian density with mean $\vect
+X^\star$ and covariance $A^{-1}$, whose mode is its mean. The mean of one block of
 a random vector is the corresponding block of its mean, so
 $\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
 $\bel(\x_T)$: $\hx_T$ by \cref{thm:kf}.
@@ -399,29 +422,48 @@ place, or localising with a camera, is a smoothing problem.
 
 \subsection*{Solutions}
 
-\solution{7.1} The filtered variance in steady state is
-$P_\infty=\bar P_\infty-q$ (\cref{prop:steady}). The smoothed estimate
-combines two sources of information about $x_t$ that are conditionally
-independent given $x_t$: the past (the filter, variance $P_\infty$,
-including $z_t$) and the future, $z_{t+1},z_{t+2},\dots$, which gives a
-likelihood of $x_t$ with no prior. That likelihood is Gaussian in $x_t$;
-call its variance $b$. It is built backwards in two steps. The future
-from $t+1$ on gives a likelihood of $x_{t+1}$, of variance $B$ say,
-combining $z_{t+1}$ (variance $r$) with the likelihood of $x_{t+1}$ from
-$z_{t+2},\dots$; and since $x_{t+1}=x_t+w_t$, a likelihood of $x_{t+1}$ of
-variance $V$ is a likelihood of $x_t$ of variance $V+q$. Far from the
-end the variances no longer depend on $t$, so
+\solution{7.1} \emph{Two independent sources.} The smoothed estimate of
+$x_t$ combines two sources of information about $x_t$ that are
+conditionally independent given $x_t$:
+\begin{itemize}[nosep]
+  \item the past, $z_1,\dots,z_t$: this is the filter, whose steady-state
+        variance is $P_\infty$ (\cref{prop:steady});
+  \item the future, $z_{t+1},z_{t+2},\dots$: it gives a likelihood of
+        $x_t$, with no prior. That likelihood is Gaussian in $x_t$; call
+        its variance $b$.
+\end{itemize}
+By the information form (\cref{prop:information}), precisions add:
+$1/P^{\mathrm s}=1/P_\infty+1/b$.
+
+\emph{The future likelihood.} It is built backwards in two moves, which
+mirror the two steps of the filter.
+\begin{itemize}[nosep]
+  \item \emph{Combine.} The future from $t+1$ on gives a likelihood of
+        $x_{t+1}$; call its variance $B$. It combines the measurement
+        $z_{t+1}$, of variance $r$, with the likelihood of $x_{t+1}$ given
+        by $z_{t+2},z_{t+3},\dots$, whose variance is $b$ again, far from
+        the end, where nothing depends on $t$. Precisions add:
+        $1/B=1/r+1/b$.
+  \item \emph{Step back.} Since $x_{t+1}=x_t+w_t$, a measurement of
+        $x_{t+1}$ with variance $B$ is a measurement of $x_t$ with variance
+        $B+q$: $b=B+q$.
+\end{itemize}
+So
 \[
-  b=B+q,\qquad\frac1B=\frac1r+\frac1{B+q}.
+  b=B+q,\qquad\frac1B=\frac1r+\frac1b .
 \]
-The forward filter obeys the same equations: $\bar P=P+q$ and
-$1/P=1/r+1/\bar P$ (\cref{prop:steady}). So $B=P_\infty$ and
-$b=\bar P_\infty$.
-Information adds (\cref{prop:information}):
-$1/P^{\mathrm{s}}=1/P_\infty+1/\bar P_\infty$. With $q=0.16$ and $r=64$:
-$P_\infty=3.12$, $\bar P_\infty=3.28$, and $P^{\mathrm s}=1.60$: the
-smoother halves the variance, because it uses about as many measurements
-from the future as the filter uses from the past.
+The forward filter obeys the same two equations, $\bar P=P+q$ and
+$1/P=1/r+1/\bar P$ (\cref{prop:steady}), whose solution is unique. So
+$B=P_\infty$ and $b=\bar P_\infty$.
+
+\emph{The numbers.} With $q=0.16$ and $r=64$, $P_\infty=3.12$ and
+$\bar P_\infty=3.28$ (\cref{sec:linmower}), and
+\[
+  \frac1{P^{\mathrm s}}=\frac1{3.12}+\frac1{3.28}=0.321+0.305=0.625,
+  \qquad P^{\mathrm s}=1.60 .
+\]
+The smoother halves the variance, because it uses about as many
+measurements from the future as the filter uses from the past.
 
 \solution{7.2} Add a class \code{IEKF} that subclasses \code{EKF} and
 overrides \code{update} to iterate \eqref{eq:iekf} from $\x_0=\bx$ until

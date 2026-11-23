@@ -42,10 +42,12 @@ A target gives probability $0.2$ to $a$ and $0.8$ to $b$; the proposal
 gives $0.5$ to each. The weights are $\pi/q=0.4$ for $a$ and $1.6$ for $b$.
 Let $\varphi(a)=0$ and $\varphi(b)=10$, so that $\E_\pi[\varphi]=8$.
 Suppose ten draws from the proposal give $a$ six times and $b$ four times.
-The plain average of $\varphi$ over the draws is $4$, far from $8$. The
-weights of the ten draws sum to $6\times0.4+4\times1.6=8.8$, and the
+The plain average of $\varphi$ over the draws is $4$, far from $8$. The weights of the ten draws sum to $6\times0.4+4\times1.6=8.8$, and the
 weighted average, with the weights divided by their sum, is
-$(4\times1.6\times10)/8.8=7.3$: the weights have corrected
+\[
+  \frac{\sum_iw(X^{(i)})\,\varphi(X^{(i)})}{\sum_iw(X^{(i)})}
+  =\frac{6\times0.4\times0+4\times1.6\times10}{8.8}=\frac{64}{8.8}=7.3 :
+\] the weights have corrected
 most of the mismatch between proposal and target, and the rest is sampling
 noise, which vanishes as the number of draws grows.
 \end{example}
@@ -257,8 +259,8 @@ by their mean), and $N/(1+\mathrm{cv}^2)$ is
 estimated by the ESS.
 
 Run without resampling, sequential importance sampling degenerates
-quickly (\cref{fig:ess}). Starting from a Gaussian around the truth with
-$N=1000$, the ESS falls below $2$ at step 5: one particle carries all the
+quickly (\cref{fig:ess}). Starting from a Gaussian around the truth with $N=1000$, the ESS falls
+below $2$ at step 5 (notebook~05): one particle carries all the
 weight, the other 999 are wasted computation, and the estimate drifts away
 with that single survivor. The variance of the unnormalised weights, with
 the measurements treated as random, can only grow over time (Kong, Liu
@@ -268,7 +270,10 @@ work.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch06_ess.pdf}
-\caption{Left: ESS before resampling (log scale), $N=1000$. Without
+\caption{Sequential importance sampling with and without resampling:
+$N=1000$ particles started from a Gaussian around the true pose, four
+identified landmarks, the standard run. Left: ESS before resampling (log
+scale). Without
 resampling it collapses to 1 within five steps; resampling whenever
 $\ESS<N/2$ keeps it in the hundreds. Right: the corresponding position
 errors.}
@@ -369,13 +374,15 @@ and 2\,000 repetitions; dashed lines: the formulas of
 Each resampling destroys diversity: duplicated particles are identical
 until the motion noise separates them. Resampling at every step is
 therefore unnecessary and harmful. The filter here resamples only when
-$\ESS<N/2$. With four precise landmarks that is still 85\% of the steps,
+$\ESS<N/2$. With four precise landmarks that is still 85\% of the steps
+(notebook~05),
 because each measurement is very informative compared with one step of
 motion noise.
 
 On the standard run, with a good initial estimate and identified
 landmarks, the particle filter with $N=1000$ has an RMSE of $1.02$,
-against $1.01$ for the EKF, at about eight times the cost per step. When
+against $1.01$ for the EKF, at about eight times the cost per step
+($0.87$ against $0.11$\,ms, notebook~05). When
 the belief is close to a Gaussian, the particle filter has nothing to add.
 
 \section{Global localisation and sample impoverishment}
@@ -395,15 +402,17 @@ slowly spreads them onto the robot.}
 \end{figure}
 
 After the first measurement the ESS is $1.0$ out of $5\,000$
-(\cref{fig:global}). The reason is a matter of volumes. The prior covers
-$320\times320\times2\pi\approx6\times10^5$ units of pose space. After
+(\cref{fig:global}). The reason is a matter of volumes. The prior covers $320\times320\times2\pi\approx6.4\times10^5$ units of
+pose space. After
 four ranges and four bearings the posterior has standard deviations of
 about $2.6$ and $1.6$ in position and $0.026$\,rad in heading (the
 information form of \cref{prop:information}, evaluated at the start
-pose; notebook~05 computes them): a box of volume $2.6\times1.6\times0.026\approx0.1$. A uniform
-particle falls in that box with probability $0.1/(6\times10^5)\approx
-2\times10^{-7}$, so the expected number of particles inside it is about
-$2N\times10^{-7}$: far below one for any affordable $N$. The best particle
+pose; notebook~05 computes them): a box of volume
+$2.6\times1.6\times0.026\approx0.11$. A uniform particle falls in that box
+with probability $0.11/(6.4\times10^5)\approx1.8\times10^{-7}$, so the
+expected number of particles inside it is $1.8\times10^{-7}N$: for
+$N=5000$, $0.0009$, far below one, and below one for any affordable
+$N$. The best particle
 is a few units from the truth, and the filter must then crawl to it
 through the motion noise. This is \emph{sample impoverishment}: the
 posterior is much narrower than the spacing between the particles.
@@ -617,8 +626,9 @@ augmented MCL it recovers within about 25 steps and stays locked.}
 \label{fig:kidnap}
 \end{figure}
 
-Over eight kidnappings (unknown identities, $N=3000$), the number of steps
-until the error stays below 10 is $20$ to $41$ with augmented MCL.
+Over eight kidnappings (unknown identities, $N=3000$), the number of
+steps until the error stays below 10 is $20$ to $41$ with augmented MCL
+(notebook~05 prints the eight values).
 Without it, four of the eight runs never recovered within 200 steps, and
 the other four took $51$ to $113$ steps (the run of \cref{fig:kidnap} is
 one of the eight). All the kidnapping runs use a roughening of $0.5$
@@ -694,35 +704,91 @@ slope.
 
 \subsection*{Solutions}
 
-\solution{6.1} With $\sum_iw_i=1$ and $w_i\ge0$, $\sum_iw_i^2\le
-\sum_iw_i\max_kw_k\le1$, with equality iff one weight is $1$. By
-Cauchy--Schwarz, $1=(\sum_iw_i)^2\le N\sum_iw_i^2$, with equality iff all
-the weights are equal. The empirical mean of the weights is $1/N$, so
-$s^2=\frac1N\sum_iw_i^2-\frac1{N^2}$, i.e.\ $\sum_iw_i^2=Ns^2+1/N$ and
-$\ESS=1/(Ns^2+1/N)=N/(1+N^2s^2)$.
+\solution{6.1} The weights are normalised: $w_i\ge0$ and $\sum_iw_i=1$, and
+$\ESS=1/\sum_iw_i^2$.
 
-\solution{6.2} With one sample the normalised weight is $1$, so
-$\hat\varphi_1=X^{(1)}$, whose mean under $q$ is $0$, not $\E_\pi[X]=1$.
-The ratio of two unbiased estimates is not unbiased; the bias of the
-self-normalised estimate shrinks like $1/N$.
-
-\solution{6.3} The pointer $U_k\sim\mathcal U[k/N,(k+1)/N)$ falls in
-particle $i$'s interval $I_i$ with probability $N|I_i\cap[k/N,
-(k+1)/N)|=:p_{ik}$, so $\E[N_i]=\sum_kp_{ik}=N|I_i|=Nw^{(i)}$. The
-pointers are independent, so $N_i$ is a sum of independent Bernoulli
-variables with parameters $p_{ik}$ and
-$\Var(N_i)=\sum_kp_{ik}(1-p_{ik})$. For a fixed sum $\sum_kp_{ik}=
-Nw^{(i)}$, $\sum_kp_{ik}^2\ge(\sum_kp_{ik})^2/N=Nw^{(i)2}$ by
-Cauchy--Schwarz, so $\Var(N_i)\le Nw^{(i)}-Nw^{(i)2}$.
-
-\solution{6.4} Let $h_t=m_t(1-m_t)$. Given $m_t$,
-$\E[m_{t+1}^2]=\E[m_{t+1}]^2+\Var(m_{t+1})=m_t^2+m_t(1-m_t)/N$, so
+\emph{$\ESS\ge1$.} Each $w_i$ is at most $\max_kw_k$, so
 \[
-  \E[h_{t+1}\mid m_t]=\E[m_{t+1}]-\E[m_{t+1}^2]
+  \sum_iw_i^2\le\sum_iw_i\,\max_kw_k=\max_kw_k\le1 ,
+\]
+and $\ESS\ge1$. Equality needs $\max_kw_k=1$: one weight is $1$ and the
+others are $0$.
+
+\emph{$\ESS\le N$.} By the Cauchy--Schwarz inequality, applied to
+the vector of ones and the vector of the weights,
+\[
+  1=\Bigl(\sum_i1\cdot w_i\Bigr)^2\le\Bigl(\sum_i1^2\Bigr)
+  \Bigl(\sum_iw_i^2\Bigr)=N\sum_iw_i^2 ,
+\]
+so $\ESS\le N$, with equality when the two vectors are proportional, that
+is when all the weights are equal (to $1/N$).
+
+\emph{In terms of the variance.} The empirical mean of the weights is
+$\frac1N\sum_iw_i=1/N$, so their empirical variance is
+\[
+  s^2=\frac1N\sum_iw_i^2-\Bigl(\frac1N\Bigr)^2,\qquad\text{that is}\qquad
+  \sum_iw_i^2=Ns^2+\frac1N ,
+\]
+and $\ESS=\dfrac{1}{Ns^2+1/N}=\dfrac{N}{1+N^2s^2}$, multiplying above and
+below by $N$.
+
+\solution{6.2} \emph{The estimate.} With one sample, the normalised weight
+is $w^{(1)}=w(X^{(1)})/w(X^{(1)})=1$, whatever the unnormalised weight.
+So $\hat\varphi_1=1\times\varphi(X^{(1)})=X^{(1)}$.
+
+\emph{Its mean.} $X^{(1)}$ is drawn from the proposal $q=\Normal(0,1)$,
+so $\E[\hat\varphi_1]=\E_q[X]=0$, while the quantity to estimate is
+$\E_\pi[X]=1$. The estimate is biased: dividing by the sum of the weights
+removed the very correction that the weight was meant to make. In general
+the self-normalised estimate is a ratio of two unbiased estimates, which
+is not unbiased; its bias shrinks like $1/N$.
+
+\solution{6.3} \emph{One pointer.} Particle $i$ owns the interval $I_i$ of
+length $w^{(i)}$ in $[0,1)$. The pointer $U_k$ is uniform on
+$[k/N,(k+1)/N)$, an interval of length $1/N$, so it falls in $I_i$ with
+probability
+\[
+  p_{ik}=\frac{\abs{I_i\cap[k/N,(k+1)/N)}}{1/N}
+  =N\,\abs{I_i\cap[k/N,(k+1)/N)} .
+\]
+
+\emph{Unbiased.} The $N$ intervals $[k/N,(k+1)/N)$ cover $[0,1)$, so the
+pieces of $I_i$ add up to $I_i$:
+$\E[N_i]=\sum_kp_{ik}=N\abs{I_i}=Nw^{(i)}$.
+
+\emph{The variance.} The pointers are independent, so $N_i$ is a sum of
+independent Bernoulli variables with the parameters $p_{ik}$, and its
+variance is the sum of theirs:
+$\Var(N_i)=\sum_kp_{ik}(1-p_{ik})=Nw^{(i)}-\sum_kp_{ik}^2$. By
+Cauchy--Schwarz, as in solution~6.1,
+$\bigl(\sum_kp_{ik}\bigr)^2\le N\sum_kp_{ik}^2$, so
+$\sum_kp_{ik}^2\ge(Nw^{(i)})^2/N=N(w^{(i)})^2$. Hence
+\[
+  \Var(N_i)\le Nw^{(i)}-N(w^{(i)})^2=Nw^{(i)}(1-w^{(i)}),
+\]
+the variance of multinomial resampling.
+
+\solution{6.4} Let $h_t=m_t(1-m_t)=m_t-m_t^2$. \Cref{prop:wrightfisher}
+gives, given $m_t$, the mean $m_t$ and the variance $m_t(1-m_t)/N$ of
+$m_{t+1}$, so
+\[
+  \E[m_{t+1}^2\mid m_t]=\E[m_{t+1}\mid m_t]^2+\Var(m_{t+1}\mid m_t)
+  =m_t^2+\frac{m_t(1-m_t)}N
+\]
+(a second moment is the square of the mean plus the variance). Then
+\[
+  \E[h_{t+1}\mid m_t]=\E[m_{t+1}\mid m_t]-\E[m_{t+1}^2\mid m_t]
   =m_t-m_t^2-\frac{m_t(1-m_t)}N=h_t\Bigl(1-\frac1N\Bigr).
 \]
 Taking expectations, $\E[h_{t+1}]=(1-1/N)\,\E[h_t]$, and after $t$ steps
-$\E[h_t]=(1-1/N)^th_0$. For $N=2000$,
-$(1-1/N)^t=1/2$ gives $t=\log2/(-\log(1-1/2000))\approx1386$
-resamplings: slow, but certain, and faster with fewer particles or
+$\E[h_t]=(1-1/N)^th_0$.
+
+\emph{Halving.} The expected heterozygosity is halved when
+$(1-1/N)^t=1/2$, that is
+\[
+  t=\frac{\log2}{-\log(1-1/N)}=\frac{0.6931}{-\log(1-1/2000)}
+  =\frac{0.6931}{0.0005001}\approx1386
+\]
+resamplings for $N=2000$ (for large $N$, $-\log(1-1/N)\approx1/N$ and
+$t\approx N\log2$). Slow, but certain, and faster with fewer particles or
 noisier weights.

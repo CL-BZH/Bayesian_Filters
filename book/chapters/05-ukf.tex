@@ -87,16 +87,38 @@ points vanish.
 \end{proposition}
 
 \begin{proof}
-$\frac{\lambda}{n+\lambda}+2n\cdot\frac1{2(n+\lambda)}=1$. The $\pm$
-points are symmetric about $\bmu$, so every odd moment of $\chi_j-\bmu$
-cancels in pairs, and $\chi_0-\bmu=\vect0$ contributes nothing to any
-central moment (whatever its weight). In particular
-$\sum_jW^{(m)}_j\chi_j=\bmu\sum_jW^{(m)}_j+\sum_jW^{(m)}_j(\chi_j-\bmu)
-=\bmu+\vect0$. For the second moment, the centre contributes nothing, and
-the points $\chi_{\pm i}$ have $\chi_{\pm i}-\bmu=\pm\sqrt{n+\lambda}\,L_i$
-and the same weight in both families, so both sums equal
-$\sum_{i}2\cdot\frac{1}{2(n+\lambda)}(n+\lambda)L_iL_i\T=\sum_iL_iL_i\T
-=LL\T=\Sigma$.
+Write $\vect\delta_j=\chi_j-\bmu$ for the offset of each point:
+$\vect\delta_0=\vect0$ and $\vect\delta_{\pm i}=\pm\sqrt{n+\lambda}\,L_i$.
+
+\emph{The weights add up to $1$.} The centre has the weight
+$\lambda/(n+\lambda)$, and the $2n$ other points have
+$1/(2(n+\lambda))$ each:
+\[
+  \sum_jW^{(m)}_j=\frac{\lambda}{n+\lambda}+2n\cdot\frac1{2(n+\lambda)}
+  =\frac{\lambda+n}{n+\lambda}=1 .
+\]
+
+\emph{Odd moments vanish.} The points $\chi_{+i}$ and $\chi_{-i}$ have the
+same weight and opposite offsets, so in any sum of an odd power of the
+offsets (for instance $\sum_jW_j\vect\delta_j$, or
+$\sum_jW_j\,\delta_{j,a}\delta_{j,b}\delta_{j,c}$ for three coordinates)
+their two contributions cancel. The centre, with $\vect\delta_0=\vect0$,
+contributes nothing to any central moment, whatever its weight.
+
+\emph{The mean.} Then
+$\sum_jW^{(m)}_j\chi_j=\bmu\sum_jW^{(m)}_j+\sum_jW^{(m)}_j\vect\delta_j
+=\bmu\times1+\vect0=\bmu$.
+
+\emph{The covariance.} The centre contributes nothing, and the two points
+$\chi_{\pm i}$ have the same weight in both families of weights, so both
+sums equal
+\[
+  \sum_{i=1}^n2\cdot\frac{1}{2(n+\lambda)}\,(n+\lambda)L_iL_i\T
+  =\sum_{i=1}^nL_iL_i\T=LL\T=\Sigma,
+\]
+because $\vect\delta_{\pm i}\vect\delta_{\pm i}\T=(n+\lambda)L_iL_i\T$,
+and a matrix times its transpose is the sum of the products of its
+columns, $LL\T=\sum_iL_iL_i\T$.
 \end{proof}
 
 \begin{theorem}{The unscented mean is exact up to third order}{utorder}
@@ -108,17 +130,35 @@ $\norm\Sigma$ (\cref{prop:secondorder}).
 \end{theorem}
 
 \begin{proof}
-Expand $g$ around $\bmu$ to third order, as in the proof of
-\cref{prop:secondorder}, and apply the same expansion to the weighted
-sum. The constant terms agree. The first- and third-order terms vanish on
-both sides: for $X$ because the odd moments of a centred Gaussian are
-zero, for the sigma points by \cref{prop:moments}. The second-order terms
-are $\tfrac12\tr(\nabla^2g_i\Sigma)$ on both sides, again by
-\cref{prop:moments}: with $\vect\delta_j=\chi_j-\bmu$,
-$\sum_jW^{(m)}_j\tfrac12\vect\delta_j\T\nabla^2g_i\vect\delta_j=\tfrac12
-\tr\bigl(\nabla^2g_i\sum_jW^{(m)}_j\vect\delta_j\vect\delta_j\T\bigr)
-=\tfrac12\tr(\nabla^2g_i\Sigma)$. For a polynomial of degree at most $3$
-the expansion is exact, so the two means coincide. Otherwise each side
+Compare, term by term, the Taylor expansion of $g_i$ around $\bmu$
+averaged in two ways: over $X$ (the true mean) and over the weighted
+sigma points (the unscented mean). With $\vect\delta$ the offset from
+$\bmu$ ($\vect e=X-\bmu$ for $X$, $\vect\delta_j=\chi_j-\bmu$ for the
+points),
+\[
+  g_i(\bmu+\vect\delta)=g_i(\bmu)+\nabla g_i\T\vect\delta
+  +\tfrac12\vect\delta\T\nabla^2g_i\,\vect\delta
+  +\tfrac16D^3g_i[\vect\delta,\vect\delta,\vect\delta]+\rho(\vect\delta).
+\]
+\begin{itemize}[nosep]
+  \item \emph{Constant term.} $g_i(\bmu)$ on both sides, since both sets of
+        weights add up to $1$.
+  \item \emph{First- and third-order terms.} Zero on both sides: for $X$
+        because the odd moments of a centred Gaussian are zero (proof of
+        \cref{prop:secondorder}), for the sigma points by
+        \cref{prop:moments}.
+  \item \emph{Second-order term.} $\tfrac12\tr(\nabla^2g_i\Sigma)$ on both
+        sides. For $X$ this is the proof of \cref{prop:secondorder}. For
+        the points, with the trace identity used there and
+        \cref{prop:moments},
+        \[
+          \sum_jW^{(m)}_j\tfrac12\vect\delta_j\T\nabla^2g_i\vect\delta_j
+          =\tfrac12\tr\Bigl(\nabla^2g_i\sum_jW^{(m)}_j\vect\delta_j
+          \vect\delta_j\T\Bigr)=\tfrac12\tr(\nabla^2g_i\Sigma).
+        \]
+\end{itemize}
+For a polynomial of degree at most $3$ there is no remainder $\rho$, so
+the two means coincide. Otherwise each side
 keeps a fourth-order remainder: $O(\norm\Sigma^2)$ for $X$ (proof of
 \cref{prop:secondorder}), and at most $C\norm{\vect\delta_j}^4\le
 C(n+\lambda)^2\norm\Sigma^2$ at each sigma point, since
@@ -239,11 +279,18 @@ fits the values of $h$ at the sigma points best, in the least-squares
 sense: among the lines through $(\bx,\hat\z)$, the one with the slope $A$
 that minimises $\sum_jW^{(c)}_j\norm{Z_j-\hat\z-A(\chi_j-\bx)}^2$. This is a \emph{regression} line, and its slope is
 $\Cov(\z,\x)\Cov(\x)^{-1}$, the regression coefficient already met in
-\cref{thm:conditioning}; here it is $\tilde H=P_{xz}\T\bar P^{-1}$.
-(With non-negative weights the sum is a convex quadratic in $A$, and
-setting its derivative with respect to $A$ to zero gives
-$\sum_jW^{(c)}_j\bigl(Z_j-\hat\z-A(\chi_j-\bx)\bigr)(\chi_j-\bx)\T=0$,
-that is $P_{xz}\T=A\bar P$.) Because
+\cref{thm:conditioning}; here it is $\tilde H=P_{xz}\T\bar P^{-1}$. To see
+it, write $\vect\delta_j=\chi_j-\bx$. With non-negative weights the sum
+is a convex quadratic in $A$, so its minimum is where its derivative with
+respect to $A$ vanishes:
+\[
+  \sum_jW^{(c)}_j\bigl(Z_j-\hat\z-A\vect\delta_j\bigr)\vect\delta_j\T=0,
+  \qquad\text{that is}\qquad
+  \underbrace{\sum_jW^{(c)}_j(Z_j-\hat\z)\vect\delta_j\T}_{P_{xz}\T}
+  =A\underbrace{\sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T}_{\bar P},
+\]
+the second sum being $\bar P$ by \cref{prop:moments}. So
+$A=P_{xz}\T\bar P^{-1}$. Because
 $h$ is curved, the sigma points do not lie exactly on that line. Their
 scatter around it is what a straight line cannot explain, and the UKF
 counts it as extra measurement noise. The next theorem states this
@@ -280,24 +327,43 @@ $R+\Omega\succeq R$.
 \end{theorem}
 
 \begin{proof}
-The first identity is the definition of $\tilde H$ (with $\bar P$
-symmetric). Write $\vect\delta_j=\chi_j-\bx$, so
-$Z_j-\hat\z=\tilde H\vect\delta_j+\vect\zeta_j$. Then
+\emph{The cross-covariance.} From $\tilde H=P_{xz}\T\bar P^{-1}$,
+$\tilde H\T=\bar P^{-1}P_{xz}$ ($\bar P$ is symmetric), so
+$\bar P\tilde H\T=P_{xz}$.
+
+\emph{The residuals are uncorrelated with the offsets.} Write
+$\vect\delta_j=\chi_j-\bx$, so that
+$Z_j-\hat\z=\tilde H\vect\delta_j+\vect\zeta_j$ by the definition of
+$\vect\zeta_j$. Then
 \[
-  \sum_jW^{(c)}_j\vect\zeta_j\vect\delta_j\T=P_{xz}\T-\tilde H
-  \sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T=P_{xz}\T-\tilde H\bar P=0
+  \sum_jW^{(c)}_j\vect\zeta_j\vect\delta_j\T
+  =\sum_jW^{(c)}_j(Z_j-\hat\z)\vect\delta_j\T
+   -\tilde H\sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T
+  =P_{xz}\T-\tilde H\bar P=0 ,
 \]
-by \cref{prop:moments}. Expanding $S-R=\sum_jW^{(c)}_j(\tilde H
-\vect\delta_j+\vect\zeta_j)(\tilde H\vect\delta_j+\vect\zeta_j)\T$ gives
-four sums: $\tilde H\bigl(\sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T
-\bigr)\tilde H\T=\tilde H\bar P\tilde H\T$, the two cross terms
-$\tilde H\sum_jW^{(c)}_j\vect\delta_j\vect\zeta_j\T$ and its transpose,
-which are zero by the display, and $\Omega$. $\Omega$ is a non-negative
-combination of positive semi-definite matrices. Finally, the affine model
-of the statement has the cross-covariance $\bar P\tilde H\T=P_{xz}$ and
-the innovation covariance $\tilde H\bar P\tilde H\T+R+\Omega=S$, so its
-Kalman gain $P_{xz}S^{-1}$ and its updated covariance are those of the
-UKF.
+using \cref{prop:moments} for the second sum and the first step for the
+last equality.
+
+\emph{The innovation covariance.} By the definition of $S$ and the same
+decomposition,
+\begin{align*}
+  S-R&=\sum_jW^{(c)}_j(\tilde H\vect\delta_j+\vect\zeta_j)
+       (\tilde H\vect\delta_j+\vect\zeta_j)\T\\
+  &=\tilde H\Bigl(\sum_jW^{(c)}_j\vect\delta_j\vect\delta_j\T\Bigr)\tilde H\T
+   +\tilde H\sum_jW^{(c)}_j\vect\delta_j\vect\zeta_j\T
+   +\sum_jW^{(c)}_j\vect\zeta_j\vect\delta_j\T\tilde H\T
+   +\sum_jW^{(c)}_j\vect\zeta_j\vect\zeta_j\T\\
+  &=\tilde H\bar P\tilde H\T+0+0+\Omega .
+\end{align*}
+$\Omega$ is a combination, with non-negative weights, of the positive
+semi-definite matrices $\vect\zeta_j\vect\zeta_j\T$, hence positive
+semi-definite.
+
+\emph{The equivalent Kalman update.} The affine model of the statement
+has the cross-covariance $\Cov(\x,\tilde H\x+\vv')=\bar P\tilde H\T=
+P_{xz}$ and the innovation covariance $\tilde H\bar P\tilde H\T+R+\Omega=
+S$. Its Kalman gain $P_{xz}S^{-1}$ and its updated covariance
+$\bar P-KSK\T$ are therefore those of the UKF.
 \end{proof}
 
 \begin{inwords}
@@ -336,18 +402,19 @@ enters a covariance or an innovation.
 \section{Where the UKF earns its keep}
 
 With four landmarks in view and a good start, the UKF and the EKF are
-indistinguishable on the standard run (RMSE $0.99$ against $1.01$): the
-models are nearly linear over the small uncertainty. The UKF costs about
-50\% more per step ($0.16$ against $0.11$\,ms in the comparison of
-\cref{ch:choosing}; the exact figures depend on the machine), for
+indistinguishable on the standard run (RMSE $0.99$ against $1.01$,
+notebook~04): the models are nearly linear over the small uncertainty.
+The UKF costs about 50\% more per step ($0.15$ against $0.10$\,ms in the
+comparison of \cref{ch:choosing}, notebook~06; the exact figures depend
+on the machine), for
 $11+7$ model evaluations and two Cholesky factorisations instead of two
 Jacobians.
 
 After the uncertain start of \cref{fig:ekftransient}, however, the two
 filters differ sharply (\cref{fig:ukftransient}). With the same runs and
 the same initial estimates, the UKF's average NEES is $12$ after the first
-update, $3.0$ after five and $2.9$ after twenty (EKF: $297$, $63$, $6.5$),
-and its error drops slightly faster.
+update, $3.0$ after five and $2.9$ after twenty (EKF: $297$, $63$, $6.5$;
+notebook~04 prints both), and its error drops slightly faster.
 
 \begin{figure}[ht]
 \centering
@@ -426,47 +493,88 @@ the models; for the few-dimensional state of a mower this is negligible.
 
 \subsection*{Solutions}
 
-\solution{5.1} Write $c^2=n+\lambda=1+\lambda$. The points are $\mu$ and
-$\mu\pm c\sigma$, with values $\mu^2$ and $\mu^2\pm2\mu c\sigma+c^2\sigma^2$.
-The mean is $W^{(m)}_0\mu^2+\frac1{2c^2}\bigl(2\mu^2+2c^2\sigma^2\bigr)
-=\mu^2+\sigma^2$, using $W^{(m)}_0+2\cdot\frac1{2c^2}=1$: exact for any
-parameters (\cref{thm:utorder}). The deviations from it are $-\sigma^2$
-at the centre and $\pm2\mu c\sigma+(c^2-1)\sigma^2$ at the others. Squared
-and summed over the two outer points, the cross terms
-$\pm4\mu c\sigma(c^2-1)\sigma^2$ cancel and leave
-$2\bigl(4\mu^2c^2\sigma^2+(c^2-1)^2\sigma^4\bigr)$; with the weight
-$\frac1{2c^2}$,
+\solution{5.1} \emph{The sigma points.} For $n=1$, write $c^2=n+\lambda
+=1+\lambda$. By \cref{def:sigma} the points are $\mu$ and $\mu\pm c\sigma$;
+the outer points have the weight $1/(2c^2)$ each, and the centre has the
+mean weight $W^{(m)}_0=1-2\cdot\frac1{2c^2}=1-1/c^2$ and the covariance
+weight $W^{(c)}_0$. The values of $y=x^2$ are
 \[
-  P_y=W^{(c)}_0\sigma^4+\frac1{c^2}\bigl(4\mu^2c^2\sigma^2+(c^2-1)^2
-  \sigma^4\bigr)=4\mu^2\sigma^2+\Bigl(W^{(c)}_0+\frac{(c^2-1)^2}{c^2}
-  \Bigr)\sigma^4.
+  y_0=\mu^2,\qquad y_\pm=(\mu\pm c\sigma)^2=\mu^2\pm2\mu c\sigma+c^2\sigma^2 .
 \]
-The truth: with $x=\mu+e$, $e\sim\Normal(0,\sigma^2)$, $x^2-\E[x^2]=
-2\mu e+(e^2-\sigma^2)$, and
+
+\emph{The unscented mean.} In the sum $y_++y_-$ the terms $\pm2\mu c\sigma$
+cancel:
 \[
-  \Var(x^2)=4\mu^2\E[e^2]+4\mu\,\E[e^3]+\E[(e^2-\sigma^2)^2]
-  =4\mu^2\sigma^2+0+(3\sigma^4-2\sigma^4+\sigma^4)
+  \hat y=W^{(m)}_0\mu^2+\frac1{2c^2}\bigl(2\mu^2+2c^2\sigma^2\bigr)
+  =\Bigl(W^{(m)}_0+\frac1{c^2}\Bigr)\mu^2+\sigma^2=\mu^2+\sigma^2 ,
+\]
+exact for any parameters, as \cref{thm:utorder} says for a polynomial of
+degree $2$.
+
+\emph{The unscented variance.} The deviations from $\hat y$ are
+$y_0-\hat y=-\sigma^2$ at the centre and
+$y_\pm-\hat y=\pm2\mu c\sigma+(c^2-1)\sigma^2$ at the others. Squaring,
+\[
+  (y_\pm-\hat y)^2=4\mu^2c^2\sigma^2\pm4\mu c\sigma(c^2-1)\sigma^2
+  +(c^2-1)^2\sigma^4 ,
+\]
+and in the sum of the two the middle terms cancel. With the weights,
+\[
+  P_y=W^{(c)}_0\sigma^4+\frac1{2c^2}\cdot2\bigl(4\mu^2c^2\sigma^2
+  +(c^2-1)^2\sigma^4\bigr)
+  =4\mu^2\sigma^2+\Bigl(W^{(c)}_0+\frac{(c^2-1)^2}{c^2}\Bigr)\sigma^4.
+\]
+
+\emph{The true variance.} Write $x=\mu+e$ with $e\sim\Normal(0,\sigma^2)$.
+Then $x^2=\mu^2+2\mu e+e^2$ and $\E[x^2]=\mu^2+\sigma^2$, so
+$x^2-\E[x^2]=2\mu e+(e^2-\sigma^2)$, and
+\begin{align*}
+  \Var(x^2)&=\E\bigl[(2\mu e+e^2-\sigma^2)^2\bigr]
+  =4\mu^2\E[e^2]+4\mu\,\E\bigl[e(e^2-\sigma^2)\bigr]
+   +\E\bigl[(e^2-\sigma^2)^2\bigr]\\
+  &=4\mu^2\sigma^2+0+\bigl(\E[e^4]-2\sigma^2\E[e^2]+\sigma^4\bigr)
+  =4\mu^2\sigma^2+(3\sigma^4-2\sigma^4+\sigma^4)
   =4\mu^2\sigma^2+2\sigma^4,
+\end{align*}
+using $\E[e^3]=\E[e]=0$ (symmetry) and $\E[e^4]=3\sigma^4$
+(\cref{ex:gaussmoments}).
+
+\emph{When they agree.} The $\mu^2$ terms always agree, and the
+$\sigma^4$ terms agree exactly when $W^{(c)}_0+(c^2-1)^2/c^2=2$. With the
+choice of this book, $\alpha=1$, $\beta=2$, $\kappa=0$: $\lambda=0$, so
+$c^2=1$, $W^{(m)}_0=0$ and $W^{(c)}_0=0+1-1+2=2$, and
+$2+0=2$: exact. (With $\kappa=2$ and $\beta=2$, $c^2=3$ and
+$W^{(c)}_0=\frac23+2=\frac83$, so $\frac83+\frac43=4$: the quartic term
+is $4\sigma^4$, twice too much.)
+
+\solution{5.2} With $\alpha=1$, $\lambda=\alpha^2(n+\kappa)-n=\kappa$, so
+$n+\lambda=n+\kappa=3$, and the outer points are
+$\mu\pm\sqrt{n+\lambda}\,\sigma=\mu\pm\sqrt3\,\sigma$. They have the weight
+$\frac1{2(n+\lambda)}=\frac16$ each, and the centre adds nothing to a
+central moment, so
+\[
+  \sum_jW_j(\chi_j-\mu)^4=2\cdot\frac16\cdot(\sqrt3\,\sigma)^4
+  =\frac13\cdot9\sigma^4=3\sigma^4,
 \]
-using $\E[e^3]=0$ (symmetry) and $\E[e^4]=3\sigma^4$
-(\cref{ex:gaussmoments}). The two agree exactly when
-$W^{(c)}_0+(c^2-1)^2/c^2=2$. With $\alpha=1$,
-$\beta=2$, $\kappa=0$: $c^2=1$ and $W^{(c)}_0=2$, exact. (With $\kappa=2$,
-$\beta=2$ one gets $4\sigma^4$ instead: twice too much in the quartic
-term.)
+the fourth moment of $\Normal(\mu,\sigma^2)$ (\cref{ex:gaussmoments}).
+For larger $n$ the same holds along each axis of the Cholesky factor, but
+the cross moments, such as $\E[e_1^2e_2^2]$, do not match.
 
-\solution{5.2} With $\alpha=1$, $\lambda=n+\kappa-n=\kappa$, so
-$n+\lambda=n+\kappa=3$, and the outer points are $\mu\pm\sqrt3\sigma$.
-They have weight
-$\frac1{2(n+\kappa)}=\frac16$ each (the centre adds nothing), so
-$\sum_jW_j(\chi_j-\mu)^4=2\cdot\frac16\cdot9\sigma^4=3\sigma^4$, the
-fourth moment of $\Normal(\mu,\sigma^2)$. For larger $n$ the same holds
-along each axis of the Cholesky factor, but the cross moments do not
-match.
+\solution{5.3} \emph{The weight.} With $n=5$ and $\lambda=3-n=-2$, the
+centre has the weight $w=\lambda/(n+\lambda)=-2/3$, and since $\beta=0$
+and $\alpha=1$, $W^{(c)}_0=w+1-1+0=w$. The other ten points share the
+weight $1-w$.
 
-\solution{5.3} The weights of the non-centre points sum to $1-w$, so the
-mean is $wa+(1-w)b$ and the deviations are $(1-w)(a-b)$ at the centre and
-$-w(a-b)$ elsewhere. Hence
-$P_y=(a-b)^2\bigl[w(1-w)^2+(1-w)w^2\bigr]=(a-b)^2w(1-w)$, negative for
-$w<0$. For $n=5$, $w=-2/3$ and $P_y=-\tfrac{10}9(a-b)^2$: a ``variance''
-that is negative.
+\emph{The mean.} $\hat y=wa+(1-w)b$.
+
+\emph{The deviations.} At the centre, $a-\hat y=(1-w)a-(1-w)b
+=(1-w)(a-b)$; at the other points, $b-\hat y=-w(a-b)$.
+
+\emph{The variance.}
+\[
+  P_y=w\bigl((1-w)(a-b)\bigr)^2+(1-w)\bigl(w(a-b)\bigr)^2
+  =(a-b)^2w(1-w)\bigl[(1-w)+w\bigr]=(a-b)^2w(1-w),
+\]
+which is negative when $w<0$. For $n=5$, $w(1-w)=-\frac23\cdot\frac53
+=-\frac{10}9$, and $P_y=-\frac{10}9(a-b)^2$: a ``variance'' that is
+negative.

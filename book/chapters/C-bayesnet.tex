@@ -359,7 +359,9 @@ $0.2$, independently, and the grass is wet exactly when at least one of
 the two happened. The grass is wet with probability $1-0.8\times0.8=0.36$.
 \begin{itemize}[nosep]
   \item Knowing only that the grass is wet, the probability of rain is
-    $0.2/0.36=0.56$.
+    $\Pr(\text{rain}\mid\text{wet})=\Pr(\text{rain and wet})/\Pr(\text{wet})$.
+    Rain always wets the grass, so $\Pr(\text{rain and wet})=
+    \Pr(\text{rain})=0.2$, and the probability is $0.2/0.36=0.56$.
   \item Knowing that the grass is wet \emph{and} that the sprinkler was on,
     the grass would be wet whether it rained or not, so the wet grass says
     nothing about rain: its probability is back to $0.2$.
