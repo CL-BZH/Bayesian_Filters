@@ -780,20 +780,16 @@ The same position-only model, with its noise covariance $\Sigma_t$
 worked out, is the one the Kalman filter will use in
 \cref{sec:linmower}.
 
-On the grid, the shift is done by linear interpolation
-(\code{scipy.ndimage.shift}) and the blur by a discrete Gaussian filter.
-The step noise acts along the heading and the compass noise across it
-(\cref{sec:errors}), so $\Sigma_t$ has the standard deviation
-$\sigma_s=0.4$ along the heading and $s\,\sigma_c=4\times0.02=0.08$
-across it. The code uses instead a round kernel, with the standard
-deviation $\sqrt{\sigma_s^2+(s\sigma_c)^2}\approx0.41$ units (about
-$0.1$ cell), but never less than $0.3$ cell, that is $1.2$ units for
-cells 4 units wide; the interpolated shift blurs a little more. The predicted belief is
-therefore wider than the motion noise, which is harmless at this cell
-size: the grid cannot resolve less than a cell anyway.
-Probability that leaves the lawn is lost, and the table is renormalised.
-The update is the cell-wise product
-$b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$.
+On the grid, the prediction of \cref{prop:conv} is done in two moves:
+shift the table by $\vect d_t$, then blur it with a discrete Gaussian
+filter. A grid cannot represent a blur narrower than a cell. Here the
+motion noise has a standard deviation of about $0.4$ units, a tenth of a
+cell 4 units wide, so the filter blurs by more than the noise, and the
+predicted belief comes out a little wider than the noise warrants. This
+costs nothing at this resolution, since the grid cannot place the robot
+more precisely than a cell anyway. The update is the cell-wise product
+$b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$. Notebook~01 shows the code
+of the prediction and its exact choices, and prints these numbers.
 
 \paragraph{A lawn of any shape.} Nothing in the grid filter needs a
 square lawn. A lawn of any shape, with a tree or a flower bed in it, is
