@@ -1164,9 +1164,9 @@ where the robot certainly is not.
 \section{The cost of a grid}
 
 The grid is exact up to discretisation and can represent any belief. Its
-cost is the number of cells, $n^d$ for $n$ bins per dimension in
-dimension $d$, and every step touches every cell. With 80 bins per
-dimension: $6\,400$ cells for the position, about half a million for the
+cost is the number of cells, and every step touches every cell. If the
+state has $d$ coordinates and each is cut into $n$ intervals, the grid has
+$n^d$ cells. With $n=80$: $6\,400$ cells for the position, about half a million for the
 pose $(x,y,\theta)$ (the classic \emph{Markov localisation} of the 1990s,
 feasible), $2.6\times10^{11}$ for a pose with its three velocities (six
 dimensions). And at any
