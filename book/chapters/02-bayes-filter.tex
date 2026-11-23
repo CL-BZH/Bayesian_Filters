@@ -546,19 +546,32 @@ $\mathrm d\vect x=\mathrm d\p$, and
   =\int\mathbf 1_B(\p)\,a(\p-\vect w)\,\mathrm d\p .
 \]
 
-\emph{Step 3: swap the two integrals.} Put this back into Step~1, and
-integrate over $\vect w$ first and over $\p$ last; the order of the two
-integrals can be swapped because the integrand is non-negative
-(Tonelli's theorem). The factor $\mathbf 1_B(\p)$ does not depend on
-$\vect w$ and comes out of the integral over $\vect w$:
-\[
+\emph{Step 3: swap the two integrals.} Put Step~2 back into Step~1 and
+go line by line; the reason for each line is given on its right.
+\begin{align*}
   \Pr(X+W\in B)
-  =\int\mathbf 1_B(\p)\Bigl(\int a(\p-\vect w)\,g(\vect w)\,
-   \mathrm d\vect w\Bigr)\mathrm d\p
-  =\int_B(a\ast g)(\p)\,\mathrm d\p ,
-\]
-because the integral in brackets is the definition of $(a\ast g)(\p)$,
-with the offset called $\vect w$ instead of $\vect q$. This holds for every
+  &=\int\Bigl(\int\mathbf 1_B(\p)\,a(\p-\vect w)\,\mathrm d\p\Bigr)
+    g(\vect w)\,\mathrm d\vect w
+  &&\text{Steps 1 and 2}\\
+  &=\int\Bigl(\int\mathbf 1_B(\p)\,a(\p-\vect w)\,g(\vect w)\,
+    \mathrm d\p\Bigr)\mathrm d\vect w
+  &&\text{$g(\vect w)$ does not depend on $\p$}\\
+  &=\int\Bigl(\int\mathbf 1_B(\p)\,a(\p-\vect w)\,g(\vect w)\,
+    \mathrm d\vect w\Bigr)\mathrm d\p
+  &&\text{swap the order (a)}\\
+  &=\int\mathbf 1_B(\p)\Bigl(\int a(\p-\vect w)\,g(\vect w)\,
+    \mathrm d\vect w\Bigr)\mathrm d\p
+  &&\text{$\mathbf 1_B(\p)$ does not depend on $\vect w$}\\
+  &=\int\mathbf 1_B(\p)\,(a\ast g)(\p)\,\mathrm d\p
+  &&\text{definition of $a\ast g$ (b)}\\
+  &=\int_B(a\ast g)(\p)\,\mathrm d\p
+  &&\text{$\mathbf 1_B=1$ on $B$, $0$ elsewhere.}
+\end{align*}
+(a) The order of two integrals can be swapped when the integrand is
+non-negative (Tonelli's theorem); here it is a product of an indicator
+and two densities. (b) The integral in brackets is the definition of
+$(a\ast g)(\p)$, with the offset called $\vect w$ instead of $\vect q$.
+This holds for every
 region $B$, so $a\ast g$ is the density of $X+W$.
 
 Two consequences. With $B$ the whole plane, $\int(a\ast g)=\Pr(X+W\in
