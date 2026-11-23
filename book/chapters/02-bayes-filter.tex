@@ -787,9 +787,32 @@ motion noise has a standard deviation of about $0.4$ units, a tenth of a
 cell 4 units wide, so the filter blurs by more than the noise, and the
 predicted belief comes out a little wider than the noise warrants. This
 costs nothing at this resolution, since the grid cannot place the robot
-more precisely than a cell anyway. The update is the cell-wise product
-$b_i\leftarrow\eta\,p(\z\mid\vect{c}_i)\,b_i$. Notebook~01 shows the code
-of the prediction and its exact choices, and prints these numbers.
+more precisely than a cell anyway. Notebook~01 shows the code of the
+prediction and its exact choices, and prints these numbers.
+
+The update \eqref{eq:update} multiplies the predicted density by the
+likelihood and renormalises. On the grid, write $\bar b_i$ for the
+predicted probability of the cell $C_i$, and integrate
+\eqref{eq:update} over that cell:
+\begin{align*}
+  b_i&=\int_{C_i}\bel(\p)\,\mathrm d\p
+  &&\text{probability of the cell}\\
+  &=\eta\int_{C_i}p(\z\mid\p)\,\belbar(\p)\,\mathrm d\p
+  &&\text{\eqref{eq:update}}\\
+  &\approx\eta\,p(\z\mid\vect c_i)\int_{C_i}\belbar(\p)\,\mathrm d\p
+  &&\text{likelihood taken at the centre}\\
+  &=\eta\,p(\z\mid\vect c_i)\,\bar b_i
+  &&\text{definition of }\bar b_i .
+\end{align*}
+The only approximation is the third line: across the cell, the
+likelihood is replaced by its value at the centre, which is accurate when
+it changes little over a cell. The constant $\eta$ follows from
+$\sum_ib_i=1$: $\eta^{-1}=\sum_jp(\z\mid\vect c_j)\,\bar b_j$, the grid
+version of the integral in \eqref{eq:update}. So the update is a product
+cell by cell, followed by a division by the sum. In the code the new
+table overwrites the old one, which is written
+$b_i\leftarrow\eta\,p(\z\mid\vect c_i)\,b_i$, the $b_i$ on the right being
+the predicted values.
 
 \paragraph{A lawn of any shape.} Nothing in the grid filter needs a
 square lawn. A lawn of any shape, with a tree or a flower bed in it, is
