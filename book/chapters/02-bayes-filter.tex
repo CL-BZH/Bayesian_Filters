@@ -886,27 +886,6 @@ meet in two points (\cref{fig:mirror}). The two points are mirror images
 of each other across the line through the landmarks, and no range
 measurement can tell them apart.
 
-\begin{proposition}{Mirror ambiguity}{mirror}
-Let $\sigma$ be the reflection across the line through $\bell_1$ and
-$\bell_2$. Then $\norm{\bell_j-\sigma(\p)}=\norm{\bell_j-\p}$ for $j=1,2$
-and every $\p$. Consequently, if the belief before a range-only update is
-\emph{invariant under $\sigma$}, meaning that it has the same value at
-$\p$ and at $\sigma(\p)$ for every $\p$, the belief after the update is
-also invariant under $\sigma$.
-\end{proposition}
-
-\begin{proof}
-A reflection is an isometry, and it fixes every point of its axis, in
-particular $\bell_1$ and $\bell_2$. So
-$\norm{\bell_j-\sigma(\p)}=\norm{\sigma(\bell_j)-\sigma(\p)}=
-\norm{\bell_j-\p}$. The likelihood of two ranges depends on the position
-only through its two distances to the landmarks, so it is the same at
-$\p$ and $\sigma(\p)$. The update multiplies a $\sigma$-invariant
-belief by this $\sigma$-invariant likelihood, and a product of two
-functions that are each the same at $\p$ and $\sigma(\p)$ is again the
-same at $\p$ and $\sigma(\p)$.
-\end{proof}
-
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[scale=0.95,>=Stealth]
@@ -937,6 +916,27 @@ which meet at $\p$ and at its mirror image $\sigma(\p)$ across the line
 through the landmarks. The two points have exactly the same ranges.}
 \label{fig:mirror}
 \end{figure}
+
+\begin{proposition}{Mirror ambiguity}{mirror}
+Let $\sigma$ be the reflection across the line through $\bell_1$ and
+$\bell_2$. Then $\norm{\bell_j-\sigma(\p)}=\norm{\bell_j-\p}$ for $j=1,2$
+and every $\p$. Consequently, if the belief before a range-only update is
+\emph{invariant under $\sigma$}, meaning that it has the same value at
+$\p$ and at $\sigma(\p)$ for every $\p$, the belief after the update is
+also invariant under $\sigma$.
+\end{proposition}
+
+\begin{proof}
+A reflection is an isometry, and it fixes every point of its axis, in
+particular $\bell_1$ and $\bell_2$. So
+$\norm{\bell_j-\sigma(\p)}=\norm{\sigma(\bell_j)-\sigma(\p)}=
+\norm{\bell_j-\p}$. The likelihood of two ranges depends on the position
+only through its two distances to the landmarks, so it is the same at
+$\p$ and $\sigma(\p)$. The update multiplies a $\sigma$-invariant
+belief by this $\sigma$-invariant likelihood, and a product of two
+functions that are each the same at $\p$ and $\sigma(\p)$ is again the
+same at $\p$ and $\sigma(\p)$.
+\end{proof}
 
 What can tell the two points apart is the \emph{motion}. The heading is
 known, so the filter moves both hypotheses by the same displacement
