@@ -547,7 +547,17 @@ $\mathrm d\vect x=\mathrm d\p$, and
 \]
 
 \emph{Step 3: swap the two integrals.} Put Step~2 back into Step~1 and
-go line by line; the reason for each line is given on its right.
+go line by line; the reason for each line is given on its right.%
+% the footnote texts are set here, before the display, so that they land
+% on the same page as their marks
+\addtocounter{footnote}{1}%
+\footnotetext{The order of two integrals can be swapped when the
+integrand is non-negative (Tonelli's theorem); here it is a product of an
+indicator and two densities.}%
+\addtocounter{footnote}{1}%
+\footnotetext{The integral in brackets is the definition of
+$(a\ast g)(\p)$, with the offset called $\vect w$ instead of $\vect q$.}%
+\addtocounter{footnote}{-2}%
 \begin{align*}
   \Pr(X+W\in B)
   &=\int\Bigl(\int\mathbf 1_B(\p)\,a(\p-\vect w)\,\mathrm d\p\Bigr)
@@ -558,19 +568,15 @@ go line by line; the reason for each line is given on its right.
   &&\text{$g(\vect w)$ does not depend on $\p$}\\
   &=\int\Bigl(\int\mathbf 1_B(\p)\,a(\p-\vect w)\,g(\vect w)\,
     \mathrm d\vect w\Bigr)\mathrm d\p
-  &&\text{swap the order (a)}\\
+  &&\text{swap the order}\footnotemark\\
   &=\int\mathbf 1_B(\p)\Bigl(\int a(\p-\vect w)\,g(\vect w)\,
     \mathrm d\vect w\Bigr)\mathrm d\p
   &&\text{$\mathbf 1_B(\p)$ does not depend on $\vect w$}\\
   &=\int\mathbf 1_B(\p)\,(a\ast g)(\p)\,\mathrm d\p
-  &&\text{definition of $a\ast g$ (b)}\\
+  &&\text{definition of $a\ast g$}\footnotemark\\
   &=\int_B(a\ast g)(\p)\,\mathrm d\p
   &&\text{$\mathbf 1_B=1$ on $B$, $0$ elsewhere.}
 \end{align*}
-(a) The order of two integrals can be swapped when the integrand is
-non-negative (Tonelli's theorem); here it is a product of an indicator
-and two densities. (b) The integral in brackets is the definition of
-$(a\ast g)(\p)$, with the offset called $\vect w$ instead of $\vect q$.
 This holds for every
 region $B$, so $a\ast g$ is the density of $X+W$.
 

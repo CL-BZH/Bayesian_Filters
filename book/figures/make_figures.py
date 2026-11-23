@@ -592,7 +592,7 @@ def fig_conv_read():
     dy = y[1] - y[0]
     blue = viz.COLORS["EKF"]
     ps = (2.0, 5.0, 7.0)
-    fig, axes = plt.subplots(4, 3, figsize=(W, W * 0.55), sharex=True, sharey="row")
+    fig, axes = plt.subplots(4, 3, figsize=(W, W * 0.48), sharex=True, sharey="row")
     for c, p in enumerate(ps):
         w = _gauss(y, p, sd**2)
         prod = a * w
