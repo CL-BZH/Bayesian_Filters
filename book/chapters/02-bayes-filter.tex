@@ -938,21 +938,6 @@ functions that are each the same at $\p$ and $\sigma(\p)$ is again the
 same at $\p$ and $\sigma(\p)$.
 \end{proof}
 
-What can tell the two points apart is the \emph{motion}. The heading is
-known, so the filter moves both hypotheses by the same displacement
-$\vect{d}$. But the mirror image of the true trajectory moves by the
-mirrored displacement $\sigma(\vect{d})$ (for a displacement, the
-reflection of the vector, without translation). Unless $\vect{d}$ is
-parallel to the axis, in which case $\sigma(\vect{d})=\vect{d}$, the wrong
-hypothesis drifts away from the mirror image of the robot. It then stops
-agreeing with the ranges, because two points have the same distances to
-two distinct landmarks only if they are equal or mirror images (two
-circles with distinct centres meet in at most two points). So only one of the two tracks remains consistent with the
-measurements as the robot drives (\cref{fig:mirrormotion}).
-\Cref{fig:gridbimodal} shows how this plays out on a run with only the
-first two landmarks (seed 1), starting from a uniform belief over the
-lawn.
-
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[scale=1.0,>=Stealth,
@@ -1015,6 +1000,63 @@ longer agree with the measurements.}
 \label{fig:mirrormotion}
 \end{figure}
 
+What can tell the two points apart is the \emph{motion}, and the
+likelihood then does the work. Look at one cycle of the filter, starting
+from a belief with two mirror bumps.
+
+\emph{Prediction: the motion breaks the symmetry.} The heading is known,
+so the filter moves the whole belief, both bumps, by the same
+displacement $\vect d$. The robot moves by $\vect d$, but its mirror
+image moves by the mirrored displacement $\sigma(\vect d)$ (for a
+displacement, the reflection of the vector, without translation). So the
+wrong bump ends up at $\sigma(\p)+\vect d$, while the mirror image of the
+robot is at $\sigma(\p)+\sigma(\vect d)$. The gap between them is
+$\vect d-\sigma(\vect d)$, twice the part of $\vect d$ perpendicular to
+the axis; it vanishes only when $\vect d$ is parallel to the axis. The
+prediction removes no probability: it only moves the wrong bump to a
+place where the ranges will not match.
+
+\emph{Update: the likelihood removes the wrong bump.} The likelihood of
+the new ranges is $\sigma$-invariant (\cref{prop:mirror}). It is large
+near the two intersections of the new circles: the robot and its mirror
+image (\cref{fig:mirrormotion}). The right bump sits at one of them; the
+wrong bump sits away from both, because two points have the same
+distances to two distinct landmarks only if they are equal or mirror
+images (two circles with distinct centres meet in at most two points). So
+the update multiplies the wrong bump by a smaller value than the right
+one, and after renormalisation the wrong bump has lost mass to the right
+one.
+
+Neither step works alone. Without motion, or with a motion parallel to
+the axis, the belief stays $\sigma$-invariant and, by
+\cref{prop:mirror}, every update keeps the two bumps as they are. Without
+the likelihood, the prediction only moves and blurs the bumps.
+
+\emph{Why it takes several steps.} Write $\rho_j(\vect x)=
+\norm{\bell_j-\vect x}$ for the distance from a point $\vect x$ to the
+landmark $\bell_j$. The measured range is $z_j=\rho_j(\p)+v_j$, with a
+noise $v_j\sim\Normal(0,\sigma_r^2)$, $\sigma_r=5$. Call $\vect w$ the
+position of the wrong bump, and $e_j=\rho_j(\vect w)-\rho_j(\p)$ its
+\emph{range errors}. The likelihood at a point $\vect x$ is proportional
+to $\prod_je^{-(z_j-\rho_j(\vect x))^2/(2\sigma_r^2)}$. At the robot,
+$z_j-\rho_j(\p)=v_j$; at the wrong bump, $z_j-\rho_j(\vect w)=v_j-e_j$.
+So the update multiplies the ratio of the two masses by
+\[
+  \frac{p(\z\mid\vect w)}{p(\z\mid\p)}
+  =\exp\Bigl(-\sum_j\frac{(v_j-e_j)^2-v_j^2}{2\sigma_r^2}\Bigr)
+  =\exp\Bigl(-\sum_j\frac{e_j^2}{2\sigma_r^2}
+   +\sum_j\frac{e_jv_j}{\sigma_r^2}\Bigr),
+\]
+using $(v_j-e_j)^2-v_j^2=e_j^2-2e_jv_j$. The first term always favours
+the right bump, and it grows like the \emph{square} of the range errors.
+The second is random, zero on average, with the standard deviation
+$\sqrt{\sum_je_j^2}/\sigma_r$: it grows only like the errors themselves.
+While the range errors are smaller than $\sigma_r$, both terms are small,
+and the second can favour either bump. Once they are larger than
+$\sigma_r$, the first term wins, and the wrong bump loses most of its mass
+at every update. The range errors grow with the gap, so the filter needs
+a few steps of driving before the ranges can separate the two bumps.
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/ch02_grid_bimodal.pdf}
@@ -1031,6 +1073,57 @@ the robot drives on, the wrong bump stops agreeing with the ranges: by
 measurement 8 it has disappeared, and the belief then follows the robot.}
 \label{fig:gridbimodal}
 \end{figure}
+
+The run of \cref{fig:gridbimodal} has only the first two landmarks
+(seed 1) and starts from a uniform belief over the lawn. The table
+follows the \emph{wrong track}: the mirror image of the robot at
+measurement 1, moved afterwards by the robot's own displacements. For
+each measurement $k$ it gives the gap to the mirror image of the robot,
+the range errors $e_1,e_2$ of the wrong track, the range noises
+$v_1,v_2$, the factor by which the update multiplied the ratio (mass on
+the wrong side)\,/\,(mass on the right side) of the grid, and the mass on
+the wrong side after the update (notebook~01 prints all of them).
+\begin{center}
+\small
+\begin{tabular}{@{}rrrrrrrr@{}}
+\toprule
+$k$ & gap & $e_1$ & $e_2$ & $v_1$ & $v_2$ & update factor &
+mass on the wrong side\\
+\midrule
+ 1 &  0.0 &   0.0 &   0.0 &  1.7 &  4.5 & ---  & 0.50\\
+ 2 &  4.3 &  $-$1.4 &  $-$1.0 &  2.7 & $-$0.8 & 1.09 & 0.51\\
+ 3 &  8.5 &  $-$2.7 &  $-$2.2 &  0.0 &  6.5 & 0.80 & 0.44\\
+ 4 & 13.2 &  $-$3.9 &  $-$3.5 &  1.1 & $-$5.6 & 1.70 & 0.57\\
+ 5 & 18.0 &  $-$5.0 &  $-$5.0 &  0.8 & $-$6.1 & 1.44 & 0.65\\
+ 6 & 23.5 &  $-$6.2 &  $-$6.8 & $-$2.5 &  4.5 & 0.35 & 0.39\\
+ 7 & 29.6 &  $-$7.4 &  $-$8.9 &  4.6 & $-$6.2 & 0.45 & 0.22\\
+ 8 & 35.0 &  $-$8.3 & $-$10.8 & $-$2.3 &  3.8 & 0.06 & 0.01\\
+ 9 & 40.9 &  $-$9.3 & $-$12.9 &  1.3 & $-$1.7 & 0.05 & 0.00\\
+10 & 47.5 & $-$10.4 & $-$15.2 & $-$6.0 &  3.4 & 0.02 & 0.00\\
+\bottomrule
+\end{tabular}
+\end{center}
+Three phases appear.
+\begin{itemize}[nosep]
+  \item \emph{Measurement 1.} The first update turns the uniform belief
+        into two mirror bumps, with half of the mass each.
+  \item \emph{Measurements 2 to 5.} The gap grows by about $4$ to $5$
+        units per step, but the range errors stay at or below
+        $\sigma_r=5$, so the update factors are close to $1$ and the
+        noise decides their direction. At measurements 4 and 5 it
+        favours the wrong bump: the measured range to $\bell_2$ was short
+        by $5.6$ and $6.1$, and the wrong track is also closer to
+        $\bell_2$ than the robot ($e_2=-3.5$ and $-5.0$), so its ranges
+        fit the measurements better. The wrong side then carries $0.65$ of
+        the mass.
+  \item \emph{Measurements 6 to 10.} The range errors exceed $\sigma_r$,
+        the first term wins, and the factors drop to $0.35$, $0.45$,
+        then about $0.05$ and below: the wrong bump is gone by
+        measurement 8.
+\end{itemize}
+For the bumps as a whole the factors are not exactly the ratio of the
+likelihoods at two points, because each bump is spread over many cells,
+but they follow the same pattern.
 
 \begin{inwords}
 The true posterior can have several separate bumps, and the right bump
