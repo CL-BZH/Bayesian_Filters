@@ -598,8 +598,19 @@ By linearity, $\E[X+W]=\E X+\E W$, so $X+W-\E[X+W]=\tilde X+\tilde W$, and
   &=\Cov X+\Cov(X,W)+\Cov(X,W)\T+\Cov W .
 \end{align*}
 The two middle terms are the \emph{cross-covariance} matrix
-$\Cov(X,W)=\E[\tilde X\tilde W\T]$ and its transpose. Its entry $(i,j)$,
-$\E[\tilde X_i\tilde W_j]$, is the covariance between the $i$-th
+$\Cov(X,W)=\E[\tilde X\tilde W\T]$ and its transpose. The matrix
+$\tilde X\tilde W\T$ is a column times a row, so its entry $(i,j)$ is the
+product of the numbers $\tilde X_i$ and $\tilde W_j$ (a number needs no
+transpose):
+\[
+  \tilde X\tilde W\T=
+  \begin{pmatrix}\tilde X_1\\ \tilde X_2\end{pmatrix}
+  \begin{pmatrix}\tilde W_1&\tilde W_2\end{pmatrix}
+  =\begin{pmatrix}\tilde X_1\tilde W_1&\tilde X_1\tilde W_2\\
+   \tilde X_2\tilde W_1&\tilde X_2\tilde W_2\end{pmatrix}.
+\]
+So the entry $(i,j)$ of $\Cov(X,W)$, $\E[\tilde X_i\tilde W_j]$, is the
+covariance between the $i$-th
 coordinate of $X$ and the $j$-th coordinate of $W$. It is not to be
 confused with the off-diagonal entries of $\Cov X$, which are covariances
 between two coordinates of the \emph{same} vector $X$. For independent
