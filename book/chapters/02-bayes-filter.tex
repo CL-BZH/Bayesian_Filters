@@ -1390,14 +1390,11 @@ the width of the belief grows like $\sqrt t$. On the grid of \cref{sec:grid}, wi
 are these. The motion noise has two parts: the step noise $\sigma_s=0.4$
 along the heading, and the compass noise $\sigma_c=0.02$\,rad, which over
 a step of length $s=4$ becomes a sideways error
-$s\sigma_c=4\times0.02=0.08$. The grid filter replaces this elongated
-noise by a round Gaussian, with the same standard deviation in every
-direction, equal to the combined
-$\sqrt{\sigma_s^2+(s\sigma_c)^2}=\sqrt{0.4^2+0.08^2}\approx0.41$ units. A
-grid cannot blur by less than a cell, so the filter never blurs by a
-standard deviation below $0.3$ cell, that is $0.3\times4=1.2$ units. Each
-blur therefore has the standard deviation $\max(0.41,\,1.2)=1.2$ units
-(notebook~01 prints these numbers). After $t$ predictions the blur alone
+$s\sigma_c=4\times0.02=0.08$. A grid cannot blur by less than a cell, so the filter never blurs by a
+standard deviation below $0.3$ cell, that is $0.3\times4=1.2$ units. Both
+$0.4$ and $0.08$ are well below that floor, so each blur has the standard
+deviation $1.2$ units in every direction (notebook~01 prints these
+numbers). After $t$ predictions the blur alone
 has the standard deviation $1.2\sqrt t$: for example
 $1.2\times\sqrt{100}=12$ units, three cells, after $100$ predictions. This assumes a known heading, as in
 \cref{prop:conv}. When the heading itself is
