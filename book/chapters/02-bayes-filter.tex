@@ -1349,20 +1349,24 @@ $p(P\mid G)\,\bel(G)=0.1\times0.273=0.027$ back. A reading taken
 independent Gaussian noise to a random vector that has this density, and
 two independent Gaussian noises add up to one.
 
-\emph{Step 1: a blur is an added noise.} Let $X$ have the density $b$, and
-let $X_1\sim\Normal(\vect0,\Sigma_1)$ be independent of $X$, with the
-density $g_1$. By the probabilistic meaning of the convolution
-(\cref{sec:grid}), $b\ast g_1$ is the density of $X+X_1$.
+\emph{Step 1: a blur is an added noise.} Recall the probabilistic meaning
+of the convolution (\cref{sec:grid}): if a random vector $X$ has the
+density $a$, and an independent $W$ has the density $g$, then $X+W$ has
+the density $a\ast g$. Let $X$ have the density $b$, and let
+$X_1\sim\Normal(\vect0,\Sigma_1)$ be independent of $X$, with the density
+$g_1$. By that result, $b\ast g_1$ is the density of $X+X_1$.
 
 \emph{Step 2: the second blur.} Let $X_2\sim\Normal(\vect0,\Sigma_2)$,
 with the density $g_2$, be independent of $(X,X_1)$, hence of $X+X_1$. By
 the same result, $(b\ast g_1)\ast g_2$ is the density of $(X+X_1)+X_2$.
 
 \emph{Step 3: the two noises are one.} Group the terms the other way:
-$(X+X_1)+X_2=X+(X_1+X_2)$. The sum $X_1+X_2$ is Gaussian, as a sum of two
-independent Gaussians (\cref{lem:affine}, in \cref{ch:kalman}); its mean
-is $\vect0$, and its covariance is $\Sigma_1+\Sigma_2$, because the
-covariances of independent vectors add (\cref{sec:grid}). It is
+$(X+X_1)+X_2=X+(X_1+X_2)$. The sum $X_1+X_2$ is Gaussian: a sum of two
+independent Gaussian vectors is Gaussian (\cref{lem:affine}, in
+\cref{ch:kalman}). Its mean is $\E X_1+\E X_2=\vect0+\vect0=\vect0$. Its
+covariance is $\Cov X_1+\Cov X_2=\Sigma_1+\Sigma_2$, because the
+covariance of a sum of independent vectors is the sum of their
+covariances (\cref{sec:grid}). It is
 independent of $X$, since $X_1$ and $X_2$ are. So, by Step~1 again, the
 density of $X+(X_1+X_2)$ is $b\ast g_{12}$, with $g_{12}$ the density of
 $\Normal(\vect0,\Sigma_1+\Sigma_2)$.
@@ -1371,22 +1375,35 @@ $\Normal(\vect0,\Sigma_1+\Sigma_2)$.
 vector, so $(b\ast g_1)\ast g_2=b\ast g_{12}$: two blurs are one blur with
 the summed covariance.
 
-\emph{After $t$ predictions without update.} Each prediction shifts the
-belief and blurs it with $\Normal(\vect0,\Sigma)$ (\cref{prop:conv}). The
-shifts only move the belief. Applying the result $t-1$ times, the $t$
+\emph{After $t$ predictions without update.} By \cref{prop:conv}, with a
+known heading, each prediction is
+$\belbar=\bel(\,\cdot-\vect d)\ast\Normal(\vect0,\Sigma)$: it shifts the
+belief by the displacement $\vect d$ and blurs it with
+$\Normal(\vect0,\Sigma)$. The shifts only move the belief. Applying the result $t-1$ times, the $t$
 blurs are one blur with $\Normal(\vect0,t\Sigma)$. Along a direction
 $\vect u$, the standard deviation of that blur is
 $\sqrt{t\,\vect u\T\Sigma\vect u}=\sqrt t\,\sqrt{\vect u\T\Sigma\vect u}$:
 the width of the belief grows like $\sqrt t$. On the grid of
-\cref{sec:grid}, each blur has the standard deviation $1.2$ units (the
-floor of $0.3$ cell, notebook~01), so after $t$ predictions the blur alone
-has the standard deviation $1.2\sqrt t$: for example $12$ units, three
-cells, after $100$ predictions. This assumes a known heading, as in
-\cref{prop:conv}. When the heading itself is uncertain, its errors
-accumulate and turn into sideways errors that grow faster: on a straight
-path the variance of the lateral error grows like $t^3$
-(\cref{prop:deadreckoning}), so its standard deviation grows like
-$t^{3/2}$.
+\cref{sec:grid}, with cells $4$ units wide, the step noise $\sigma_s=0.4$ along the heading and the compass noise
+$\sigma_c=0.02$\,rad, turned into a sideways error $s\sigma_c=4\times0.02
+=0.08$ over a step of length $s=4$, give the round blur of the code the
+standard deviation $\sqrt{\sigma_s^2+(s\sigma_c)^2}=\sqrt{0.4^2+0.08^2}
+\approx0.41$ units, but the blur is never narrower than $0.3$ cell, so
+each blur has the standard deviation $\max(0.41,\,0.3\times4)=1.2$ units
+(notebook~01 prints these numbers). After $t$ predictions the blur alone
+has the standard deviation $1.2\sqrt t$: for example
+$1.2\times\sqrt{100}=12$ units, three cells, after $100$ predictions. This assumes a known heading, as in
+\cref{prop:conv}. When the heading itself is
+uncertain, its errors accumulate and turn into sideways errors that grow
+faster. On a straight path with steps of length $s$ and a heading noise
+$\sigma_\delta$ per step, \cref{prop:deadreckoning} gives the variance of
+the lateral error after $t$ steps:
+\[
+  \Var(e_t)\approx s^2\sigma_\delta^2\,\frac{t(t+1)(2t+1)}{6}
+  \approx s^2\sigma_\delta^2\,\frac{t^3}{3}\quad\text{for large }t,
+\]
+so its standard deviation grows like $s\sigma_\delta\,t^{3/2}/\sqrt3$,
+much faster than $\sqrt t$.
 
 \solution{2.3} There are two claims: the two bumps keep equal masses, and
 the belief stays made of two bumps, which become narrower.
@@ -1399,8 +1416,11 @@ constants into one,
   \bel_k(\p)=\eta\,\bel_0(\p)\prod_{i=1}^kp(\z_i\mid\p).
 \]
 
-\emph{Equal masses.} By \cref{prop:mirror}, each likelihood is
-$\sigma$-invariant: $p(\z_i\mid\sigma(\p))=p(\z_i\mid\p)$. If the prior is
+\emph{Equal masses.} Recall \cref{prop:mirror}: the reflection $\sigma$
+about the line through the two landmarks keeps the distances to both
+landmarks, so a range-only likelihood takes the same value at a point and
+at its mirror image. Each likelihood is thus $\sigma$-invariant:
+$p(\z_i\mid\sigma(\p))=p(\z_i\mid\p)$. If the prior is
 $\sigma$-invariant too, every factor of the product takes the same value
 at $\p$ and at $\sigma(\p)$, so $\bel_k(\sigma(\p))=\bel_k(\p)$ for every
 $k$. The reflection maps the half-plane on one side of the axis onto the
@@ -1440,34 +1460,47 @@ per landmark, meet in two spots around $\p$ and $\sigma(\p)$, which shrink
 like $1/\sqrt k$. Only a motion that is not parallel to the axis, or a
 third landmark off the axis, can break the tie (\cref{sec:twobumps}).
 
-\solution{2.4} \emph{Cells.} Along each side, $30\,\text{m}/5\,\text{cm}
-=600$ cells; for the heading, $360$ cells of $1^\circ$. In total
-$600\times600\times360=129\,600\,000\approx1.3\times10^8$ cells.
+\solution{2.4} The data: a lawn of $30\times30$\,m, position cells of
+$5$\,cm, heading cells of $1^\circ$, single precision.
+
+\emph{Cells.} Along each side there are
+$n_x=n_y=\text{side}/\text{cell}=30\,\text{m}/0.05\,\text{m}=600$ cells,
+and for the heading $n_\theta=360^\circ/1^\circ=360$ cells. In total
+\[
+  n=n_x\,n_y\,n_\theta=600\times600\times360=129\,600\,000
+  \approx1.3\times10^8\ \text{cells}.
+\]
 
 \emph{Memory.} In single precision a number takes $4$ bytes, so the
-belief takes $4\times1.3\times10^8\approx5.2\times10^8$ bytes, about
+belief takes $4n=4\times1.296\times10^8\approx5.2\times10^8$ bytes, about
 $520$\,MB.
 
 \emph{A prediction as a full sum.} Write the prediction
 \eqref{eq:predict} on the cells as $\bar b_i=\sum_jT_{ij}b_j$, with
 $T_{ij}$ the probability of going from the cell $j$ to the cell $i$. Each
-of the $n\approx1.3\times10^8$ new values is a sum of $n$ products, so the
-prediction costs $n^2\approx1.7\times10^{16}$ multiplications and as many
-additions. At $10^{10}$ operations per second, a fast processor, that is
-$3.4\times10^6$ seconds, about $39$ days, for one prediction. The matrix
+of the $n$ new values is a sum of $n$ products, so the prediction costs
+$n^2=(1.296\times10^8)^2\approx1.7\times10^{16}$ multiplications and as
+many additions, $2n^2\approx3.4\times10^{16}$ operations. At $10^{10}$
+operations per second, a fast processor, that is
+$3.4\times10^{16}/10^{10}=3.4\times10^6$ seconds, that is
+$3.4\times10^6/86\,400\approx39$ days, for one prediction. The matrix
 $T$ itself, with $n^2$ entries, would not fit in any memory.
 
 \emph{Using the structure.} The probability of going from $j$ to $i$ is
 negligible unless $i$ is near the cell reached from $j$ by the commanded
 motion: the prediction is a shift and a local blur (\cref{prop:conv}).
 A Gaussian blur over $5$ cells along each of the three axes, done one
-axis at a time, costs $3\times5=15$ multiplications per cell, about
-$2\times10^9$ per prediction: a fraction of a second. So the grid filters
+axis at a time, costs $3\times5=15$ multiplications per cell, so
+$15n=15\times1.296\times10^8\approx1.9\times10^9$ per prediction, and
+$1.9\times10^9/10^{10}\approx0.2$ seconds at the same speed. So the grid filters
 that work in practice are built on such shifts and blurs, or on sparse
 transitions. Even then, $520$\,MB of belief updated several times per
 second is a lot for an embedded computer.
 
-\solution{2.5}
+\needspace{6\baselineskip}
+\solution{2.5} The lawn of \cref{fig:potato} has a curved edge and a
+round tree; the grid covers a square of side $320$ with cells $4$ units
+wide.
 \begin{enumerate}[nosep]
   \item Let $L$ be the set of the lawn cells, and take as observation
         the statement ``the robot is on the lawn''. Its likelihood in the
@@ -1482,9 +1515,11 @@ second is a lot for an embedded computer.
         \]
         That is the mask: the cells off the lawn get $0$, and the others
         are renormalised. The sum $\sum_{j\in L}\bar b_j$ is the
-        probability that the prediction gave to the lawn, like the
-        $0.43$ of \cref{ex:grassgravel}; in \cref{fig:potato}, $27\%$
-        falls off the lawn, so it is $0.73$.
+        probability that the prediction gave to the lawn, as the sum
+        $0.43$ of \cref{ex:grassgravel} was the probability that the
+        prediction gave to the reading ``rough''. In \cref{fig:potato},
+        $27\%$ of the predicted belief falls off the lawn, so the sum is
+        $1-0.27=0.73$.
   \item The convolution moves every bit of probability by the commanded
         displacement and spreads it by the noise, whatever is around: it
         describes a robot that moves as if there were no edge. Far from
@@ -1498,7 +1533,9 @@ second is a lot for an embedded computer.
         wire or its geofence stops it or turns it back. So the masking is
         an approximation, good when little of the belief lies within a
         few standard deviations of the blur from the edge.
-  \item Store only the $2749$ lawn cells, for example as a list of the
+  \item The square of side $320$, with cells $4$ units wide, has
+        $(320/4)^2=80^2=6400$ cells, and $2749$ of them have their
+        centre on the lawn. Store only these $2749$ lawn cells, for example as a list of the
         cell indices with their probabilities, or as a sparse array. The
         prediction computes the blur only at these cells, from their
         neighbours on the lawn, and the update only touches them. That is
