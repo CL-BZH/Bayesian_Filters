@@ -717,16 +717,63 @@ the belief shifted by $\vect{d}_t$ and blurred by the noise density.
 \end{proposition}
 
 \begin{proof}
-Here $p(\p_{t+1}\mid\p_t)=\Normal(\p_{t+1};\p_t+\vect{d}_t,\Sigma_t)
-=g(\p_{t+1}-\p_t-\vect{d}_t)$ with $g$ the centred Gaussian density.
-Then \eqref{eq:predict} reads
-$\belbar(\p)=\int g(\p-\vect{d}_t-\vect{q})\,\bel(\vect{q})\,
-\mathrm d\vect{q}$. With the change of variable
-$\vect{q}'=\vect{q}+\vect{d}_t$ this becomes
-$\int g(\p-\vect{q}')\,\bel(\vect{q}'-\vect{d}_t)\,\mathrm d\vect{q}'$,
-the convolution of the shifted belief
-$\vect{q}'\mapsto\bel(\vect{q}'-\vect{d}_t)$ with $g$ (a convolution does
-not depend on the order of its two functions).
+Write $g$ for the density of $\Normal(\vect0,\Sigma_t)$, and
+$\bel(\,\cdot-\vect d_t)$ for the function
+$\vect q\mapsto\bel(\vect q-\vect d_t)$: the belief \emph{shifted} by
+$\vect d_t$. Its value at $\vect q$ is the old belief at
+$\vect q-\vect d_t$, the point from which the displacement $\vect d_t$
+leads to $\vect q$. There are two ways to the result. The first gives the
+picture, the second checks it on the prediction formula
+\eqref{eq:predict}.
+
+\emph{First way: a sum of two independent vectors.} Group the terms as
+$\p_{t+1}=(\p_t+\vect d_t)+\w_t$.
+\begin{itemize}[nosep]
+  \item $\p_t+\vect d_t$ is the old position moved by the known
+        displacement, and its density is the shifted belief. For a region
+        $B$, write $B-\vect d_t$ for the region $B$ moved by
+        $-\vect d_t$. Then
+        \[
+          \Pr(\p_t+\vect d_t\in B)=\Pr(\p_t\in B-\vect d_t)
+          =\int_{B-\vect d_t}\bel(\vect x)\,\mathrm d\vect x
+          =\int_B\bel(\vect q-\vect d_t)\,\mathrm d\vect q ,
+        \]
+        with the change of variable $\vect q=\vect x+\vect d_t$, a
+        translation, so $\mathrm d\vect x=\mathrm d\vect q$.
+  \item $\w_t$ has the density $g$, and it is independent of $\p_t$,
+        hence of $\p_t+\vect d_t$, since $\vect d_t$ is known.
+  \item By the probabilistic meaning of the convolution, shown above,
+        the sum $\p_{t+1}$ has the density
+        $\bel(\,\cdot-\vect d_t)\ast g$.
+\end{itemize}
+
+\emph{Second way: from the prediction formula.} Given $\p_t$, the only
+random term in $\p_{t+1}=\p_t+\vect d_t+\w_t$ is $\w_t$, and knowing
+$\p_t$ does not change its distribution, since the two are independent.
+So, given $\p_t$, $\p_{t+1}$ is Gaussian with the mean $\p_t+\vect d_t$
+and the covariance $\Sigma_t$. A Gaussian density depends on the point
+only through its difference with the mean, so
+\[
+  p(\p_{t+1}\mid\p_t)=\Normal(\p_{t+1};\,\p_t+\vect d_t,\,\Sigma_t)
+  =g(\p_{t+1}-\p_t-\vect d_t).
+\]
+Call the new position $\p$ and the old one $\vect q$, and go line by
+line from \eqref{eq:predict}:
+\begin{align*}
+  \belbar(\p)
+  &=\int g(\p-\vect q-\vect d_t)\,\bel(\vect q)\,\mathrm d\vect q
+  &&\text{\eqref{eq:predict} with this transition}\\
+  &=\int g(\p-\vect q')\,\bel(\vect q'-\vect d_t)\,\mathrm d\vect q'
+  &&\text{$\vect q'=\vect q+\vect d_t$, $\mathrm d\vect q=\mathrm d\vect q'$}\\
+  &=\bigl(g\ast\bel(\,\cdot-\vect d_t)\bigr)(\p)
+  &&\text{definition of the convolution}\\
+  &=\bigl(\bel(\,\cdot-\vect d_t)\ast g\bigr)(\p)
+  &&\text{the order does not matter.}
+\end{align*}
+In the third line, the definition $(a\ast g)(\p)=\int a(\p-\vect q)\,
+g(\vect q)\,\mathrm d\vect q$ is used with the roles of the two functions
+exchanged: $g$ is evaluated at $\p-\vect q'$, and the shifted belief at
+$\vect q'$.
 \end{proof}
 
 The same position-only model, with its noise covariance $\Sigma_t$
