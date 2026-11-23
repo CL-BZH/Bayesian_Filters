@@ -1,0 +1,174 @@
+\chapter{Moving a belief on a grid}
+\label{app:gridshift}
+
+The prediction of the grid filter moves the whole belief by the
+displacement of one step (\cref{sec:grid}). On a grid this is less simple
+than it sounds, because a step is rarely a whole number of cells. This
+appendix explains how the code moves the belief, by sharing the mass of
+each cell between the cells it would reach, and what that sharing costs:
+a small spread at every step. Notebook~01 runs every example and prints
+every number below.
+
+\section{The problem}
+\label{sec:gs-problem}
+
+The grid stores one probability per cell, and treats it as if all the
+mass of the cell sat at its centre. Moving the belief by a whole number of
+cells is easy: each cell passes its mass to the cell that many places
+further on. But take cells 4 units wide and a step of 4 units at
+$30^\circ$: the displacement is $(4\cos30^\circ,\,4\sin30^\circ)=(3.46,\,2)$
+units, that is $0.87$ cell along $x$ and $0.5$ cell along $y$. The mass of
+a cell should then go to a point that is not the centre of any cell.
+
+The simplest answer is to put all the mass in the cell where that point
+lands. Take cell $0$, the interval $[0,1)$ in units of cells, with its
+mass at the centre $0.5$, and a move of $0.87$ cell. The mass should be at
+$0.5+0.87=1.37$, which lies in cell $1$, $[1,2)$. Putting the mass in
+cell $1$ puts it at the centre $1.5$ of that cell: the mass has moved by
+$1$ cell instead of $0.87$. The displacement has been \emph{rounded}, and
+the rounding error, $0.13$ cell, is made again at every step, always in
+the same direction. After 10 steps the belief has moved $10$ cells
+instead of $8.7$: $1.3$ cells, about $5$ units, too far, while staying as
+sharp as a single cell. The filter is wrong and confident
+(\cref{fig:gsspread}c).
+
+\section{Sharing in one dimension}
+\label{sec:gs-1d}
+
+Picture the old cell, a segment of length $1$, translated by $f$, the
+fraction of a cell that the step covers, with $0\le f<1$ (a whole number
+of cells is moved first, as above). The translated segment covers the
+length $1-f$ of its own cell and the length $f$ of the next one
+(\cref{fig:gsareas}a). \emph{Sharing} gives each of the two cells that
+fraction of the mass: the next cell gets $f$, the cell itself keeps
+$1-f$. (This is what is called linear interpolation; the code calls
+\code{scipy.ndimage.shift} with \code{order=1}.)
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appF_shift_areas.pdf}
+\caption{Sharing the mass of a cell after a move by a fraction of a cell.
+(a) In one dimension, the cell translated by $f=0.7$ (dashed) covers the
+length $1-f=0.3$ of its own cell and $f=0.7$ of the next one, which get
+these shares of its mass. (b) In two dimensions, the cell that starts at
+the bottom left (grey) is translated by $f_x=0.7$ along $x$ and $f_y=0.4$
+along $y$ (dashed). It overlaps four cells, and the shares are the
+overlapping areas: $0.18$, $0.42$, $0.12$, $0.28$. (c) The part that falls
+in the left column is a strip of width $1-f_x=0.3$ and height $1$: the
+left column keeps $1-f_x$ of the mass, whatever $f_y$.}
+\label{fig:gsareas}
+\end{figure}
+
+\emph{The mean is right.} After the sharing, the mass sits at the cell
+$i$, with the share $1-f$, and at the cell $i+1$, with the share $f$.
+Its average position is
+\[
+  (1-f)\,i+f\,(i+1)=i+f :
+\]
+on average, the mass has moved by exactly $f$. Sharing does not drift.
+
+\emph{But the mass is spread.} Mass that was in one cell is now in two.
+The spread is measured by the variance: the average of the squared
+distance to the mean $i+f$, each position weighted by its share.
+\begin{itemize}[nosep]
+  \item The cell $i$ is at the distance $f$ from the mean, with the share
+        $1-f$.
+  \item The cell $i+1$ is at the distance $1-f$ from the mean, with the
+        share $f$.
+\end{itemize}
+So the variance is
+\[
+  (1-f)\times f^2+f\times(1-f)^2
+  =f(1-f)\times\bigl(f+(1-f)\bigr)=f(1-f)\ \text{cell}^2,
+\]
+taking out the common factor $f(1-f)$. For $f=0.87$ it is
+$0.87\times0.13=0.11$\,cell$^2$; its largest value is $0.25$\,cell$^2$,
+for $f=0.5$, a standard deviation of half a cell. The robot did not
+become more uncertain: this spread is an artefact of the grid.
+
+\emph{It adds up over the steps.} Sharing the mass of every cell in this
+way is a convolution of the belief with the two-point weight
+$(1-f,\,f)$, the density of a variable that is $0$ with probability $1-f$
+and $1$ with probability $f$. By the probabilistic meaning of the
+convolution (\cref{sec:grid}), $t$ shifts add $t$ independent such
+variables, whose variances add: after $t$ shifts, the variance added by
+the sharing is $t\,f(1-f)$. \Cref{fig:gsspread} shows it for $f=0.87$:
+$0.113$ after one shift, $0.565$ after five, against
+$5\times0.113=0.566$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appF_shift_spread.pdf}
+\caption{Repeated shifts by $f=0.87$ cell of a belief that starts in cell
+$2$. (a) After one shift the mass is shared between two cells, $0.13$ and
+$0.87$; the dashed line is the true position. (b) After five shifts it is
+spread over four cells, with the variance $5f(1-f)$. (c) The mean position
+over ten shifts: with rounding (each mass goes to the nearest cell centre)
+the belief moves one cell per step and drifts away from the true position;
+with sharing its mean stays on it.}
+\label{fig:gsspread}
+\end{figure}
+
+\section{Sharing in two dimensions}
+\label{sec:gs-2d}
+
+In the plane, a move by the fractions $f_x$ along $x$ and $f_y$ along $y$
+translates the old square cell so that it overlaps four cells
+(\cref{fig:gsareas}b). The shares are, again, the covered fractions, now
+areas. Each overlap is a rectangle whose width is a covered length along
+$x$ and whose height is a covered length along $y$:
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+  & left column & right column\\
+  \midrule
+  top row    & $(1-f_x)\,f_y$ & $f_x\,f_y$\\
+  bottom row & $(1-f_x)(1-f_y)$ & $f_x(1-f_y)$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+The four areas add up to $1$: the translated square has the area $1$.
+In two dimensions, too, this is what the code does, with the same call
+as in one dimension; notebook~01 checks it for $f_x=0.87$ and
+$f_y=0.5$.
+
+\emph{Along each axis, the one-dimensional sharing.} Look only at the
+$x$ coordinate. The left column receives the two overlaps on the left:
+\[
+  (1-f_x)(1-f_y)+(1-f_x)\,f_y=(1-f_x)\bigl((1-f_y)+f_y\bigr)=1-f_x ,
+\]
+taking out the common factor $1-f_x$. Geometrically, the part of the
+translated square that lies in the left column is a strip of width $1-f_x$
+and height $1$ (\cref{fig:gsareas}c), whose area is $1-f_x$. Likewise the
+right column receives $f_x$. So, along $x$, the mass is shared exactly as
+in one dimension, with the fraction $f_x$, and the sharing adds the
+variance $f_x(1-f_x)$ along $x$. In the same way it adds $f_y(1-f_y)$
+along $y$.
+
+\emph{The example of \cref{sec:gs-problem}.} For the step at $30^\circ$,
+$f_x=0.87$ and $f_y=0.5$, and each prediction adds the variances
+$0.87\times0.13=0.11$\,cell$^2$ along $x$ and $0.5\times0.5=0.25$\,cell$^2$
+along $y$, on top of the motion noise. A step along an axis, $(4,0)$
+units, is exactly one cell: $f_x=f_y=0$, and the sharing adds nothing.
+
+\section{What it means for the filter}
+\label{sec:gs-filter}
+
+Each prediction of the grid filter widens the belief by the motion noise
+and, unless the step is a whole number of cells, by the sharing as well:
+up to $0.25$\,cell$^2$ per axis, against the motion noise of about $0.4$
+units, a tenth of a cell 4 units wide. Notebook~01 starts a grid belief in
+a single cell and predicts 50 times without update: with the heading along
+an axis its spread is $2.5$ units, close to the $2.0$ of the motion noise
+alone; with the heading at $30^\circ$ it is $12.4$ units. The filter is
+therefore more cautious than the model: it never claims a precision that
+the grid cannot represent. Between updates this is harmless, since a
+measurement soon narrows the belief again; but a grid filter predicting
+over many steps without measurements spreads faster than it should.
+
+Two remedies exist. Smaller cells reduce the spread in units, since it is
+at most half a cell. Or the filter can move the belief by whole cells only,
+and keep the leftover fraction of the displacement for the next step:
+the mass is then never shared, and, because the leftover is carried
+forward instead of being dropped, the position error stays below half a
+cell instead of accumulating as in \cref{sec:gs-problem}.

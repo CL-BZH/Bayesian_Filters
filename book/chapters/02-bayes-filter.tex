@@ -790,9 +790,9 @@ is a blur of its own, of up to half a cell, whereas the motion noise, with
 a standard deviation of about $0.4$ units, is a tenth of a cell 4 units
 wide. So the predicted belief spreads faster than the noise warrants.
 This costs little at this resolution, since the grid cannot place the
-robot more precisely than a cell anyway. Notebook~01 shows the code of the
-prediction and its exact choices, and measures how fast a grid belief
-spreads.
+robot more precisely than a cell anyway. \Cref{app:gridshift} explains
+this sharing with figures, and notebook~01 shows the code of the
+prediction and measures how fast a grid belief spreads.
 
 The update \eqref{eq:update} multiplies the predicted density by the
 likelihood and renormalises. On the grid, write $\bar b_i$ for the
@@ -1391,7 +1391,7 @@ $\vect u$, the standard deviation of that blur is
 $\sqrt{t\,\vect u\T\Sigma\vect u}=\sqrt t\,\sqrt{\vect u\T\Sigma\vect u}$:
 the width of the belief grows like $\sqrt t$. On a real grid the belief widens faster than this, still like $\sqrt t$:
 the discretisation adds a small blur of its own at each prediction
-(\cref{sec:grid}), and notebook~01 measures it. This assumes a known heading, as in
+(\cref{app:gridshift}), and notebook~01 measures it. This assumes a known heading, as in
 \cref{prop:conv}. When the heading itself is
 uncertain, its errors accumulate and turn into sideways errors that grow
 faster. On a straight path with steps of length $s$ and a heading noise

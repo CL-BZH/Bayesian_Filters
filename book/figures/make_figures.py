@@ -264,6 +264,99 @@ def fig_quadtree():
     save(fig, "appE_quadtree")
 
 
+# ---------------------------------------------------------------- appendix F
+def fig_shift_areas():
+    """Moving mass on a grid by a fraction of a cell: shares as lengths (1-D) and as areas (2-D)."""
+    from matplotlib.patches import Rectangle
+    f, fx, fy = 0.7, 0.7, 0.4
+    blue, ink, grey = viz.COLORS["EKF"], viz.INK, viz.MUTED
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.42), gridspec_kw={"width_ratios": [1.3, 1, 1]})
+    # (a) one dimension
+    ax = axes[0]
+    for i in range(3):
+        ax.add_patch(Rectangle((i, 0), 1, 1, fc="none", ec=ink, lw=1.0))
+        ax.text(i + 0.5, -0.12, f"cell {i}", ha="center", va="top", fontsize=8)
+    ax.add_patch(Rectangle((f, 0), 1 - f, 1, fc=blue, alpha=0.25, lw=0))
+    ax.add_patch(Rectangle((1, 0), f, 1, fc=blue, alpha=0.55, lw=0))
+    ax.add_patch(Rectangle((f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+    ax.annotate("", (f, 1.12), (0, 1.12), arrowprops=dict(arrowstyle="->", color=ink, lw=0.9))
+    ax.text(f / 2, 1.17, f"$f={f}$", ha="center", va="bottom", fontsize=8)
+    ax.text(f + (1 - f) / 2, 0.5, f"{1 - f:.1f}", ha="center", va="center", fontsize=8)
+    ax.text(1 + f / 2, 0.5, f"{f}", ha="center", va="center", fontsize=8)
+    ax.text(f + (1 - f) / 2, -0.32, "$1-f$", ha="center", va="top", fontsize=8, color=blue)
+    ax.text(1 + f / 2, -0.32, "$f$", ha="center", va="top", fontsize=8, color=blue)
+    ax.set_title("(a) one dimension:\nshares are lengths", fontsize=8.5)
+    ax.set_xlim(-0.1, 3.1); ax.set_ylim(-0.6, 1.45)
+    # (b) two dimensions: the four overlaps
+    for ax, title in zip(axes[1:], ("(b) two dimensions:\nshares are areas",
+                                    "(c) the left column\nkeeps $1-f_x$")):
+        for i in range(2):
+            for j in range(2):
+                ax.add_patch(Rectangle((i, j), 1, 1, fc="none", ec=ink, lw=1.0))
+        ax.set_title(title, fontsize=8.5)
+        ax.set_xlim(-0.1, 2.1); ax.set_ylim(-0.1, 2.25)
+    ax = axes[1]
+    parts = [((fx, fy), 1 - fx, 1 - fy, 0.20), ((1, fy), fx, 1 - fy, 0.40),
+             ((fx, 1), 1 - fx, fy, 0.30), ((1, 1), fx, fy, 0.55)]
+    for (x0, y0), w, h, a in parts:
+        ax.add_patch(Rectangle((x0, y0), w, h, fc=blue, alpha=a, lw=0))
+        ax.text(x0 + w / 2, y0 + h / 2, f"{w * h:.2f}", ha="center", va="center", fontsize=8)
+    ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+    ax.add_patch(Rectangle((0, 0), 1, 1, fc="none", ec=grey, lw=2.2))
+    ax.text(0.35, 0.2, "start", ha="center", fontsize=8, color=grey)
+    ax.text(fx / 2, 2.12, f"$f_x={fx}$, $f_y={fy}$", fontsize=8, ha="left")
+    # (c) the left column: a strip of width 1 - fx and height 1
+    ax = axes[2]
+    ax.add_patch(Rectangle((fx, fy), 1 - fx, 1, fc=blue, alpha=0.45, lw=0))
+    ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+    ax.text(fx + (1 - fx) / 2, fy + 0.5, f"{1 - fx:.1f}", ha="center", va="center", fontsize=8)
+    ax.annotate("", (1, fy - 0.08), (fx, fy - 0.08), arrowprops=dict(arrowstyle="<->", color=ink, lw=0.8))
+    ax.text(fx + (1 - fx) / 2, fy - 0.15, "$1-f_x$", ha="center", va="top", fontsize=8)
+    for ax in axes:
+        ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appF_shift_areas")
+
+
+def fig_shift_spread():
+    """Repeated interpolated shifts: the belief spreads, the mean is right; rounding is sharp but biased."""
+    from scipy import ndimage
+    f = 0.87
+    cells = np.arange(16)
+    b = np.zeros(16); b[2] = 1.0
+    hist_i, hist_r = [b], [b]
+    for t in range(10):
+        hist_i.append(ndimage.shift(hist_i[-1], f, order=1, mode="constant"))
+        hist_r.append(ndimage.shift(hist_r[-1], f, order=0, mode="constant"))
+    blue, orange = viz.COLORS["EKF"], viz.COLORS["UKF"]
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.3), gridspec_kw={"width_ratios": [1, 1, 1.1]})
+    for ax, t in zip(axes[:2], (1, 5)):
+        ax.bar(cells, hist_i[t], width=0.8, color=blue)
+        mean = np.sum(cells * hist_i[t]); var = np.sum((cells - mean) ** 2 * hist_i[t])
+        ax.axvline(2 + t * f, color=viz.INK, lw=0.9, ls="--")
+        ax.set_title(f"(%s) after {t} shift{'s' if t > 1 else ''} of {f} cell" % ("a" if t == 1 else "b"),
+                     fontsize=8.5)
+        ax.text(0.97, 0.93, f"variance {var:.3f}\n$t\\,f(1-f)={t * f * (1 - f):.3f}$",
+                transform=ax.transAxes, ha="right", va="top", fontsize=7.5)
+        ax.set_xlim(-0.5, 12.5); ax.set_ylim(0, 1.05); ax.set_xlabel("cell", fontsize=8)
+        ax.tick_params(labelsize=7.5)
+    axes[0].set_ylabel("probability", fontsize=8)
+    ax = axes[2]
+    ts = np.arange(11)
+    ax.plot(ts, 2 + ts * f, color=viz.INK, lw=1.0, ls="--", label="true position")
+    ax.plot(ts, [np.sum(cells * h) for h in hist_r], color=orange, lw=1.5, marker="o", ms=3,
+            label="rounding: mean")
+    ax.plot(ts, [np.sum(cells * h) for h in hist_i], color=blue, lw=1.5, marker="s", ms=3,
+            label="sharing: mean")
+    ax.set_xlabel("number of shifts", fontsize=8); ax.set_ylabel("cell", fontsize=8)
+    ax.set_title("(c) rounding drifts, sharing does not", fontsize=8.5)
+    ax.legend(fontsize=7, frameon=False, loc="lower right"); ax.tick_params(labelsize=7.5)
+    plt.tight_layout()
+    save(fig, "appF_shift_spread")
+    print(f"shift spread: after 10 shifts of {f}: true {2 + 10 * f:.2f}, rounding {np.sum(cells * hist_r[10]):.2f}, "
+          f"sharing {np.sum(cells * hist_i[10]):.2f}")
+
+
 # ---------------------------------------------------------------- chapter 3
 def fig_kf_nees():
     world = World.default()
@@ -1084,6 +1177,8 @@ if __name__ == "__main__":
     fig_grid()
     fig_potato()
     fig_quadtree()
+    fig_shift_areas()
+    fig_shift_spread()
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()
