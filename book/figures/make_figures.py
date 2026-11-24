@@ -404,6 +404,27 @@ def fig_shift_2d():
     save(fig, "appF_shift_2d")
 
 
+def fig_shift_carry():
+    """Rounding each step drifts; rounding the total (carrying the leftover) stays within half a cell."""
+    f = 0.87
+    ts = np.arange(11)
+    true = f * ts
+    each = ts.astype(float)                              # every step moved by round(0.87) = 1
+    total = np.floor(true + 0.5)                         # nearest whole number to the true total
+    blue, orange, ink = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK
+    fig, ax = plt.subplots(figsize=(W * 0.55, W * 0.36))
+    ax.fill_between(ts, true - 0.5, true + 0.5, color=blue, alpha=0.12, lw=0,
+                    label="within half a cell")
+    ax.plot(ts, each, color=orange, lw=1.5, marker="o", ms=3, label="rounding each step")
+    ax.plot(ts, total, color=blue, lw=1.5, marker="s", ms=3, label="rounding the total")
+    ax.plot(ts, true, color=ink, lw=1.1, ls=(0, (3, 2)), label="true displacement $0.87\\,t$", zorder=5)
+    ax.set_xlabel("step $t$", fontsize=8); ax.set_ylabel("displacement of the belief (cells)", fontsize=8)
+    ax.set_xticks(ts); ax.set_yticks(range(0, 11, 2)); ax.tick_params(labelsize=7.5)
+    ax.legend(fontsize=7, frameon=False, loc="upper left")
+    plt.tight_layout()
+    save(fig, "appF_shift_carry")
+
+
 def fig_shift_spread():
     """Repeated interpolated shifts: the belief spreads, the mean is right; rounding is sharp but biased."""
     from scipy import ndimage
@@ -1266,6 +1287,7 @@ if __name__ == "__main__":
     fig_shift_1d()
     fig_shift_2d()
     fig_shift_spread()
+    fig_shift_carry()
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()

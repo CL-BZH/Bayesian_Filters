@@ -359,40 +359,62 @@ Two remedies exist. The first is smaller cells: the spread added by the
 sharing is at most half a cell (a standard deviation of $0.5$ cell), so
 smaller cells make it smaller in units.
 
-The second is to round, as in \cref{sec:gs-problem}, but to keep
-account of the rounding errors. Rounding each step on its own failed
-because the error of each step was dropped: with steps of $0.87$ cell,
-every step moved the belief by $1$ cell, $0.13$ too far, and after $t$
-steps it was $0.13\,t$ cells too far. Instead, keep a \emph{leftover}
-$r$, the part of the displacement not yet made, starting at $r=0$; it is
-negative when the belief has gone too far. At each step:
-\begin{itemize}[nosep]
-  \item the displacement to make is the step plus the leftover,
-        $r+0.87$;
-  \item the belief is moved by the whole number of cells nearest to it,
-        $n$, so its mass is never shared;
-  \item the new leftover is what was not made, $r+0.87-n$.
-\end{itemize}
+The second is to round, as in \cref{sec:gs-problem}, but to round the
+\emph{total} displacement instead of each step. Rounding each step failed
+because its errors add up: with steps of $0.87$ cell, every step moves the
+belief by $1$ cell, $0.13$ too far, and after $t$ steps the belief is
+$0.13\,t$ cells too far. Rounding the total puts the belief, after $t$
+steps, at the whole number of cells nearest to the true displacement
+$0.87\,t$; its error is then never more than half a cell. The table
+follows the two for ten steps: each row gives, after the step $t$, the
+true displacement, and, for each way of rounding, how far the belief has
+moved in all and its error (moved minus true).
 \begin{center}
-\begin{tabular}{cccccc}
+\begin{tabular}{cc@{\qquad}cc@{\qquad}cc}
   \toprule
-  step & true displacement & to make & move & new & error of the\\
-  $t$ & so far, $0.87\,t$ & $r+0.87$ & $n$ & leftover $r$ & belief\\
+  & & \multicolumn{2}{c}{rounding each step} & \multicolumn{2}{c}{rounding the total}\\
+  \cmidrule(r{2em}){3-4}\cmidrule{5-6}
+  step $t$ & true $0.87\,t$ & moved & error & moved & error\\
   \midrule
-  1 & 0.87 & 0.87 & 1 & $-0.13$ & $+0.13$\\
-  2 & 1.74 & 0.74 & 1 & $-0.26$ & $+0.26$\\
-  3 & 2.61 & 0.61 & 1 & $-0.39$ & $+0.39$\\
-  4 & 3.48 & 0.48 & 0 & $+0.48$ & $-0.48$\\
-  5 & 4.35 & 1.35 & 1 & $+0.35$ & $-0.35$\\
+  1  & 0.87 & 1  & $+0.13$ & 1 & $+0.13$\\
+  2  & 1.74 & 2  & $+0.26$ & 2 & $+0.26$\\
+  3  & 2.61 & 3  & $+0.39$ & 3 & $+0.39$\\
+  4  & 3.48 & 4  & $+0.52$ & 3 & $-0.48$\\
+  5  & 4.35 & 5  & $+0.65$ & 4 & $-0.35$\\
+  6  & 5.22 & 6  & $+0.78$ & 5 & $-0.22$\\
+  7  & 6.09 & 7  & $+0.91$ & 6 & $-0.09$\\
+  8  & 6.96 & 8  & $+1.04$ & 7 & $+0.04$\\
+  9  & 7.83 & 9  & $+1.17$ & 8 & $+0.17$\\
+  10 & 8.70 & 10 & $+1.30$ & 9 & $+0.30$\\
   \bottomrule
 \end{tabular}
 \end{center}
-At step 4, the leftover makes the belief stay where it is, and so it
-catches up with the robot. In general, each step adds $n$ to the total
-move of the belief and $0.87-n$ to the leftover, so the total move plus
-the leftover grows by exactly $0.87$ per step and is always the true
-displacement. The error of the belief, its total move minus the true
-displacement, is therefore $-r$; and since $n$ is the whole number nearest
-to $r+0.87$, the leftover $r+0.87-n$ is never more than half a cell in
-size. The error stays below half a cell, however many steps are made,
-instead of growing like $0.13\,t$.
+The two agree up to step 3. At step 4 the true displacement is $3.48$,
+nearer to $3$ than to $4$: rounding the total leaves the belief where it
+was, and the robot catches up with it. \Cref{fig:gscarry} shows the same:
+the belief that rounds each step leaves the band of half a cell around
+the true displacement, the one that rounds the total stays in it.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.55\linewidth]{figures/appF_shift_carry.pdf}
+\caption{Steps of $0.87$ cell, moved by whole cells. Rounding each step
+(orange) moves the belief by $1$ cell every time and drifts away from the
+true displacement (dashed); rounding the total (blue) keeps the belief at
+the nearest whole number of cells, within half a cell of it (shaded).}
+\label{fig:gscarry}
+\end{figure}
+
+\emph{Doing it step by step.} The filter does not need to remember the
+total. It keeps a \emph{leftover} $r$, the part of the displacement not
+yet made: the true displacement minus how far the belief has moved,
+starting at $0$, and negative when the belief has gone too far. At each
+step it moves the belief by the whole number of cells nearest to the step
+plus the leftover, $r+0.87$, and keeps what was not made as the new
+leftover. For example, after step 3 the belief has moved $3$ cells for a
+true $2.61$, so $r=2.61-3=-0.39$; at step 4, $r+0.87=0.48$, whose nearest
+whole number is $0$, so the belief does not move, and the new leftover is
+$0.48$. The total moved is always the true displacement minus the
+leftover, and the leftover, what remains after rounding, is never more
+than half a cell in size. Since the belief is moved by whole cells, its
+mass is never shared, and the sharing adds no spread.
