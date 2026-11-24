@@ -81,8 +81,10 @@ Its average position is
 on average, the mass has moved by exactly $f$. Sharing does not drift.
 
 \emph{But the mass is spread.} Mass that was in one cell is now in two.
-The spread is measured by the variance. For a mass spread over a few
-positions $x_k$, with the shares $p_k$ (adding up to $1$) and the mean
+The spread is measured by the variance of the position: the belief is a
+probability distribution of the robot's position, and its variance says
+how far from the mean that position is likely to be. For a mass spread
+over a few positions $x_k$, with the shares $p_k$ (adding up to $1$) and the mean
 $m=\sum_kp_kx_k$, the variance is the average of the squared distances to
 the mean, each weighted by its share:
 \[
