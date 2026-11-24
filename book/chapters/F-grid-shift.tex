@@ -194,7 +194,7 @@ probability of each cell, $1-f$ and $f$, and forgets where inside the cell
 that probability lies: the part of length $1-f$, which lay at the end of
 the cell $i$, is read again as spread over the whole cell $i$, and the
 part of length $f$ over the whole cell $i+1$. That forgetting, made at
-every step, is what adds the variance $f(1-f)$. The robot did not become
+every step, is what adds the variance $f(1-f)$\,cell$^2$. The robot did not become
 more uncertain: this spread is an artefact of the grid.
 
 \emph{It adds up over the steps.} Follow now the whole belief, not one
@@ -233,7 +233,7 @@ are $0$; then $X+S-\E[X+S]=\tilde X+\tilde S$, and
   &&\text{expand; linearity of }\E\\
   &=\Var X+2\,\E[\tilde X]\,\E[\tilde S]+\Var S
   &&\text{$\tilde X$ and $\tilde S$ independent}\\
-  &=\Var X+f(1-f)
+  &=\Var X+f(1-f)\ \text{cell}^2
   &&\E[\tilde X]=\E[\tilde S]=0,
 \end{align*}
 the one-dimensional case of Consequence~2 in \cref{sec:grid}. Each
@@ -241,14 +241,14 @@ shift tosses a new coin, independent of the earlier ones and of the
 starting position $X_0$: after $t$ shifts the position is
 $X_t=X_0+S_1+\dots+S_t$, and, applying this result $t$ times,
 \[
-  \Var X_t=\Var X_0+t\,f(1-f) .
+  \Var X_t=\Var X_0+t\,f(1-f)\ \text{cell}^2 .
 \]
-The sharing adds $f(1-f)$\,cell$^2$ at every shift, and $t\,f(1-f)$
+The sharing adds $f(1-f)$\,cell$^2$ at every shift, and $t\,f(1-f)$\,cell$^2$
 after $t$ shifts. (A whole number $k$ of cells would add $k$ to $S$,
 which changes neither its variance nor this result.)
 \Cref{fig:gsspread} shows it for $f=0.87$, where
 $f(1-f)=0.87\times0.13=0.1131$\,cell$^2$: the belief starts in one cell,
-so $\Var X_0=0$, and the variance measured on the grid is $0.1131$ after
+so $\Var X_0=0$, and the variance measured on the grid is $0.1131$\,cell$^2$ after
 one shift and $5\times0.1131=0.5655$\,cell$^2$ after five.
 
 \begin{figure}[t]
@@ -257,7 +257,7 @@ one shift and $5\times0.1131=0.5655$\,cell$^2$ after five.
 \caption{Repeated shifts by $f=0.87$ cell of a belief that starts in cell
 $2$. (a) After one shift the mass is shared between two cells, $0.13$ and
 $0.87$; the dashed line is the true position. (b) After five shifts it is
-spread over four cells, with the variance $5f(1-f)$. (c) The mean position
+spread over four cells, with the variance $5f(1-f)$\,cell$^2$. (c) The mean position
 over ten shifts: with rounding (each mass goes to the nearest cell centre)
 the belief moves one cell per step and drifts away from the true position;
 with sharing its mean stays on it.}
@@ -312,7 +312,7 @@ translated square that lies in the left column is a strip of width $1-f_x$
 and height $1$ (\cref{fig:gs2d}b), whose area is $1-f_x$. Likewise the
 right column receives $f_x$. So, along $x$, the mass is shared exactly as
 in one dimension, with the fraction $f_x$, and the sharing adds the
-variance $f_x(1-f_x)$ along $x$. In the same way it adds $f_y(1-f_y)$
+variance $f_x(1-f_x)$\,cell$^2$ along $x$. In the same way it adds $f_y(1-f_y)$\,cell$^2$
 along $y$.
 
 \emph{The example of \cref{sec:gs-problem}.} For the step at $30^\circ$,
