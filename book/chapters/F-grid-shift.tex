@@ -5,7 +5,8 @@ The prediction of the grid filter moves the whole belief by the
 displacement of one step (\cref{sec:grid}). On a grid this is less simple
 than it sounds, because a step is rarely a whole number of cells. This
 appendix explains how the code moves the belief, by sharing the mass of
-each cell between the cells it would reach, and what that sharing costs:
+each cell between the cells that its moved copy overlaps, and what that
+sharing costs:
 a small spread at every step. Notebook~01 runs every example and prints
 every number below.
 
@@ -35,14 +36,26 @@ sharp as a single cell. The filter is wrong and confident
 \section{Sharing in one dimension}
 \label{sec:gs-1d}
 
-Picture the old cell, a segment of length $1$, translated by $f$, the
-fraction of a cell that the step covers, with $0\le f<1$ (a whole number
-of cells is moved first, as above). The translated segment covers the
-length $1-f$ of its own cell and the length $f$ of the next one
-(\cref{fig:gsareas}a). \emph{Sharing} gives each of the two cells that
-fraction of the mass: the next cell gets $f$, the cell itself keeps
-$1-f$. (This is what is called linear interpolation; the code calls
-\code{scipy.ndimage.shift} with \code{order=1}.)
+Write the displacement, in cells, as $k+f$: a whole number $k$ of cells
+and a fraction $f$ of a cell, with $0\le f<1$. Picture the cell $i$, a
+segment of length $1$, moved by $k+f$. The moved segment does not fit one
+cell: it covers the length $1-f$ of the cell $i+k$ and the length $f$ of
+the cell $i+k+1$ (\cref{fig:gsareas}a, where $k=0$). \emph{Sharing} gives
+each of these two cells that fraction of the mass of the cell $i$: the
+cell $i+k$ gets $1-f$ and the cell $i+k+1$ gets $f$. When $k=0$, as for a
+step shorter than a cell, the first of the two is the cell $i$ itself,
+which keeps $1-f$; when $k\ge1$, the cell $i$ keeps nothing.
+
+Every cell is moved in this way at the same time. So the new mass of a
+cell $j$ is the sum of what it receives: $1-f$ of the mass of the cell
+$j-k$ and $f$ of the mass of the cell $j-k-1$,
+\[
+  b'_j=(1-f)\,b_{j-k}+f\,b_{j-k-1}.
+\]
+(This is what is called linear interpolation; the code calls
+\code{scipy.ndimage.shift} with \code{order=1}.) Below, the whole number
+$k$ plays no role, since moving by whole cells changes neither the
+spread nor the error, so the examples take $k=0$.
 
 \begin{figure}[t]
 \centering
@@ -59,8 +72,9 @@ left column keeps $1-f_x$ of the mass, whatever $f_y$.}
 \label{fig:gsareas}
 \end{figure}
 
-\emph{The mean is right.} After the sharing, the mass sits at the cell
-$i$, with the share $1-f$, and at the cell $i+1$, with the share $f$.
+\emph{The mean is right.} Follow the mass of one cell $i$, with $k=0$.
+After the sharing it sits at the cell $i$, with the share $1-f$, and at
+the cell $i+1$, with the share $f$.
 Its average position is
 \[
   (1-f)\,i+f\,(i+1)=i+f :
@@ -114,7 +128,10 @@ with sharing its mean stays on it.}
 
 In the plane, a move by the fractions $f_x$ along $x$ and $f_y$ along $y$
 translates the old square cell so that it overlaps four cells
-(\cref{fig:gsareas}b). The shares are, again, the covered fractions, now
+(\cref{fig:gsareas}b), and its mass is shared between these four. As in
+one dimension, a whole number of cells along each axis is moved first,
+and every cell is shared at the same time, so each cell receives
+contributions from four cells. The shares are, again, the covered fractions, now
 areas. Each overlap is a rectangle whose width is a covered length along
 $x$ and whose height is a covered length along $y$:
 \begin{center}
