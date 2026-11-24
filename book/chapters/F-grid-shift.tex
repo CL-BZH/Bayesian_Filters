@@ -449,7 +449,23 @@ the rest as the new leftover. Since $n_t$ is the whole number nearest to
 $r_{t-1}+0.87$, the rest $r_t$ is at most half a cell in size, and so is
 the error $-r_t$.
 
-The table runs the rule for the ten steps, starting from $r_0=0$. Read
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appF_shift_leftover.pdf}
+\caption{The leftover rule for the first six steps of $0.87$ cell. Each
+row is the state after the step $t$: the belief (blue) has moved by the
+whole number $M_t$ of cells, the robot by $0.87\,t$ (triangle), and the
+leftover $r_t$ (orange) goes from the first to the second. Each box
+holds the displacements whose nearest whole number is the one below it,
+so the triangle always lies in the blue box: the error is at most half a
+cell. The blue arrows are the moves $n_t$, computed on the right from the
+leftover of the row above. At $t=4$, $r_3+0.87=0.48$ rounds to $0$: the
+belief stays and the robot catches up with it.}
+\label{fig:gsleftover}
+\end{figure}
+
+\Cref{fig:gsleftover} draws the rule step by step, and the table runs
+it for the ten steps, starting from $r_0=0$. Read
 each row from left to right; its last leftover, $r_t$, is the first
 column of the next row, $r_{t-1}$.
 \begin{center}

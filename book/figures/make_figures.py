@@ -425,6 +425,54 @@ def fig_shift_carry():
     save(fig, "appF_shift_carry")
 
 
+def fig_shift_leftover():
+    """The leftover rule, step by step: belief cell, true displacement, leftover, move."""
+    from matplotlib.patches import Rectangle
+    f, T = 0.87, 6
+    blue, orange, ink, grey = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK, viz.MUTED
+    fig, ax = plt.subplots(figsize=(W, W * 0.62))
+    h, gap = 0.5, 1.0                                   # cell height, distance between rows
+    r, M = 0.0, 0
+    for t in range(T + 1):
+        y = -t * gap
+        if t > 0:
+            todo = r + f
+            n = int(np.floor(todo + 0.5))
+            y0 = y + gap
+            # the move n_t, from the previous belief cell to the new one
+            ax.annotate("", (M + n, y + h + 0.02), (M, y0 - 0.02),
+                        arrowprops=dict(arrowstyle="->", color=blue, lw=1.1))
+            ax.text(7.05, y + h / 2,
+                    f"$r_{{{t - 1}}}+0.87={todo:.2f}$, so $n_{{{t}}}={n}$, $r_{{{t}}}={todo - n:+.2f}$",
+                    ha="left", va="center", fontsize=7.5)
+            M, r = M + n, todo - n
+        for k in range(7):
+            ax.add_patch(Rectangle((k - 0.5, y), 1, h, fc="none", ec=grey, lw=0.6))
+        ax.add_patch(Rectangle((M - 0.5, y), 1, h, fc=blue, alpha=0.35, lw=0))
+        D = f * t
+        ax.plot([D], [y + h / 2], marker="v", color=ink, ms=5, zorder=5)
+        if abs(r) > 0.02:
+            ax.annotate("", (D, y + 0.1), (M, y + 0.1),
+                        arrowprops=dict(arrowstyle="->", color=orange, lw=1.2, shrinkA=0, shrinkB=0))
+        ax.text(-0.75, y + h / 2, f"$t={t}$", ha="right", va="center", fontsize=8)
+    for k in range(7):
+        ax.text(k, -T * gap - 0.15, f"{k}", ha="center", va="top", fontsize=7.5, color=grey)
+    ax.text(3, -T * gap - 0.5, "displacement (cells)", ha="center", va="top", fontsize=8)
+    ax.text(7.05, h / 2, "start: $r_0=0$", ha="left", va="center", fontsize=7.5)
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    ax.legend(handles=[Patch(fc=blue, alpha=0.35, ec="none", label="belief, moved by $M_t$ cells"),
+                       Line2D([], [], marker="v", ls="none", color=ink, ms=5, label="true displacement $0.87\\,t$"),
+                       Line2D([], [], color=orange, lw=1.2, label="leftover $r_t$ (from the belief to the truth)"),
+                       Line2D([], [], color=blue, lw=1.1, label="move $n_t$")],
+              loc="upper center", bbox_to_anchor=(0.5, 1.07), ncol=4, fontsize=7, frameon=False,
+              handlelength=1.4, columnspacing=1.2)
+    ax.set_xlim(-1.3, 11.2); ax.set_ylim(-T * gap - 0.85, h + 0.45)
+    ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appF_shift_leftover")
+
+
 def fig_shift_spread():
     """Repeated interpolated shifts: the belief spreads, the mean is right; rounding is sharp but biased."""
     from scipy import ndimage
@@ -1288,6 +1336,7 @@ if __name__ == "__main__":
     fig_shift_2d()
     fig_shift_spread()
     fig_shift_carry()
+    fig_shift_leftover()
     fig_kf_track()
     fig_riccati()
     fig_kf_nees()
