@@ -270,7 +270,7 @@ def fig_shift_1d():
     from matplotlib.patches import Rectangle
     f = 0.7
     blue, orange, ink = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.62),
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.7),
                                    gridspec_kw={"height_ratios": [1, 1.45]})
     # (a) the mass of one cell
     ax = ax1
@@ -307,20 +307,33 @@ def fig_shift_1d():
     ax.add_patch(Rectangle((2 + f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.add_patch(Rectangle((2, 0), f, 1, fc=orange, alpha=0.45, lw=0))
     ax.add_patch(Rectangle((2 + f, 0), 1 - f, 1, fc=blue, alpha=0.45, lw=0))
-    ax.text(2 + f / 2, 0.5, f"{f * b[1]:.2f}", ha="center", va="center", fontsize=8)
-    ax.text(2 + f + (1 - f) / 2, 0.5, f"{(1 - f) * b[2]:.2f}", ha="center", va="center", fontsize=7.5)
-    ax.text(2 + f / 2, -0.12, "$f\\,b_{j-1}$", ha="center", va="top", fontsize=8, color=orange)
-    ax.text(2 + f + (1 - f) / 2 + 0.05, -0.12, "$(1-f)\\,b_j$", ha="left", va="top", fontsize=8, color=blue)
     ax.annotate("", (1 + f + 0.5, 1.02), (1.5, ytop - 0.02),
                 arrowprops=dict(arrowstyle="->", color=orange, lw=1.1))
     ax.annotate("", (2 + f + 0.5, 1.02), (2.5, ytop - 0.02),
                 arrowprops=dict(arrowstyle="->", color=blue, lw=1.1))
+    from matplotlib.patches import Patch
+    from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
+    ax.legend(handles=[Patch(fc=orange, alpha=0.45, ec="none",
+                             label=f"from cell $j-1$: $f\\,b_{{j-1}}={f}\\times{b[1]}={f * b[1]:.2f}$"),
+                       Patch(fc=blue, alpha=0.45, ec="none",
+                             label=f"from cell $j$: $(1-f)\\,b_j={1 - f:.1f}\\times{b[2]}={(1 - f) * b[2]:.2f}$")],
+              loc="upper left", bbox_to_anchor=(0.08, 0.02), fontsize=8, frameon=False, handlelength=1.4)
     new = f * b[1] + (1 - f) * b[2]
-    ax.text(4.25, 0.5, f"new mass of cell $j$:\n$b'_j=f\\,b_{{j-1}}+(1-f)\\,b_j$\n"
-            f"$={f}\\times{b[1]}+{1 - f:.1f}\\times{b[2]}={new:.2f}$",
-            ha="left", va="center", fontsize=8)
+    prop = lambda c: dict(color=c, fontsize=8.5)
+    line1 = TextArea("new mass of cell $j$:", textprops=prop(ink))
+    line2 = HPacker(children=[TextArea("$b'_j=$", textprops=prop(ink)),
+                              TextArea("$f\\,b_{j-1}$", textprops=prop(orange)),
+                              TextArea("$+$", textprops=prop(ink)),
+                              TextArea("$(1-f)\\,b_j$", textprops=prop(blue))], pad=0, sep=2)
+    line3 = HPacker(children=[TextArea("$=$", textprops=prop(ink)),
+                              TextArea(f"${f * b[1]:.2f}$", textprops=prop(orange)),
+                              TextArea("$+$", textprops=prop(ink)),
+                              TextArea(f"${(1 - f) * b[2]:.2f}$", textprops=prop(blue)),
+                              TextArea(f"$={new:.2f}$", textprops=prop(ink))], pad=0, sep=2)
+    box = VPacker(children=[line1, line2, line3], pad=0, sep=3, align="left")
+    ax.add_artist(AnnotationBbox(box, (4.25, 0.5), box_alignment=(0, 0.5), frameon=False))
     ax.set_title("(b) what one cell receives: all cells move at once", fontsize=9, loc="left")
-    ax.set_xlim(-0.8, 7.2); ax.set_ylim(-0.5, ytop + 1.45)
+    ax.set_xlim(-0.8, 7.2); ax.set_ylim(-0.15, ytop + 1.45)
     for ax in (ax1, ax2):
         ax.set_aspect("equal"); ax.axis("off")
     plt.tight_layout()
