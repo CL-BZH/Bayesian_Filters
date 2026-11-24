@@ -134,11 +134,16 @@ probability:
 \[
   \Var=\sum_kp_k\,(x_k-m)^2 .
 \]
-Its square root, the standard
-deviation $\sigma$, is a typical distance from the mean, and what it says
-about probabilities is made precise by Chebyshev's inequality: the
-probability that the position is at least the distance $a$ from the mean
-is at most $\Var/a^2$ (at least $2\sigma$ away: at most $1/4$).
+Its square root, the standard deviation $\sigma$, is a typical distance
+from the mean, and what it says about probabilities is made precise by
+Chebyshev's inequality: the probability that the position $X$ is at
+least the distance $a>0$ from the mean is at most $\Var/a^2$,
+\[
+  \Pr\bigl(|X-m|\ge a\bigr)\le\frac{\Var}{a^2}.
+\]
+For example, with $a=2\sigma$, and $\Var=\sigma^2$:
+$\Pr\bigl(|X-m|\ge2\sigma\bigr)\le\sigma^2/(2\sigma)^2=1/4$; the position
+is at least $2\sigma$ from the mean with a probability of at most $1/4$.
 
 Here, following one unit of mass from the cell $i$ (with $k=0$), the
 position takes two values: $x_1=i$, with the probability $p_1=1-f$, and
