@@ -396,7 +396,7 @@ def fig_shift_spread():
     for ax, t in zip(axes[:2], (1, 5)):
         ax.bar(cells, hist_i[t], width=0.8, color=blue)
         mean = np.sum(cells * hist_i[t]); var = np.sum((cells - mean) ** 2 * hist_i[t])
-        ax.axvline(2 + t * f, color=viz.INK, lw=0.9, ls="--")
+        ax.axvline(2 + t * f, ymax=0.68, color=viz.INK, lw=0.9, ls="--")
         ax.set_title(f"(%s) after {t} shift{'s' if t > 1 else ''} of {f} cell" % ("a" if t == 1 else "b"),
                      fontsize=8.5)
         ax.text(0.97, 0.93, f"variance {var:.4f}\n$t\\,f(1-f)={t * f * (1 - f):.4f}$",
@@ -406,7 +406,7 @@ def fig_shift_spread():
     axes[0].set_ylabel("probability", fontsize=8)
     ax = axes[2]
     ts = np.arange(11)
-    ax.plot(ts, 2 + ts * f, color=viz.INK, lw=1.0, ls="--", label="true position")
+    ax.plot(ts, 2 + ts * f, color=viz.INK, lw=1.1, ls=(0, (3, 2)), label="true position", zorder=5)
     ax.plot(ts, [np.sum(cells * h) for h in hist_r], color=orange, lw=1.5, marker="o", ms=3,
             label="rounding: mean")
     ax.plot(ts, [np.sum(cells * h) for h in hist_i], color=blue, lw=1.5, marker="s", ms=3,

@@ -215,10 +215,23 @@ belief:
   &&\text{the sharing rule.}
 \end{align*}
 So a shift adds to the position an independent variable $S$. This is
-the discrete form of the probabilistic meaning of the convolution
-(\cref{sec:grid}): blurring a density by a weight gives the density of a
-sum of independent variables; here the weight is $(1-f,\,f)$, the
-distribution of $S$.
+the probabilistic meaning of the convolution (\cref{sec:grid}) in
+discrete form. There, the sum $X+W$ of two independent vectors with the
+densities $a$ and $g$ has the density
+\[
+  (a\ast g)(\p)=\int a(\p-\vect q)\,g(\vect q)\,\mathrm d\vect q :
+\]
+for every offset $\vect q$ that $W$ can take, the density of $X$ at
+$\p-\vect q$, weighted by the density of $W$ at $\vect q$. Here the
+positions are whole cells, and the integral becomes a sum over the values
+$s$ of $S$, with the weights $g_s=\Pr(S=s)$, that is $g_0=1-f$ and
+$g_1=f$:
+\[
+  \Pr(X+S=j)=\sum_sg_s\,b_{j-s}=g_0\,b_j+g_1\,b_{j-1}
+  =(1-f)\,b_j+f\,b_{j-1},
+\]
+the computation above. Sharing is the convolution of the belief with the
+weight $(1-f,\,f)$, the distribution of $S$.
 
 $S$ takes the values $0$ and $1$ with the probabilities $1-f$ and $f$:
 these are the two positions of the table above, with $i=0$, so
@@ -260,7 +273,7 @@ $0.87$; the dashed line is the true position. (b) After five shifts it is
 spread over four cells, with the variance $5f(1-f)$\,cell$^2$. (c) The mean position
 over ten shifts: with rounding (each mass goes to the nearest cell centre)
 the belief moves one cell per step and drifts away from the true position;
-with sharing its mean stays on it.}
+with sharing its mean stays on it (the dashed line runs over the blue one).}
 \label{fig:gsspread}
 \end{figure}
 
