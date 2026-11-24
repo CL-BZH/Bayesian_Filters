@@ -266,12 +266,11 @@ def fig_quadtree():
 
 # ---------------------------------------------------------------- appendix F
 def fig_shift_1d():
-    """Sharing in one dimension: (a) where the mass of one cell goes; (b) what one cell receives."""
+    """Sharing in one dimension: where the mass of one cell goes; then what one cell receives, k = 0 and k = 1."""
     from matplotlib.patches import Rectangle
     f = 0.7
     blue, orange, ink = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.7),
-                                   gridspec_kw={"height_ratios": [1, 1.45]})
+    fig, ax1 = plt.subplots(figsize=(W * 0.8, W * 0.27))
     # (a) the mass of one cell
     ax = ax1
     for i in range(3):
@@ -288,56 +287,64 @@ def fig_shift_1d():
     ax.text(1 + f / 2, -0.38, "$f$", ha="center", va="top", fontsize=8, color=blue)
     ax.text(3.15, 0.5, "the moved copy of cell 0 (dashed)\ncovers $1-f$ of cell 0 and $f$ of cell 1:\n"
             "cell 0 keeps $1-f$ of its mass,\ncell 1 gets $f$", ha="left", va="center", fontsize=8)
-    ax.set_title("(a) where the mass of one cell goes", fontsize=9, loc="left")
     ax.set_xlim(-0.1, 6.3); ax.set_ylim(-0.7, 1.45)
-    # (b) what one cell receives
-    ax = ax2
-    b = [0.1, 0.5, 0.3, 0.1]
-    names = ["$j-2$", "$j-1$", "$j$", "$j+1$"]
-    ytop = 1.55
-    for i in range(4):
-        ax.add_patch(Rectangle((i, ytop), 1, 1, fc="none", ec=ink, lw=1.0))
-        ax.text(i + 0.5, ytop + 0.5, f"$b={b[i]}$", ha="center", va="center", fontsize=8)
-        ax.text(i + 0.5, ytop + 1.08, names[i], ha="center", va="bottom", fontsize=8)
-        ax.add_patch(Rectangle((i, 0), 1, 1, fc="none", ec=ink, lw=1.0))
-    ax.text(-0.1, ytop + 0.5, "before", ha="right", va="center", fontsize=8)
-    ax.text(-0.1, 0.5, "after", ha="right", va="center", fontsize=8)
-    # moved copies of cells j-1 (orange) and j (blue)
-    ax.add_patch(Rectangle((1 + f, 0), 1, 1, fc="none", ec=orange, lw=1.6, ls="--"))
-    ax.add_patch(Rectangle((2 + f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
-    ax.add_patch(Rectangle((2, 0), f, 1, fc=orange, alpha=0.45, lw=0))
-    ax.add_patch(Rectangle((2 + f, 0), 1 - f, 1, fc=blue, alpha=0.45, lw=0))
-    ax.annotate("", (1 + f + 0.5, 1.02), (1.5, ytop - 0.02),
-                arrowprops=dict(arrowstyle="->", color=orange, lw=1.1))
-    ax.annotate("", (2 + f + 0.5, 1.02), (2.5, ytop - 0.02),
-                arrowprops=dict(arrowstyle="->", color=blue, lw=1.1))
-    from matplotlib.patches import Patch
-    from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
-    ax.legend(handles=[Patch(fc=orange, alpha=0.45, ec="none",
-                             label=f"from cell $j-1$: $f\\,b_{{j-1}}={f}\\times{b[1]}={f * b[1]:.2f}$"),
-                       Patch(fc=blue, alpha=0.45, ec="none",
-                             label=f"from cell $j$: $(1-f)\\,b_j={1 - f:.1f}\\times{b[2]}={(1 - f) * b[2]:.2f}$")],
-              loc="upper left", bbox_to_anchor=(0.08, 0.02), fontsize=8, frameon=False, handlelength=1.4)
-    new = f * b[1] + (1 - f) * b[2]
-    prop = lambda c: dict(color=c, fontsize=8.5)
-    line1 = TextArea("new mass of cell $j$:", textprops=prop(ink))
-    line2 = HPacker(children=[TextArea("$b'_j=$", textprops=prop(ink)),
-                              TextArea("$f\\,b_{j-1}$", textprops=prop(orange)),
-                              TextArea("$+$", textprops=prop(ink)),
-                              TextArea("$(1-f)\\,b_j$", textprops=prop(blue))], pad=0, sep=2)
-    line3 = HPacker(children=[TextArea("$=$", textprops=prop(ink)),
-                              TextArea(f"${f * b[1]:.2f}$", textprops=prop(orange)),
-                              TextArea("$+$", textprops=prop(ink)),
-                              TextArea(f"${(1 - f) * b[2]:.2f}$", textprops=prop(blue)),
-                              TextArea(f"$={new:.2f}$", textprops=prop(ink))], pad=0, sep=2)
-    box = VPacker(children=[line1, line2, line3], pad=0, sep=3, align="left")
-    ax.add_artist(AnnotationBbox(box, (4.25, 0.5), box_alignment=(0, 0.5), frameon=False))
-    ax.set_title("(b) what one cell receives: all cells move at once", fontsize=9, loc="left")
-    ax.set_xlim(-0.8, 7.2); ax.set_ylim(-0.15, ytop + 1.45)
-    for ax in (ax1, ax2):
-        ax.set_aspect("equal"); ax.axis("off")
+    ax.set_aspect("equal"); ax.axis("off")
     plt.tight_layout()
     save(fig, "appF_shift_1d")
+    fig, (ax2, ax3) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.72))
+    # (b), (c) what one cell receives, for k = 0 and k = 1
+    from matplotlib.patches import Patch
+    from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
+    b = [0.1, 0.5, 0.3, 0.1]
+    names = ["$j-2$", "$j-1$", "$j$", "$j+1$"]
+    sub = {0: ("j", "j-1"), 1: ("j-1", "j-2")}       # (from 1-f, from f) for each k
+    ytop = 1.55
+    prop = lambda c: dict(color=c, fontsize=8.5)
+    for ax, k, title in ((ax2, 0, "(a) a move by $f=0.7$ ($k=0$)"),
+                         (ax3, 1, "(b) a move by $1+f=1.7$ ($k=1$)")):
+        for i in range(4):
+            ax.add_patch(Rectangle((i, ytop), 1, 1, fc="none", ec=ink, lw=1.0))
+            ax.text(i + 0.5, ytop + 0.5, f"$b={b[i]}$", ha="center", va="center", fontsize=8)
+            ax.text(i + 0.5, ytop + 1.08, names[i], ha="center", va="bottom", fontsize=8)
+            ax.add_patch(Rectangle((i, 0), 1, 1, fc="none", ec=ink, lw=1.0))
+        ax.text(-0.1, ytop + 0.5, "before", ha="right", va="center", fontsize=8)
+        ax.text(-0.1, 0.5, "after", ha="right", va="center", fontsize=8)
+        # the two cells whose moved copies overlap cell j (index 2): j-k-1 (orange) and j-k (blue)
+        io, ib = 1 - k, 2 - k
+        bo, bb = b[io], b[ib]
+        ax.add_patch(Rectangle((io + k + f, 0), 1, 1, fc="none", ec=orange, lw=1.6, ls="--"))
+        ax.add_patch(Rectangle((ib + k + f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+        ax.add_patch(Rectangle((2, 0), f, 1, fc=orange, alpha=0.45, lw=0))
+        ax.add_patch(Rectangle((2 + f, 0), 1 - f, 1, fc=blue, alpha=0.45, lw=0))
+        ax.annotate("", (io + k + f + 0.5, 1.02), (io + 0.5, ytop - 0.02),
+                    arrowprops=dict(arrowstyle="->", color=orange, lw=1.1))
+        ax.annotate("", (ib + k + f + 0.5, 1.02), (ib + 0.5, ytop - 0.02),
+                    arrowprops=dict(arrowstyle="->", color=blue, lw=1.1))
+        so, sb = sub[k][1], sub[k][0]
+        ax.legend(handles=[Patch(fc=orange, alpha=0.45, ec="none",
+                                 label=f"from cell ${so}$: $f\\,b_{{{so}}}={f}\\times{bo}={f * bo:.2f}$"),
+                           Patch(fc=blue, alpha=0.45, ec="none",
+                                 label=f"from cell ${sb}$: $(1-f)\\,b_{{{sb}}}={1 - f:.1f}\\times{bb}={(1 - f) * bb:.2f}$")],
+                  loc="upper left", bbox_to_anchor=(0.08, 0.02), fontsize=8, frameon=False, handlelength=1.4)
+        new = f * bo + (1 - f) * bb
+        line1 = TextArea("new mass of cell $j$:", textprops=prop(ink))
+        line2 = HPacker(children=[TextArea("$b'_j=$", textprops=prop(ink)),
+                                  TextArea(f"$f\\,b_{{{so}}}$", textprops=prop(orange)),
+                                  TextArea("$+$", textprops=prop(ink)),
+                                  TextArea(f"$(1-f)\\,b_{{{sb}}}$", textprops=prop(blue))], pad=0, sep=2)
+        line3 = HPacker(children=[TextArea("$=$", textprops=prop(ink)),
+                                  TextArea(f"${f * bo:.2f}$", textprops=prop(orange)),
+                                  TextArea("$+$", textprops=prop(ink)),
+                                  TextArea(f"${(1 - f) * bb:.2f}$", textprops=prop(blue)),
+                                  TextArea(f"$={new:.2f}$", textprops=prop(ink))], pad=0, sep=2)
+        box = VPacker(children=[line1, line2, line3], pad=0, sep=3, align="left")
+        ax.add_artist(AnnotationBbox(box, (4.25, 0.5), box_alignment=(0, 0.5), frameon=False))
+        ax.set_title(title, fontsize=9, loc="left")
+        ax.set_xlim(-0.8, 7.2); ax.set_ylim(-0.15, ytop + 1.45)
+    for ax in (ax2, ax3):
+        ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appF_shift_receive")
 
 
 def fig_shift_2d():

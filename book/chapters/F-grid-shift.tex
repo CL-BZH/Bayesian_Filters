@@ -56,11 +56,23 @@ interval $[i,i+1)$, of length $1$, and write the displacement, in cells,
 as $k+f$: a whole number $k$ of cells and a fraction $f$ of a cell, with
 $0\le f<1$.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/appF_shift_1d.pdf}
+\caption{Where the mass of one cell goes, for a move by $f=0.7$ of a cell
+($k=0$). A robot uniform in cell 0 is, after the move, uniform in the
+moved copy of cell 0 (dashed), which covers the length $1-f=0.3$ of
+cell 0 and $f=0.7$ of cell 1: it is in cell 0 with probability $0.3$ and
+in cell 1 with probability $0.7$, and these cells get these fractions of
+the mass.}
+\label{fig:gs1d}
+\end{figure}
+
 \emph{Where can the robot be after the move?} Suppose the robot is in the
 cell $i$, at a point $x$ that is uniform on $[i,i+1)$. After the move it
 is at $x+k+f$, which is uniform on the moved interval
 $[i+k+f,\,i+k+1+f)$: the dashed copy of the cell in
-\cref{fig:gs1d}a, where $k=0$. That interval does not fit one cell: its
+\cref{fig:gs1d}, where $k=0$. That interval does not fit one cell: its
 part $[i+k+f,\,i+k+1)$, of length $1-f$, lies in the cell $i+k$, and its
 part $[i+k+1,\,i+k+1+f)$, of length $f$, lies in the cell $i+k+1$.
 
@@ -75,8 +87,24 @@ $f$: this is \emph{sharing}. When $k=0$, as for a
 step shorter than a cell, the first of the two is the cell $i$ itself,
 which keeps $1-f$; when $k\ge1$, the cell $i$ keeps nothing.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/appF_shift_receive.pdf}
+\caption{What one cell receives when all the cells move at once, with
+$f=0.7$ and the same belief before the move. (a) $k=0$: cell $j$ is
+overlapped by the copy of the cell before it, which covers the fraction
+$f$ of it, and by its own copy, which covers the fraction $1-f$; it
+receives $0.7\times0.5=0.35$ from cell $j-1$ and $0.3\times0.3=0.09$ from
+itself, so its new mass is $0.44$. (b) $k=1$, one more whole cell: the
+two copies that overlap cell $j$ come from one cell further back, so cell
+$j$ receives $f$ of cell $j-2$ and $1-f$ of cell $j-1$, and its new mass
+is $0.7\times0.1+0.3\times0.5=0.22$.}
+\label{fig:gsreceive}
+\end{figure}
+
 Every cell is moved in this way at the same time. So the new mass of a
-cell $j$ is the sum of what it receives (\cref{fig:gs1d}b): $1-f$ of the mass of the cell
+cell $j$ is the sum of what it receives (\cref{fig:gsreceive}a for $k=0$,
+\cref{fig:gsreceive}b for $k=1$): $1-f$ of the mass of the cell
 $j-k$ and $f$ of the mass of the cell $j-k-1$,
 \[
   b'_j=(1-f)\,b_{j-k}+f\,b_{j-k-1}.
@@ -86,21 +114,6 @@ $j-k$ and $f$ of the mass of the cell $j-k-1$,
 $k$ plays no role, since moving by whole cells changes neither the
 spread nor the error, so the examples take $k=0$.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.8\linewidth]{figures/appF_shift_1d.pdf}
-\caption{Sharing in one dimension, for a move by $f=0.7$ of a cell ($k=0$).
-(a) A robot uniform in cell 0 is, after the move, uniform in the moved
-copy of cell 0 (dashed), which covers the length $1-f=0.3$ of cell 0 and
-$f=0.7$ of cell 1: it is in cell 0 with probability $0.3$ and in cell 1
-with probability $0.7$, and these cells get these fractions of the mass. (b) All the
-cells move at once, so a cell receives from two cells: from the copy of
-the cell before it, which covers the fraction $f$ of it, and from its own
-copy, which covers the fraction $1-f$. With the masses shown, cell $j$
-receives $0.7\times0.5=0.35$ from cell $j-1$ and $0.3\times0.3=0.09$ from
-itself, so its new mass is $0.44$.}
-\label{fig:gs1d}
-\end{figure}
 
 \emph{The mean is right.} Follow the mass of one cell $i$, with $k=0$.
 After the sharing it sits at the cell $i$, with the probability $1-f$,
@@ -153,7 +166,7 @@ the displacements are measured in cells too. A variance, an average of
 squared distances, is then measured in cells squared, written cell$^2$; its square root, the standard deviation,
 is back in cells. With cells 4 units wide, $1$ cell is $4$ units and
 $1$\,cell$^2$ is $16$ units$^2$. With the numbers of
-\cref{fig:gs1d}a, $f=0.7$: the mean is $0.7$, the two positions $0$ and
+\cref{fig:gs1d}, $f=0.7$: the mean is $0.7$, the two positions $0$ and
 $1$ are at the distances $-0.7$ and $0.3$ from it, and
 $\Var=0.3\times0.49+0.7\times0.09=0.147+0.063=0.21=0.7\times0.3$. For $f=0.87$ it is
 $0.87\times0.13=0.11$\,cell$^2$; its largest value is $0.25$\,cell$^2$,
