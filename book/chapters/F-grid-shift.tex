@@ -355,9 +355,44 @@ the grid cannot represent. Between updates this is harmless, since a
 measurement soon narrows the belief again; but a grid filter predicting
 over many steps without measurements spreads faster than it should.
 
-Two remedies exist. Smaller cells reduce the spread in units, since it is
-at most half a cell. Or the filter can move the belief by whole cells only,
-and keep the leftover fraction of the displacement for the next step:
-the mass is then never shared, and, because the leftover is carried
-forward instead of being dropped, the position error stays below half a
-cell instead of accumulating as in \cref{sec:gs-problem}.
+Two remedies exist. The first is smaller cells: the spread added by the
+sharing is at most half a cell (a standard deviation of $0.5$ cell), so
+smaller cells make it smaller in units.
+
+The second is to round, as in \cref{sec:gs-problem}, but to keep
+account of the rounding errors. Rounding each step on its own failed
+because the error of each step was dropped: with steps of $0.87$ cell,
+every step moved the belief by $1$ cell, $0.13$ too far, and after $t$
+steps it was $0.13\,t$ cells too far. Instead, keep a \emph{leftover}
+$r$, the part of the displacement not yet made, starting at $r=0$; it is
+negative when the belief has gone too far. At each step:
+\begin{itemize}[nosep]
+  \item the displacement to make is the step plus the leftover,
+        $r+0.87$;
+  \item the belief is moved by the whole number of cells nearest to it,
+        $n$, so its mass is never shared;
+  \item the new leftover is what was not made, $r+0.87-n$.
+\end{itemize}
+\begin{center}
+\begin{tabular}{cccccc}
+  \toprule
+  step & true displacement & to make & move & new & error of the\\
+  $t$ & so far, $0.87\,t$ & $r+0.87$ & $n$ & leftover $r$ & belief\\
+  \midrule
+  1 & 0.87 & 0.87 & 1 & $-0.13$ & $+0.13$\\
+  2 & 1.74 & 0.74 & 1 & $-0.26$ & $+0.26$\\
+  3 & 2.61 & 0.61 & 1 & $-0.39$ & $+0.39$\\
+  4 & 3.48 & 0.48 & 0 & $+0.48$ & $-0.48$\\
+  5 & 4.35 & 1.35 & 1 & $+0.35$ & $-0.35$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+At step 4, the leftover makes the belief stay where it is, and so it
+catches up with the robot. In general, each step adds $n$ to the total
+move of the belief and $0.87-n$ to the leftover, so the total move plus
+the leftover grows by exactly $0.87$ per step and is always the true
+displacement. The error of the belief, its total move minus the true
+displacement, is therefore $-r$; and since $n$ is the whole number nearest
+to $r+0.87$, the leftover $r+0.87-n$ is never more than half a cell in
+size. The error stays below half a cell, however many steps are made,
+instead of growing like $0.13\,t$.
