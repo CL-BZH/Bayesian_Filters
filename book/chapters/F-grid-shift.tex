@@ -148,11 +148,21 @@ is at least $2\sigma$ from the mean with a probability of at most $1/4$.
 Here, following one unit of mass from the cell $i$ (with $k=0$), the
 position takes two values: $x_1=i$, with the probability $p_1=1-f$, and
 $x_2=i+1$, with the probability $p_2=f$, the probabilities found above.
-The mean is $m=i+f$:
+
+\emph{Units.} Positions are counted in cells (the cell $i$ is at the
+position $i$), so the distances between positions, such as $x_k-m$, and
+the displacements, such as $f$, are measured in cells too. A squared
+distance is then measured in cells squared, written cell$^2$, and so is
+the variance, an average of squared distances; the probabilities have no
+unit. The square root of the variance, the standard deviation, is back
+in cells. With cells 4 units wide, $1$ cell is $4$ units and
+$1$\,cell$^2$ is $16$ units$^2$.
+
+The mean is $m=i+f$ cell:
 \begin{center}
 \begin{tabular}{cccc}
   \toprule
-  position $x_k$ & probability $p_k$ & $x_k-m$ & $(x_k-m)^2$\\
+  position $x_k$ (cell) & probability $p_k$ & $x_k-m$ (cell) & $(x_k-m)^2$ (cell$^2$)\\
   \midrule
   $i$   & $1-f$ & $i-(i+f)=-f$    & $f^2$\\
   $i+1$ & $f$   & $(i+1)-(i+f)=1-f$ & $(1-f)^2$\\
@@ -160,21 +170,21 @@ The mean is $m=i+f$:
 \end{tabular}
 \end{center}
 Multiplying each squared distance by its probability and adding:
+\begin{align*}
+  \Var&=(1-f)\times f^2\ \text{cell}^2+f\times(1-f)^2\ \text{cell}^2\\
+      &=f(1-f)\times\bigl(f+(1-f)\bigr)\ \text{cell}^2
+       &&\text{taking out the common factor $f(1-f)$}\\
+      &=f(1-f)\ \text{cell}^2 .
+\end{align*}
+With the numbers of \cref{fig:gs1d}, $f=0.7$: the mean is $0.7$ cell,
+the two positions $0$ and $1$ are at the distances $-0.7$ and $0.3$ cell
+from it, and
 \[
-  \Var=(1-f)\times f^2+f\times(1-f)^2
-  =f(1-f)\times\bigl(f+(1-f)\bigr)=f(1-f)\ \text{cell}^2,
+  \Var=0.3\times0.49\ \text{cell}^2+0.7\times0.09\ \text{cell}^2
+  =(0.147+0.063)\ \text{cell}^2=0.21\ \text{cell}^2=0.7\times0.3\ \text{cell}^2 .
 \]
-taking out the common factor $f(1-f)$. Here positions are counted in cells (the cell $i$ is at the
-position $i$), so the distances between positions, such as $x_k-m$, and
-the displacements are measured in cells too. A variance, an average of
-squared distances, is then measured in cells squared, written cell$^2$; its square root, the standard deviation,
-is back in cells. With cells 4 units wide, $1$ cell is $4$ units and
-$1$\,cell$^2$ is $16$ units$^2$. With the numbers of
-\cref{fig:gs1d}, $f=0.7$: the mean is $0.7$, the two positions $0$ and
-$1$ are at the distances $-0.7$ and $0.3$ from it, and
-$\Var=0.3\times0.49+0.7\times0.09=0.147+0.063=0.21=0.7\times0.3$. For $f=0.87$ it is
-$0.87\times0.13=0.11$\,cell$^2$; its largest value is $0.25$\,cell$^2$,
-for $f=0.5$, a standard deviation of half a cell.
+For $f=0.87$ it is $0.87\times0.13=0.11$\,cell$^2$; its largest value is
+$0.25$\,cell$^2$, for $f=0.5$, a standard deviation of half a cell.
 
 \emph{Where the spread comes from.} The move itself spreads nothing: a
 robot uniform on the cell $[i,i+1)$ becomes a robot uniform on
