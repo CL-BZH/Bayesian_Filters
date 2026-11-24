@@ -81,20 +81,33 @@ Its average position is
 on average, the mass has moved by exactly $f$. Sharing does not drift.
 
 \emph{But the mass is spread.} Mass that was in one cell is now in two.
-The spread is measured by the variance: the average of the squared
-distance to the mean $i+f$, each position weighted by its share.
-\begin{itemize}[nosep]
-  \item The cell $i$ is at the distance $f$ from the mean, with the share
-        $1-f$.
-  \item The cell $i+1$ is at the distance $1-f$ from the mean, with the
-        share $f$.
-\end{itemize}
-So the variance is
+The spread is measured by the variance. For a mass spread over a few
+positions $x_k$, with the shares $p_k$ (adding up to $1$) and the mean
+$m=\sum_kp_kx_k$, the variance is the average of the squared distances to
+the mean, each weighted by its share:
 \[
-  (1-f)\times f^2+f\times(1-f)^2
+  \Var=\sum_kp_k\,(x_k-m)^2 .
+\]
+Here there are two positions, and the mean is $m=i+f$:
+\begin{center}
+\begin{tabular}{cccc}
+  \toprule
+  position $x_k$ & share $p_k$ & $x_k-m$ & $(x_k-m)^2$\\
+  \midrule
+  $i$   & $1-f$ & $i-(i+f)=-f$    & $f^2$\\
+  $i+1$ & $f$   & $(i+1)-(i+f)=1-f$ & $(1-f)^2$\\
+  \bottomrule
+\end{tabular}
+\end{center}
+Multiplying each squared distance by its share and adding:
+\[
+  \Var=(1-f)\times f^2+f\times(1-f)^2
   =f(1-f)\times\bigl(f+(1-f)\bigr)=f(1-f)\ \text{cell}^2,
 \]
-taking out the common factor $f(1-f)$. For $f=0.87$ it is
+taking out the common factor $f(1-f)$. With the numbers of
+\cref{fig:gs1d}a, $f=0.7$: the mean is $0.7$, the two positions $0$ and
+$1$ are at the distances $-0.7$ and $0.3$ from it, and
+$\Var=0.3\times0.49+0.7\times0.09=0.147+0.063=0.21=0.7\times0.3$. For $f=0.87$ it is
 $0.87\times0.13=0.11$\,cell$^2$; its largest value is $0.25$\,cell$^2$,
 for $f=0.5$, a standard deviation of half a cell. The robot did not
 become more uncertain: this spread is an artefact of the grid.
