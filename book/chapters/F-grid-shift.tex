@@ -428,8 +428,13 @@ values after the step $t-1$:
   &=M_{t-1}+\lfloor r_{t-1}+0.87\rceil
   &&M_{t-1}\text{ is a whole number,}
 \end{align*}
-the last line because adding a whole number to $x$ adds the same whole
-number to its nearest whole number. So the belief moves, at the step $t$,
+where the last line uses, for a whole number $m$,
+\[
+  \lfloor m+x\rceil=m+\lfloor x\rceil :
+\]
+a whole number can be taken out of the rounding. For example, at step 4,
+$\lfloor 3+0.48\rceil=\lfloor 3.48\rceil=3=3+\lfloor0.48\rceil$. So the
+belief moves, at the step $t$,
 by
 \[
   n_t=M_t-M_{t-1}=\lfloor r_{t-1}+0.87\rceil
