@@ -265,37 +265,81 @@ def fig_quadtree():
 
 
 # ---------------------------------------------------------------- appendix F
-def fig_shift_areas():
-    """Moving mass on a grid by a fraction of a cell: shares as lengths (1-D) and as areas (2-D)."""
+def fig_shift_1d():
+    """Sharing in one dimension: (a) where the mass of one cell goes; (b) what one cell receives."""
     from matplotlib.patches import Rectangle
-    f, fx, fy = 0.7, 0.7, 0.4
-    blue, ink, grey = viz.COLORS["EKF"], viz.INK, viz.MUTED
-    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.42), gridspec_kw={"width_ratios": [1.3, 1, 1]})
-    # (a) one dimension
-    ax = axes[0]
+    f = 0.7
+    blue, orange, ink = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(W * 0.8, W * 0.62),
+                                   gridspec_kw={"height_ratios": [1, 1.45]})
+    # (a) the mass of one cell
+    ax = ax1
     for i in range(3):
         ax.add_patch(Rectangle((i, 0), 1, 1, fc="none", ec=ink, lw=1.0))
-        ax.text(i + 0.5, -0.12, f"cell {i}", ha="center", va="top", fontsize=8)
+        ax.text(i + 0.5, -0.1, f"cell {i}", ha="center", va="top", fontsize=8)
     ax.add_patch(Rectangle((f, 0), 1 - f, 1, fc=blue, alpha=0.25, lw=0))
     ax.add_patch(Rectangle((1, 0), f, 1, fc=blue, alpha=0.55, lw=0))
     ax.add_patch(Rectangle((f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.annotate("", (f, 1.12), (0, 1.12), arrowprops=dict(arrowstyle="->", color=ink, lw=0.9))
-    ax.text(f / 2, 1.17, f"$f={f}$", ha="center", va="bottom", fontsize=8)
+    ax.text(f / 2, 1.17, f"move by $f={f}$", ha="center", va="bottom", fontsize=8)
     ax.text(f + (1 - f) / 2, 0.5, f"{1 - f:.1f}", ha="center", va="center", fontsize=8)
     ax.text(1 + f / 2, 0.5, f"{f}", ha="center", va="center", fontsize=8)
-    ax.text(f + (1 - f) / 2, -0.32, "$1-f$", ha="center", va="top", fontsize=8, color=blue)
-    ax.text(1 + f / 2, -0.32, "$f$", ha="center", va="top", fontsize=8, color=blue)
-    ax.set_title("(a) one dimension:\nshares are lengths", fontsize=8.5)
-    ax.set_xlim(-0.1, 3.1); ax.set_ylim(-0.6, 1.45)
-    # (b) two dimensions: the four overlaps
-    for ax, title in zip(axes[1:], ("(b) two dimensions:\nshares are areas",
-                                    "(c) the left column\nkeeps $1-f_x$")):
+    ax.text(f + (1 - f) / 2, -0.38, "$1-f$", ha="center", va="top", fontsize=8, color=blue)
+    ax.text(1 + f / 2, -0.38, "$f$", ha="center", va="top", fontsize=8, color=blue)
+    ax.text(3.15, 0.5, "the moved copy of cell 0 (dashed)\ncovers $1-f$ of cell 0 and $f$ of cell 1:\n"
+            "cell 0 keeps $1-f$ of its mass,\ncell 1 gets $f$", ha="left", va="center", fontsize=8)
+    ax.set_title("(a) where the mass of one cell goes", fontsize=9, loc="left")
+    ax.set_xlim(-0.1, 6.3); ax.set_ylim(-0.7, 1.45)
+    # (b) what one cell receives
+    ax = ax2
+    b = [0.1, 0.5, 0.3, 0.1]
+    names = ["$j-2$", "$j-1$", "$j$", "$j+1$"]
+    ytop = 1.55
+    for i in range(4):
+        ax.add_patch(Rectangle((i, ytop), 1, 1, fc="none", ec=ink, lw=1.0))
+        ax.text(i + 0.5, ytop + 0.5, f"$b={b[i]}$", ha="center", va="center", fontsize=8)
+        ax.text(i + 0.5, ytop + 1.08, names[i], ha="center", va="bottom", fontsize=8)
+        ax.add_patch(Rectangle((i, 0), 1, 1, fc="none", ec=ink, lw=1.0))
+    ax.text(-0.1, ytop + 0.5, "before", ha="right", va="center", fontsize=8)
+    ax.text(-0.1, 0.5, "after", ha="right", va="center", fontsize=8)
+    # moved copies of cells j-1 (orange) and j (blue)
+    ax.add_patch(Rectangle((1 + f, 0), 1, 1, fc="none", ec=orange, lw=1.6, ls="--"))
+    ax.add_patch(Rectangle((2 + f, 0), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+    ax.add_patch(Rectangle((2, 0), f, 1, fc=orange, alpha=0.45, lw=0))
+    ax.add_patch(Rectangle((2 + f, 0), 1 - f, 1, fc=blue, alpha=0.45, lw=0))
+    ax.text(2 + f / 2, 0.5, f"{f * b[1]:.2f}", ha="center", va="center", fontsize=8)
+    ax.text(2 + f + (1 - f) / 2, 0.5, f"{(1 - f) * b[2]:.2f}", ha="center", va="center", fontsize=7.5)
+    ax.text(2 + f / 2, -0.12, "$f\\,b_{j-1}$", ha="center", va="top", fontsize=8, color=orange)
+    ax.text(2 + f + (1 - f) / 2 + 0.05, -0.12, "$(1-f)\\,b_j$", ha="left", va="top", fontsize=8, color=blue)
+    ax.annotate("", (1 + f + 0.5, 1.02), (1.5, ytop - 0.02),
+                arrowprops=dict(arrowstyle="->", color=orange, lw=1.1))
+    ax.annotate("", (2 + f + 0.5, 1.02), (2.5, ytop - 0.02),
+                arrowprops=dict(arrowstyle="->", color=blue, lw=1.1))
+    new = f * b[1] + (1 - f) * b[2]
+    ax.text(4.25, 0.5, f"new mass of cell $j$:\n$b'_j=f\\,b_{{j-1}}+(1-f)\\,b_j$\n"
+            f"$={f}\\times{b[1]}+{1 - f:.1f}\\times{b[2]}={new:.2f}$",
+            ha="left", va="center", fontsize=8)
+    ax.set_title("(b) what one cell receives: all cells move at once", fontsize=9, loc="left")
+    ax.set_xlim(-0.8, 7.2); ax.set_ylim(-0.5, ytop + 1.45)
+    for ax in (ax1, ax2):
+        ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appF_shift_1d")
+
+
+def fig_shift_2d():
+    """Sharing in two dimensions: shares are areas; the left column keeps 1 - fx."""
+    from matplotlib.patches import Rectangle
+    fx, fy = 0.7, 0.4
+    blue, ink, grey = viz.COLORS["EKF"], viz.INK, viz.MUTED
+    fig, axes = plt.subplots(1, 2, figsize=(W * 0.75, W * 0.42))
+    for ax, title in zip(axes, ("(a) the shares are areas", "(b) the left column keeps $1-f_x$")):
         for i in range(2):
             for j in range(2):
                 ax.add_patch(Rectangle((i, j), 1, 1, fc="none", ec=ink, lw=1.0))
-        ax.set_title(title, fontsize=8.5)
-        ax.set_xlim(-0.1, 2.1); ax.set_ylim(-0.1, 2.25)
-    ax = axes[1]
+        ax.set_title(title, fontsize=9)
+        ax.set_xlim(-0.1, 2.1); ax.set_ylim(-0.3, 2.2)
+    ax = axes[0]
     parts = [((fx, fy), 1 - fx, 1 - fy, 0.20), ((1, fy), fx, 1 - fy, 0.40),
              ((fx, 1), 1 - fx, fy, 0.30), ((1, 1), fx, fy, 0.55)]
     for (x0, y0), w, h, a in parts:
@@ -304,9 +348,8 @@ def fig_shift_areas():
     ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.add_patch(Rectangle((0, 0), 1, 1, fc="none", ec=grey, lw=2.2))
     ax.text(0.35, 0.2, "start", ha="center", fontsize=8, color=grey)
-    ax.text(fx / 2, 2.12, f"$f_x={fx}$, $f_y={fy}$", fontsize=8, ha="left")
-    # (c) the left column: a strip of width 1 - fx and height 1
-    ax = axes[2]
+    ax.text(0.0, -0.22, f"$f_x={fx}$, $f_y={fy}$", fontsize=8, ha="left")
+    ax = axes[1]
     ax.add_patch(Rectangle((fx, fy), 1 - fx, 1, fc=blue, alpha=0.45, lw=0))
     ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.text(fx + (1 - fx) / 2, fy + 0.5, f"{1 - fx:.1f}", ha="center", va="center", fontsize=8)
@@ -315,7 +358,7 @@ def fig_shift_areas():
     for ax in axes:
         ax.set_aspect("equal"); ax.axis("off")
     plt.tight_layout()
-    save(fig, "appF_shift_areas")
+    save(fig, "appF_shift_2d")
 
 
 def fig_shift_spread():
@@ -350,7 +393,7 @@ def fig_shift_spread():
             label="sharing: mean")
     ax.set_xlabel("number of shifts", fontsize=8); ax.set_ylabel("cell", fontsize=8)
     ax.set_title("(c) rounding drifts, sharing does not", fontsize=8.5)
-    ax.legend(fontsize=7, frameon=False, loc="lower right"); ax.tick_params(labelsize=7.5)
+    ax.legend(fontsize=7, frameon=False, loc="upper left"); ax.set_ylim(0, 17); ax.tick_params(labelsize=7.5)
     plt.tight_layout()
     save(fig, "appF_shift_spread")
     print(f"shift spread: after 10 shifts of {f}: true {2 + 10 * f:.2f}, rounding {np.sum(cells * hist_r[10]):.2f}, "
@@ -1177,7 +1220,8 @@ if __name__ == "__main__":
     fig_grid()
     fig_potato()
     fig_quadtree()
-    fig_shift_areas()
+    fig_shift_1d()
+    fig_shift_2d()
     fig_shift_spread()
     fig_kf_track()
     fig_riccati()
