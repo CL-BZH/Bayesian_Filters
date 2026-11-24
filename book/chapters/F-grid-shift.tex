@@ -13,16 +13,29 @@ every number below.
 \section{The problem}
 \label{sec:gs-problem}
 
-The grid stores one probability per cell, and treats it as if all the
-mass of the cell sat at its centre. Moving the belief by a whole number of
-cells is easy: each cell passes its mass to the cell that many places
-further on. But take cells 4 units wide and a step of 4 units at
-$30^\circ$: the displacement is $(4\cos30^\circ,\,4\sin30^\circ)=(3.46,\,2)$
-units, that is $0.87$ cell along $x$ and $0.5$ cell along $y$. The mass of
-a cell should then go to a point that is not the centre of any cell.
+The grid stores one probability per cell: the probability that the
+robot is somewhere in that cell. It says nothing about \emph{where} in the
+cell, and to move the belief we must decide how to read it. There are two
+natural readings:
+\begin{itemize}[nosep]
+  \item \emph{all the mass at the centre}: the robot is at the centre of
+        the cell, with the probability of the cell;
+  \item \emph{the mass spread evenly over the cell}: every point of the
+        cell is equally likely, that is, inside the cell the position is
+        uniformly distributed.
+\end{itemize}
+Moving the belief by a whole number of cells is easy with either reading:
+each cell passes its mass to the cell that many places further on. But
+take cells 4 units wide and a step of 4 units at $30^\circ$: the
+displacement is $(4\cos30^\circ,\,4\sin30^\circ)=(3.46,\,2)$ units, that
+is $0.87$ cell along $x$ and $0.5$ cell along $y$, and the moved mass no
+longer fits the cells.
 
-The simplest answer is to put all the mass in the cell where that point
-lands. Take cell $0$, the interval $[0,1)$ in units of cells, with its
+\emph{The first reading leads to rounding.}
+
+If all the mass of a cell sits at its centre, the move takes it to one
+point, which is not the centre of any cell, and the simplest answer is to
+put all the mass in the cell where that point lands. Take cell $0$, the interval $[0,1)$ in units of cells, with its
 mass at the centre $0.5$, and a move of $0.87$ cell. The mass should be at
 $0.5+0.87=1.37$, which lies in cell $1$, $[1,2)$. Putting the mass in
 cell $1$ puts it at the centre $1.5$ of that cell: the mass has moved by
@@ -31,18 +44,34 @@ the rounding error, $0.13$ cell, is made again at every step, always in
 the same direction. After 10 steps the belief has moved $10$ cells
 instead of $8.7$: $1.3$ cells, about $5$ units, too far, while staying as
 sharp as a single cell. The filter is wrong and confident
-(\cref{fig:gsspread}c).
+(\cref{fig:gsspread}c). The second reading avoids this, as the next
+section shows.
 
 \section{Sharing in one dimension}
 \label{sec:gs-1d}
 
-Write the displacement, in cells, as $k+f$: a whole number $k$ of cells
-and a fraction $f$ of a cell, with $0\le f<1$. Picture the cell $i$, a
-segment of length $1$, moved by $k+f$. The moved segment does not fit one
-cell: it covers the length $1-f$ of the cell $i+k$ and the length $f$ of
-the cell $i+k+1$ (\cref{fig:gs1d}a, where $k=0$). \emph{Sharing} gives
-each of these two cells that fraction of the mass of the cell $i$: the
-cell $i+k$ gets $1-f$ and the cell $i+k+1$ gets $f$. When $k=0$, as for a
+Take now the second reading: inside a cell, the position is uniformly
+distributed. Measure positions in cells, so that the cell $i$ is the
+interval $[i,i+1)$, of length $1$, and write the displacement, in cells,
+as $k+f$: a whole number $k$ of cells and a fraction $f$ of a cell, with
+$0\le f<1$.
+
+\emph{Where can the robot be after the move?} Suppose the robot is in the
+cell $i$, at a point $x$ that is uniform on $[i,i+1)$. After the move it
+is at $x+k+f$, which is uniform on the moved interval
+$[i+k+f,\,i+k+1+f)$: the dashed copy of the cell in
+\cref{fig:gs1d}a, where $k=0$. That interval does not fit one cell: its
+part $[i+k+f,\,i+k+1)$, of length $1-f$, lies in the cell $i+k$, and its
+part $[i+k+1,\,i+k+1+f)$, of length $f$, lies in the cell $i+k+1$.
+
+\emph{From lengths to probabilities.} For a uniform distribution on an
+interval of length $1$, the probability of a part of the interval is its
+length. So the robot ends up in the cell $i+k+1$ with probability $f$,
+and in the cell $i+k$ with probability $1-f$. This is the only place where
+a displacement becomes a probability, and it is the uniform distribution
+inside the cell that makes it one. With the mass of the cell $i$, the
+cell $i+k$ receives the fraction $1-f$ and the cell $i+k+1$ the fraction
+$f$: this is \emph{sharing}. When $k=0$, as for a
 step shorter than a cell, the first of the two is the cell $i$ itself,
 which keeps $1-f$; when $k\ge1$, the cell $i$ keeps nothing.
 
@@ -61,8 +90,10 @@ spread nor the error, so the examples take $k=0$.
 \centering
 \includegraphics[width=0.8\linewidth]{figures/appF_shift_1d.pdf}
 \caption{Sharing in one dimension, for a move by $f=0.7$ of a cell ($k=0$).
-(a) The moved copy of cell 0 (dashed) covers the length $1-f=0.3$ of cell
-0 and $f=0.7$ of cell 1, which get these shares of its mass. (b) All the
+(a) A robot uniform in cell 0 is, after the move, uniform in the moved
+copy of cell 0 (dashed), which covers the length $1-f=0.3$ of cell 0 and
+$f=0.7$ of cell 1: it is in cell 0 with probability $0.3$ and in cell 1
+with probability $0.7$, and these cells get these fractions of the mass. (b) All the
 cells move at once, so a cell receives from two cells: from the copy of
 the cell before it, which covers the fraction $f$ of it, and from its own
 copy, which covers the fraction $1-f$. With the masses shown, cell $j$
@@ -72,36 +103,46 @@ itself, so its new mass is $0.44$.}
 \end{figure}
 
 \emph{The mean is right.} Follow the mass of one cell $i$, with $k=0$.
-After the sharing it sits at the cell $i$, with the share $1-f$, and at
-the cell $i+1$, with the share $f$.
+After the sharing it sits at the cell $i$, with the probability $1-f$,
+and at the cell $i+1$, with the probability $f$.
 Its average position is
 \[
   (1-f)\,i+f\,(i+1)=i+f :
 \]
 on average, the mass has moved by exactly $f$. Sharing does not drift.
 
-\emph{But the mass is spread.} Mass that was in one cell is now in two.
-The spread is measured by the variance of the position: the belief is a
-probability distribution of the robot's position, and its variance says
-how far from the mean that position is likely to be. For a mass spread
-over a few positions $x_k$, with the shares $p_k$ (adding up to $1$) and the mean
-$m=\sum_kp_kx_k$, the variance is the average of the squared distances to
-the mean, each weighted by its share:
+\emph{But the belief is spread.} Before the move, all of this mass was
+in one cell; now it is in two. The spread is measured by the variance of
+the position, as the grid records it, that is, by its cell. For a
+position that takes a few values $x_k$ with the probabilities $p_k$
+(adding up to $1$), and has the mean $m=\sum_kp_kx_k$, the variance is the
+average of the squared distances to the mean, each weighted by its
+probability:
 \[
   \Var=\sum_kp_k\,(x_k-m)^2 .
 \]
-Here there are two positions, and the mean is $m=i+f$:
+The probabilities are the weights; the variance itself is not a
+probability but a distance squared. Its square root, the standard
+deviation $\sigma$, is a typical distance from the mean, and what it says
+about probabilities is made precise by Chebyshev's inequality: the
+probability that the position is at least the distance $a$ from the mean
+is at most $\Var/a^2$ (at least $2\sigma$ away: at most $1/4$).
+
+Here, following one unit of mass from the cell $i$ (with $k=0$), the
+position takes two values: $x_1=i$, with the probability $p_1=1-f$, and
+$x_2=i+1$, with the probability $p_2=f$, the probabilities found above.
+The mean is $m=i+f$:
 \begin{center}
 \begin{tabular}{cccc}
   \toprule
-  position $x_k$ & share $p_k$ & $x_k-m$ & $(x_k-m)^2$\\
+  position $x_k$ & probability $p_k$ & $x_k-m$ & $(x_k-m)^2$\\
   \midrule
   $i$   & $1-f$ & $i-(i+f)=-f$    & $f^2$\\
   $i+1$ & $f$   & $(i+1)-(i+f)=1-f$ & $(1-f)^2$\\
   \bottomrule
 \end{tabular}
 \end{center}
-Multiplying each squared distance by its share and adding:
+Multiplying each squared distance by its probability and adding:
 \[
   \Var=(1-f)\times f^2+f\times(1-f)^2
   =f(1-f)\times\bigl(f+(1-f)\bigr)=f(1-f)\ \text{cell}^2,
@@ -116,8 +157,18 @@ $1$\,cell$^2$ is $16$ units$^2$. With the numbers of
 $1$ are at the distances $-0.7$ and $0.3$ from it, and
 $\Var=0.3\times0.49+0.7\times0.09=0.147+0.063=0.21=0.7\times0.3$. For $f=0.87$ it is
 $0.87\times0.13=0.11$\,cell$^2$; its largest value is $0.25$\,cell$^2$,
-for $f=0.5$, a standard deviation of half a cell. The robot did not
-become more uncertain: this spread is an artefact of the grid.
+for $f=0.5$, a standard deviation of half a cell.
+
+\emph{Where the spread comes from.} The move itself spreads nothing: a
+robot uniform on the cell $[i,i+1)$ becomes a robot uniform on
+$[i+f,i+1+f)$, an interval of the same length. The spread comes from the
+next step, when the grid stores the result. It keeps only the
+probability of each cell, $1-f$ and $f$, and forgets where inside the cell
+that probability lies: the part of length $1-f$, which lay at the end of
+the cell $i$, is read again as spread over the whole cell $i$, and the
+part of length $f$ over the whole cell $i+1$. That forgetting, made at
+every step, is what adds the variance $f(1-f)$. The robot did not become
+more uncertain: this spread is an artefact of the grid.
 
 \emph{It adds up over the steps.} Sharing the mass of every cell in this
 way is a convolution of the belief with the two-point weight
