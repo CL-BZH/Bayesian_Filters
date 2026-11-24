@@ -348,33 +348,56 @@ def fig_shift_1d():
 
 
 def fig_shift_2d():
-    """Sharing in two dimensions: shares are areas; the left column keeps 1 - fx."""
+    """Sharing in two dimensions: shares are areas; the left column keeps 1 - fx, the bottom row 1 - fy."""
     from matplotlib.patches import Rectangle
     fx, fy = 0.7, 0.4
     blue, ink, grey = viz.COLORS["EKF"], viz.INK, viz.MUTED
-    fig, axes = plt.subplots(1, 2, figsize=(W * 0.75, W * 0.42))
-    for ax, title in zip(axes, ("(a) the shares are areas", "(b) the left column keeps $1-f_x$")):
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.38))
+    titles = ("(a) the shares are areas", "(b) the left column keeps $1-f_x$",
+              "(c) the bottom row keeps $1-f_y$")
+    for ax, title in zip(axes, titles):
         for i in range(2):
             for j in range(2):
                 ax.add_patch(Rectangle((i, j), 1, 1, fc="none", ec=ink, lw=1.0))
         ax.set_title(title, fontsize=9)
-        ax.set_xlim(-0.1, 2.1); ax.set_ylim(-0.3, 2.2)
+        ax.set_xlim(-0.1, 2.25); ax.set_ylim(-0.3, 2.2)
+    arrow = dict(arrowstyle="<->", color=ink, lw=0.8)
+    bg = dict(fc=fig.get_facecolor(), ec="none", pad=0.6)   # labels over the grid lines
+    # (a) the four areas, with the side lengths
     ax = axes[0]
     parts = [((fx, fy), 1 - fx, 1 - fy, 0.20), ((1, fy), fx, 1 - fy, 0.40),
              ((fx, 1), 1 - fx, fy, 0.30), ((1, 1), fx, fy, 0.55)]
-    for (x0, y0), w, h, a in parts:
-        ax.add_patch(Rectangle((x0, y0), w, h, fc=blue, alpha=a, lw=0))
+    for (x0, y0), w, h, al in parts:
+        ax.add_patch(Rectangle((x0, y0), w, h, fc=blue, alpha=al, lw=0))
         ax.text(x0 + w / 2, y0 + h / 2, f"{w * h:.2f}", ha="center", va="center", fontsize=8)
     ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.add_patch(Rectangle((0, 0), 1, 1, fc="none", ec=grey, lw=2.2))
     ax.text(0.35, 0.2, "start", ha="center", fontsize=8, color=grey)
+    yt = fy + 1 + 0.1                                   # widths, above the moved square
+    ax.annotate("", (1, yt), (fx, yt), arrowprops=arrow)
+    ax.annotate("", (1 + fx, yt), (1, yt), arrowprops=arrow)
+    ax.text(fx + (1 - fx) / 2, yt + 0.06, "$1-f_x$", ha="center", va="bottom", fontsize=7.5, bbox=bg)
+    ax.text(1 + fx / 2, yt + 0.06, "$f_x$", ha="center", va="bottom", fontsize=7.5, bbox=bg)
+    xr = fx + 1 + 0.08                                  # heights, right of the moved square
+    ax.annotate("", (xr, 1), (xr, fy), arrowprops=arrow)
+    ax.annotate("", (xr, 1 + fy), (xr, 1), arrowprops=arrow)
+    ax.text(xr + 0.05, fy + (1 - fy) / 2, "$1-f_y$", ha="left", va="center", fontsize=7.5, bbox=bg)
+    ax.text(xr + 0.05, 1 + fy / 2, "$f_y$", ha="left", va="center", fontsize=7.5, bbox=bg)
     ax.text(0.0, -0.22, f"$f_x={fx}$, $f_y={fy}$", fontsize=8, ha="left")
+    # (b) the left column
     ax = axes[1]
     ax.add_patch(Rectangle((fx, fy), 1 - fx, 1, fc=blue, alpha=0.45, lw=0))
     ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
     ax.text(fx + (1 - fx) / 2, fy + 0.5, f"{1 - fx:.1f}", ha="center", va="center", fontsize=8)
-    ax.annotate("", (1, fy - 0.08), (fx, fy - 0.08), arrowprops=dict(arrowstyle="<->", color=ink, lw=0.8))
-    ax.text(fx + (1 - fx) / 2, fy - 0.15, "$1-f_x$", ha="center", va="top", fontsize=8)
+    ax.annotate("", (1, fy - 0.08), (fx, fy - 0.08), arrowprops=arrow)
+    ax.text(fx + (1 - fx) / 2, fy - 0.15, "$1-f_x$", ha="center", va="top", fontsize=8, bbox=bg)
+    # (c) the bottom row
+    ax = axes[2]
+    ax.add_patch(Rectangle((fx, fy), 1, 1 - fy, fc=blue, alpha=0.45, lw=0))
+    ax.add_patch(Rectangle((fx, fy), 1, 1, fc="none", ec=blue, lw=1.6, ls="--"))
+    ax.text(fx + 0.5, fy + (1 - fy) / 2, f"{1 - fy:.1f}", ha="center", va="center", fontsize=8)
+    ax.annotate("", (xr, 1), (xr, fy), arrowprops=arrow)
+    ax.text(xr + 0.05, fy + (1 - fy) / 2, "$1-f_y$", ha="left", va="center", fontsize=8, bbox=bg)
     for ax in axes:
         ax.set_aspect("equal"); ax.axis("off")
     plt.tight_layout()

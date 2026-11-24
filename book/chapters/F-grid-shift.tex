@@ -305,13 +305,16 @@ $f_y=0.5$.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.75\linewidth]{figures/appF_shift_2d.pdf}
+\includegraphics[width=\linewidth]{figures/appF_shift_2d.pdf}
 \caption{Sharing in two dimensions. (a) The cell that starts at the bottom
 left (grey) is moved by $f_x=0.7$ along $x$ and $f_y=0.4$ along $y$
 (dashed). It overlaps four cells, and the shares are the overlapping
-areas: $0.18$, $0.42$, $0.12$, $0.28$. (b) The part that falls in the
-left column is a strip of width $1-f_x=0.3$ and height $1$: the left
-column keeps $1-f_x$ of the mass, whatever $f_y$.}
+areas, each a covered width ($1-f_x$ or $f_x$) times a covered height
+($1-f_y$ or $f_y$): $0.18$, $0.42$, $0.12$, $0.28$. (b) The part that
+falls in the left column is a strip of width $1-f_x=0.3$ and height $1$:
+the left column keeps $1-f_x$ of the mass, whatever $f_y$. (c) The part
+that falls in the bottom row is a strip of width $1$ and height
+$1-f_y=0.6$: the bottom row keeps $1-f_y$ of the mass, whatever $f_x$.}
 \label{fig:gs2d}
 \end{figure}
 
@@ -325,8 +328,11 @@ translated square that lies in the left column is a strip of width $1-f_x$
 and height $1$ (\cref{fig:gs2d}b), whose area is $1-f_x$. Likewise the
 right column receives $f_x$. So, along $x$, the mass is shared exactly as
 in one dimension, with the fraction $f_x$, and the sharing adds the
-variance $f_x(1-f_x)$\,cell$^2$ along $x$. In the same way it adds $f_y(1-f_y)$\,cell$^2$
-along $y$.
+variance $f_x(1-f_x)$\,cell$^2$ along $x$. In the same way, along $y$,
+the bottom row receives
+$(1-f_x)(1-f_y)+f_x(1-f_y)=1-f_y$, a strip of width $1$ and height
+$1-f_y$ (\cref{fig:gs2d}c), the top row receives $f_y$, and the sharing
+adds the variance $f_y(1-f_y)$\,cell$^2$ along $y$.
 
 \emph{The example of \cref{sec:gs-problem}.} For the step at $30^\circ$,
 $f_x=0.87$ and $f_y=0.5$, and each prediction adds the variances
