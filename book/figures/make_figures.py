@@ -264,6 +264,50 @@ def fig_quadtree():
     save(fig, "appE_quadtree")
 
 
+def fig_quadtree_chain():
+    """The cells of the quadtree that contain a grid cell C: all mixed if C is mixed; stop at an in leaf if C is in."""
+    from matplotlib.patches import Circle, Rectangle
+    cx, cy, R = 3.5, 3.5, 3.4                            # the lawn: a disk in Q0 = [0, 8]^2, h = 1
+
+    def status(x0, y0, s):
+        X, Y = np.meshgrid(np.linspace(x0, x0 + s, 41), np.linspace(y0, y0 + s, 41))
+        inside = (X - cx) ** 2 + (Y - cy) ** 2 <= R ** 2
+        return "in" if inside.all() else ("out" if not inside.any() else "mixed")
+
+    def leaves(x0, y0, s, out):
+        k = status(x0, y0, s)
+        if k == "mixed" and s > 1:
+            for dx in (0, s / 2):
+                for dy in (0, s / 2):
+                    leaves(x0 + dx, y0 + dy, s / 2, out)
+        else:
+            out.append((x0, y0, s, k))
+        return out
+
+    tree = leaves(0.0, 0.0, 8.0, [])
+    fill = {"in": "#7fc8a4", "mixed": "#cdeadb", "out": "white"}
+    blue, orange, ink = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK
+    fig, axes = plt.subplots(1, 2, figsize=(W, W * 0.5))
+    chains = [((5, 5), [(0, 0, 8), (4, 4, 4), (4, 4, 2), (5, 5, 1)], "(a) $C$ mixed: every cell that contains it is mixed"),
+              ((3, 2), [(0, 0, 8), (0, 0, 4), (2, 2, 2)], "(b) $C$ in: the chain stops at an in leaf")]
+    for ax, ((Cx, Cy), chain, title) in zip(axes, chains):
+        for x0, y0, sd, k in tree:
+            ax.add_patch(Rectangle((x0, y0), sd, sd, fc=fill[k], ec=viz.INK_2, lw=0.35))
+        ax.add_patch(Circle((cx, cy), R, fc="none", ec=ink, lw=1.0))
+        ax.add_patch(Rectangle((Cx, Cy), 1, 1, fc=orange, alpha=0.8, ec=ink, lw=0.8))
+        ax.text(Cx + 0.5, Cy + 0.5, "$C$", ha="center", va="center", fontsize=8.5)
+        for j, (x0, y0, sd) in enumerate(chain):
+            ax.add_patch(Rectangle((x0, y0), sd, sd, fc="none", ec=blue, lw=2.0 - 0.3 * j, ls="-"))
+            if 0 < j < len(chain) - (1 if sd == 1 else 0):
+                ax.text(x0 + 0.08, y0 + sd - 0.08, f"$A_{j}$", ha="left", va="top", fontsize=8, color=blue,
+                        bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.8))
+        ax.text(0.08, 8.15, "$A_0=Q_0$", ha="left", va="bottom", fontsize=8, color=blue)
+        ax.set_title(title, fontsize=8.5, pad=14)
+        ax.set_xlim(-0.1, 8.1); ax.set_ylim(-0.1, 8.1); ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appE_quadtree_chain")
+
+
 # ---------------------------------------------------------------- appendix F
 def fig_shift_1d():
     """Sharing in one dimension: where the mass of one cell goes; then what one cell receives, k = 0 and k = 1."""
@@ -1332,6 +1376,7 @@ if __name__ == "__main__":
     fig_grid()
     fig_potato()
     fig_quadtree()
+    fig_quadtree_chain()
     fig_shift_1d()
     fig_shift_2d()
     fig_shift_spread()

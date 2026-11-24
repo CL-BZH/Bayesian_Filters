@@ -13,7 +13,7 @@ find the cell of a point (\cref{sec:qt-find}), and discusses a grid
 filter whose cells are the cells of a quadtree (\cref{sec:qt-filter}).
 The numbers quoted are printed by the script
 \code{book/figures/make\_figures.py}, which also draws
-\cref{fig:quadtree}.
+\cref{fig:qtchain,fig:quadtree}.
 
 \section{Splitting squares}
 \label{sec:qt-def}
@@ -49,19 +49,89 @@ Three facts follow from the construction.
         grid are cells of the grid of half the side.
 \end{itemize}
 Each leaf is therefore an in cell, an out cell, or a mixed cell of side
-$h$ (\cref{fig:quadtree}, left).
+$h$ (\cref{fig:quadtree}a).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/appE_quadtree_chain.pdf}
+\caption{The cells of the quadtree that contain a cell $C$ of the uniform
+grid of side $h$, on a round lawn with $Q_0$ of side $8h$: in leaves
+(dark), mixed leaves (light), out leaves (white); the blue squares are
+the chain $A_0\supset A_1\supset\dots$ (a) $C$ is mixed, so $A_1$ and
+$A_2$, which contain it, are mixed and are split, down to $C$, which is a
+leaf. (b) $C$ is in; $A_0$ and $A_1$ are mixed and split, and $A_2$, an
+in leaf, is not split: $C$ lies inside it.}
+\label{fig:qtchain}
+\end{figure}
 
 \emph{The quadtree knows the lawn as well as the uniform grid of side
-$h$.} Take a cell $C$ of the uniform grid of side $h$. If $C$ is mixed,
-each cell that contains it contains a lawn point and an off-lawn point,
-so it is mixed too; every ancestor of $C$ was then split, and $C$ itself
-is a leaf. If $C$ is in or out, it lies in a leaf (the leaves cover
-$Q_0$), and this leaf is not a mixed leaf (those have side $h$, so the
-leaf would be $C$), so it is an in leaf or an out leaf, and $C$ has the
-same status. The mixed leaves are therefore exactly the mixed cells of
-the uniform grid, and every other cell of the uniform grid lies in a leaf
-of its own status: a mask on the leaves, built as in \cref{ch:bayes},
-gives the same answer at every point as the mask on the uniform grid.
+$h$.} The uniform grid of side $h$ is the finest the quadtree ever goes,
+and the quadtree keeps a large cell whole only when it is entirely in or
+entirely out. Then all the small cells inside it have that same status,
+so nothing is lost by not splitting it. Let us check this. Take a cell
+$C$ of the uniform grid of side $h$ that starts at a corner of $Q_0$; we
+show that
+\begin{itemize}[nosep]
+  \item if $C$ is mixed, $C$ is a leaf of the quadtree;
+  \item if $C$ is in, it lies inside an in leaf, and if it is out, inside
+        an out leaf.
+\end{itemize}
+
+\emph{Two facts about statuses.} If a cell $B$ contains a cell $C$:
+\begin{itemize}[nosep]
+  \item if $C$ is mixed, so is $B$: $C$ has a lawn point and an off-lawn
+        point, and both are points of $B$;
+  \item if $B$ is in, so is $C$, and if $B$ is out, so is $C$: every point
+        of $C$ is a point of $B$.
+\end{itemize}
+
+\emph{The cells that contain $C$.} For each depth $k$ from $0$ to $m$,
+let $A_k$ be the cell of the uniform grid of side $s_k$ that contains
+$C$. Then $A_0=Q_0$, $A_m=C$, and each $A_{k+1}$ is the quadrant of
+$A_k$ that contains $C$:
+\[
+  Q_0=A_0\supset A_1\supset\dots\supset A_m=C .
+\]
+By the third fact above, the cells of the quadtree at depth $k$ are cells
+of the grid of side $s_k$, so the only cells of the quadtree that can
+contain $C$ are these $A_k$. The construction goes down this chain: it
+starts at $A_0$, and whenever it splits $A_k$, the quadrant $A_{k+1}$
+becomes a cell of the tree.
+
+\emph{If $C$ is mixed} (\cref{fig:qtchain}a), every $A_k$ contains $C$,
+so every $A_k$ is mixed. Down the chain, each $A_k$ with $k<m$ is a mixed
+cell of side larger than $h$, so it is split and $A_{k+1}$ enters the
+tree. So $A_m=C$ enters the tree, and, having the side $h$, it is not
+split: $C$ is a leaf.
+
+\emph{If $C$ is in} (\cref{fig:qtchain}b), go down the chain while the
+cells are split, and let $A_j$ be the first that is not: it is a leaf,
+and it contains $C$. It is not mixed: a mixed leaf has the side $h$
+(mixed cells of larger side are split), so it would be $A_m=C$ itself,
+which is in. It is not out either, since it contains the lawn points of
+$C$. So $A_j$ is an in leaf that contains $C$. The same argument, with
+``in'' and ``out'' exchanged, puts an out cell $C$ inside an out leaf.
+
+\emph{The same mask.} A mask on the leaves, built as in \cref{ch:bayes},
+therefore gives the same answer at every point as the mask on the
+uniform grid. Take a point, and the cell $C$ of the uniform grid that
+contains it. If $C$ is mixed, it is itself a leaf, marked in the same
+way by both masks. If $C$ is in, both masks say ``lawn'': the uniform
+grid through $C$, the quadtree through the in leaf that contains $C$.
+If $C$ is out, both say ``not lawn''.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appE_quadtree.pdf}
+\caption{(a) The quadtree of the potato lawn of \cref{fig:potato}: a curved outer
+edge, and a round tree (circle) inside, with
+the root $Q_0=[-160,160]^2$ and the smallest side $h=10$: in leaves
+(dark), mixed leaves (light), out leaves (white). (b) The number of cells
+as the smallest side $h$ is halved: the uniform grid of side $h$ on the
+whole square, its cells that meet the lawn, the leaves of the quadtree,
+and the upper bound of \cref{prop:qtcount}.}
+\label{fig:quadtree}
+\end{figure}
 
 \emph{Classifying a cell.} How to decide whether a cell is in, out or
 mixed depends on how the edge is stored. For a mower, the edge is a
@@ -76,19 +146,6 @@ edge without being mixed is split for nothing, which costs a few cells
 but changes no answer. For \cref{fig:quadtree}, whose edge is a formula,
 the script tests points along the sides of each cell and treats the tree
 exactly.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/appE_quadtree.pdf}
-\caption{(a) The quadtree of the potato lawn of \cref{fig:potato}: a curved outer
-edge, and a round tree (circle) inside, with
-the root $Q_0=[-160,160]^2$ and the smallest side $h=10$: in leaves
-(dark), mixed leaves (light), out leaves (white). (b) The number of cells
-as the smallest side $h$ is halved: the uniform grid of side $h$ on the
-whole square, its cells that meet the lawn, the leaves of the quadtree,
-and the upper bound of \cref{prop:qtcount}.}
-\label{fig:quadtree}
-\end{figure}
 
 \section{How many leaves}
 \label{sec:qt-count}
