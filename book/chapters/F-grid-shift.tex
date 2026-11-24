@@ -405,16 +405,71 @@ the nearest whole number of cells, within half a cell of it (shaded).}
 \label{fig:gscarry}
 \end{figure}
 
-\emph{Doing it step by step.} The filter does not need to remember the
-total. It keeps a \emph{leftover} $r$, the part of the displacement not
-yet made: the true displacement minus how far the belief has moved,
-starting at $0$, and negative when the belief has gone too far. At each
-step it moves the belief by the whole number of cells nearest to the step
-plus the leftover, $r+0.87$, and keeps what was not made as the new
-leftover. For example, after step 3 the belief has moved $3$ cells for a
-true $2.61$, so $r=2.61-3=-0.39$; at step 4, $r+0.87=0.48$, whose nearest
-whole number is $0$, so the belief does not move, and the new leftover is
-$0.48$. The total moved is always the true displacement minus the
-leftover, and the leftover, what remains after rounding, is never more
-than half a cell in size. Since the belief is moved by whole cells, its
-mass is never shared, and the sharing adds no spread.
+\emph{Doing it step by step: the leftover.} The filter does not need to
+remember the total displacement; one number is enough. Write, after $t$
+steps,
+\begin{itemize}[nosep]
+  \item $D_t=0.87\,t$ for the true displacement;
+  \item $M_t$ for how far the belief has moved in all, a whole number of
+        cells;
+  \item $r_t=D_t-M_t$ for the \emph{leftover}, the part of the
+        displacement not yet made (negative when the belief has gone too
+        far); the error of the belief is $M_t-D_t=-r_t$;
+  \item $\lfloor x\rceil$ for the whole number nearest to $x$.
+\end{itemize}
+Rounding the total means $M_t=\lfloor D_t\rceil$. Write it with the
+values after the step $t-1$:
+\begin{align*}
+  M_t
+  &=\lfloor D_{t-1}+0.87\rceil
+  &&D_t=D_{t-1}+0.87\\
+  &=\lfloor M_{t-1}+r_{t-1}+0.87\rceil
+  &&D_{t-1}=M_{t-1}+r_{t-1}\text{, the definition of }r_{t-1}\\
+  &=M_{t-1}+\lfloor r_{t-1}+0.87\rceil
+  &&M_{t-1}\text{ is a whole number,}
+\end{align*}
+the last line because adding a whole number to $x$ adds the same whole
+number to its nearest whole number. So the belief moves, at the step $t$,
+by
+\[
+  n_t=M_t-M_{t-1}=\lfloor r_{t-1}+0.87\rceil
+\]
+cells, which depends only on the leftover, and the new leftover is
+\[
+  r_t=D_t-M_t=(D_{t-1}+0.87)-(M_{t-1}+n_t)=r_{t-1}+0.87-n_t .
+\]
+These two formulas are the whole rule: at each step, add the step to the
+leftover, move the belief by the nearest whole number of cells, and keep
+the rest as the new leftover. Since $n_t$ is the whole number nearest to
+$r_{t-1}+0.87$, the rest $r_t$ is at most half a cell in size, and so is
+the error $-r_t$.
+
+The table runs the rule for the ten steps, starting from $r_0=0$. Read
+each row from left to right; its last leftover, $r_t$, is the first
+column of the next row, $r_{t-1}$.
+\begin{center}
+\begin{tabular}{cccccc}
+  \toprule
+  step & leftover & step plus & move & new leftover & moved in all\\
+  $t$ & $r_{t-1}$ & leftover & $n_t$ & $r_t$ & $M_t$\\
+  \midrule
+  1  & $\phantom{+}0$ & 0.87 & 1 & $-0.13$ & 1\\
+  2  & $-0.13$ & 0.74 & 1 & $-0.26$ & 2\\
+  3  & $-0.26$ & 0.61 & 1 & $-0.39$ & 3\\
+  4  & $-0.39$ & 0.48 & 0 & $+0.48$ & 3\\
+  5  & $+0.48$ & 1.35 & 1 & $+0.35$ & 4\\
+  6  & $+0.35$ & 1.22 & 1 & $+0.22$ & 5\\
+  7  & $+0.22$ & 1.09 & 1 & $+0.09$ & 6\\
+  8  & $+0.09$ & 0.96 & 1 & $-0.04$ & 7\\
+  9  & $-0.04$ & 0.83 & 1 & $-0.17$ & 8\\
+  10 & $-0.17$ & 0.70 & 1 & $-0.30$ & 9\\
+  \bottomrule
+\end{tabular}
+\end{center}
+The last column is the column ``rounding the total, moved'' of the first
+table, and $-r_t$ is its error. Up to step 3 the leftover grows more
+negative by $0.13$ per step: the belief is ahead of the robot. At step 4
+it would be ahead by more than half a cell if it moved, so the nearest
+whole number of $0.48$ is $0$: the belief waits, and the leftover becomes
+positive. Since the belief always moves by whole cells, its mass is never
+shared, and the sharing adds no spread.
