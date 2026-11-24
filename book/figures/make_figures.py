@@ -399,7 +399,7 @@ def fig_shift_spread():
         ax.axvline(2 + t * f, color=viz.INK, lw=0.9, ls="--")
         ax.set_title(f"(%s) after {t} shift{'s' if t > 1 else ''} of {f} cell" % ("a" if t == 1 else "b"),
                      fontsize=8.5)
-        ax.text(0.97, 0.93, f"variance {var:.3f}\n$t\\,f(1-f)={t * f * (1 - f):.3f}$",
+        ax.text(0.97, 0.93, f"variance {var:.4f}\n$t\\,f(1-f)={t * f * (1 - f):.4f}$",
                 transform=ax.transAxes, ha="right", va="top", fontsize=7.5)
         ax.set_xlim(-0.5, 12.5); ax.set_ylim(0, 1.05); ax.set_xlabel("cell", fontsize=8)
         ax.tick_params(labelsize=7.5)

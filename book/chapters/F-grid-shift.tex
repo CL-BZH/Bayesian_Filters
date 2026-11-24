@@ -197,15 +197,59 @@ part of length $f$ over the whole cell $i+1$. That forgetting, made at
 every step, is what adds the variance $f(1-f)$. The robot did not become
 more uncertain: this spread is an artefact of the grid.
 
-\emph{It adds up over the steps.} Sharing the mass of every cell in this
-way is a convolution of the belief with the two-point weight
-$(1-f,\,f)$, the density of a variable that is $0$ with probability $1-f$
-and $1$ with probability $f$. By the probabilistic meaning of the
-convolution (\cref{sec:grid}), $t$ shifts add $t$ independent such
-variables, whose variances add: after $t$ shifts, the variance added by
-the sharing is $t\,f(1-f)$. \Cref{fig:gsspread} shows it for $f=0.87$:
-$0.113$ after one shift, $0.565$ after five, against
-$5\times0.113=0.566$.
+\emph{It adds up over the steps.} Follow now the whole belief, not one
+cell, with $k=0$ as above. Let $X$ be the position of the robot before
+the shift, counted in cells as the grid records it: $X=j$ with the
+probability $b_j$. The sharing can be pictured as a coin tossed for the
+robot: a variable $S$ equal to $0$ with probability $1-f$ and to $1$
+with probability $f$, the same for every cell, hence independent of $X$;
+the robot is then moved to $X+S$. The distribution of $X+S$ is the new
+belief:
+\begin{align*}
+  \Pr(X+S=j)
+  &=\Pr(X=j,\,S=0)+\Pr(X=j-1,\,S=1)
+  &&\text{the two ways to reach $j$}\\
+  &=\Pr(X=j)\Pr(S=0)+\Pr(X=j-1)\Pr(S=1)
+  &&\text{$X$ and $S$ independent}\\
+  &=(1-f)\,b_j+f\,b_{j-1}=b'_j
+  &&\text{the sharing rule.}
+\end{align*}
+So a shift adds to the position an independent variable $S$. This is
+the discrete form of the probabilistic meaning of the convolution
+(\cref{sec:grid}): blurring a density by a weight gives the density of a
+sum of independent variables; here the weight is $(1-f,\,f)$, the
+distribution of $S$.
+
+$S$ takes the values $0$ and $1$ with the probabilities $1-f$ and $f$:
+these are the two positions of the table above, with $i=0$, so
+$\Var S=f(1-f)$\,cell$^2$. Now the variances of independent variables
+add. Write $\tilde X=X-\E X$ and $\tilde S=S-\E S$, whose expectations
+are $0$; then $X+S-\E[X+S]=\tilde X+\tilde S$, and
+\begin{align*}
+  \Var(X+S)
+  &=\E\bigl[(\tilde X+\tilde S)^2\bigr]
+  &&\text{definition of the variance}\\
+  &=\E[\tilde X^2]+2\,\E[\tilde X\tilde S]+\E[\tilde S^2]
+  &&\text{expand; linearity of }\E\\
+  &=\Var X+2\,\E[\tilde X]\,\E[\tilde S]+\Var S
+  &&\text{$\tilde X$ and $\tilde S$ independent}\\
+  &=\Var X+f(1-f)
+  &&\E[\tilde X]=\E[\tilde S]=0,
+\end{align*}
+the one-dimensional case of Consequence~2 in \cref{sec:grid}. Each
+shift tosses a new coin, independent of the earlier ones and of the
+starting position $X_0$: after $t$ shifts the position is
+$X_t=X_0+S_1+\dots+S_t$, and, applying this result $t$ times,
+\[
+  \Var X_t=\Var X_0+t\,f(1-f) .
+\]
+The sharing adds $f(1-f)$\,cell$^2$ at every shift, and $t\,f(1-f)$
+after $t$ shifts. (A whole number $k$ of cells would add $k$ to $S$,
+which changes neither its variance nor this result.)
+\Cref{fig:gsspread} shows it for $f=0.87$, where
+$f(1-f)=0.87\times0.13=0.1131$\,cell$^2$: the belief starts in one cell,
+so $\Var X_0=0$, and the variance measured on the grid is $0.1131$ after
+one shift and $5\times0.1131=0.5655$\,cell$^2$ after five.
 
 \begin{figure}[t]
 \centering
