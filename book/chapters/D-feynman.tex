@@ -58,10 +58,10 @@ quotient $\bigl(F(a+h_n)-F(a)\bigr)/h_n$ tends to $L$.
 
 It remains to pass from sequences to the limit as $h\to0$, which is what
 differentiability asks for; sequences were needed because dominated
-convergence is a statement about sequences. Suppose that the quotient did
-not tend to $L$ as $h\to0$. Then there would be an $\varepsilon>0$ such
+convergence is a statement about sequences. Suppose that the quotient $\bigl(F(a+h)-F(a)\bigr)/h$ did not tend to $L$
+as $h\to0$. Then there would be an $\varepsilon>0$ such
 that, however small $\delta>0$, some $h$ with $0<\abs h<\delta$ and
-$a+h\in J$ gives a quotient at distance at least $\varepsilon$ from $L$.
+$a+h\in J$ gives $\bigl|\bigl(F(a+h)-F(a)\bigr)/h-L\bigr|\ge\varepsilon$.
 Taking $\delta=1/n$ for $n=1,2,\dots$ gives such an $h_n$ for each $n$:
 a sequence with $h_n\to0$, $h_n\neq0$, $a+h_n\in J$, whose quotients all
 stay at distance at least $\varepsilon$ from $L$, and so do not tend to
