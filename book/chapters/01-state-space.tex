@@ -540,8 +540,11 @@ set that has no volume (a point, a curve, a surface), is called
 coordinates, and its distribution has no density on $\R^3$.
 
 \begin{proposition}{The transition is degenerate and not Gaussian}{degenerate}
-Fix $\x_t$ and $\uu_t$, and let $\x_{t+1}=(\q,\varphi)$ be given by
-\eqref{eq:actual}.
+Fix $\x_t=(\p,\theta)$ and $\uu_t=(s,\delta)$, and let
+$\x_{t+1}=(\q,\varphi)$ be the actual end pose \eqref{eq:actual}: the
+robot turns to the heading $\varphi=\theta+\delta+\varepsilon_\delta$ and
+drives the distance $d=s+\varepsilon_s$, so that
+$\q=\p+d\,(\cos\varphi,\sin\varphi)$.
 \begin{enumerate}[label=(\roman*),nosep]
 \item With probability one $\x_{t+1}$ lies on the helicoid, a surface. It
   has no density with respect to volume (the Lebesgue measure on $\R^3$).

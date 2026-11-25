@@ -152,10 +152,13 @@ stacked) and dropping the light ones.}
 
 For the precise argument, take the target to be the posterior over the
 whole path,
-$\pi_t(\x_{0:t})=p(\x_{0:t}\mid\z_{1:t},\uu_{0:t-1})$. It is proportional
-to the joint distribution of \cref{prop:joint}, and going from $t$ to
-$t+1$ multiplies it by one motion factor and one measurement
-factor. So
+$\pi_t(\x_{0:t})=p(\x_{0:t}\mid\z_{1:t},\uu_{0:t-1})$. It is proportional to the joint distribution of \cref{prop:joint},
+\[
+  p(\x_{0:t},\z_{1:t}\mid\uu_{0:t-1})=p(\x_0)\prod_{s=0}^{t-1}
+  p(\x_{s+1}\mid\x_s,\uu_s)\,p(\z_{s+1}\mid\x_{s+1}),
+\]
+so going from $t$ to $t+1$ multiplies it by one motion factor and one
+measurement factor. So
 $\pi_{t+1}(\x_{0:t+1})\propto\pi_t(\x_{0:t})\,p(\x_{t+1}\mid\x_t,\uu_t)\,
 p(\z_{t+1}\mid\x_{t+1})$. Choose as proposal ``the previous proposal,
 extended by the motion model'':
@@ -557,7 +560,8 @@ approximation of $\belbar$.
 
 \begin{proof}
 For independent draws from a fixed proposal this is
-\cref{prop:isconsistent} with $\varphi(\x)=p(\z_{t+1}\mid\x)$, which is
+\cref{prop:isconsistent} (the weighted average $\hat\varphi_N$ tends to
+$\E_\pi[\varphi]$ when $\E_\pi|\varphi|<\infty$) with $\varphi(\x)=p(\z_{t+1}\mid\x)$, which is
 bounded, and the target $\belbar$; the identification of the limit is
 \cref{prop:evidence}. A resampled and propagated cloud is not a set of
 independent draws, and its consistency is a theorem of its own, not proved

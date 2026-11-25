@@ -230,10 +230,13 @@ measurement $\z_t$ is independent of everything before it:
 $\mathrm{pa}(\z_t)=\{\x_t\}$. A third assumption, not contained in the
 first two, is that the controls are fixed in advance: they depend on
 nothing and have no parents (the end of
-\cref{sec:bayesnet-mower} looks at controls computed during the run). The
-network is that of \cref{fig:bayesnet}, and the factorisation
-\eqref{eq:bnfactor} is \eqref{eq:joint}, with the controls kept behind the
-bar.
+\cref{sec:bayesnet-mower} looks at controls computed during the run). The network is that of \cref{fig:bayesnet}, and the factorisation
+\eqref{eq:bnfactor} is \eqref{eq:joint},
+\[
+  p(\x_{0:T},\z_{1:T}\mid\uu_{0:T-1})=p(\x_0)\prod_{t=0}^{T-1}
+  p(\x_{t+1}\mid\x_t,\uu_t)\,p(\z_{t+1}\mid\x_{t+1}),
+\]
+with the controls kept behind the bar.
 
 \section{Three small networks}
 \label{sec:three}

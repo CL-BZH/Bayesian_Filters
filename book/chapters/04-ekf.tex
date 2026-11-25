@@ -27,15 +27,24 @@ pose and an error on the control change the next pose, and $H$ says how an
 error on the pose changes the measurement.
 
 \begin{proposition}{Jacobians of the robot's models}{jacobians}
-With $\theta'=\theta+\delta$, the motion model \eqref{eq:f} has
+Recall the motion model \eqref{eq:f} and the range--bearing model
+\eqref{eq:h}: for the pose $\x=(p^x,p^y,\theta)$ and the control
+$\uu=(s,\delta)$,
+\[
+  f(\x,\uu)=\begin{pmatrix}p^x+s\cos\theta'\\p^y+s\sin\theta'\\
+  \wrap(\theta')\end{pmatrix},\qquad
+  h(\x)=\begin{pmatrix}\norm{\vect d}\\
+  \wrap\bigl(\operatorname{atan2}(d_y,d_x)-\theta\bigr)\end{pmatrix},
+\]
+with $\theta'=\theta+\delta$ and, for a landmark at $\bell$,
+$\vect d=\bell-\p$. Then the motion model has
 \[
   F=\frac{\partial f}{\partial\x}=\begin{pmatrix}1&0&-s\sin\theta'\\
   0&1&s\cos\theta'\\0&0&1\end{pmatrix},\qquad
   V=\frac{\partial f}{\partial\uu}=\begin{pmatrix}\cos\theta'&
   -s\sin\theta'\\\sin\theta'&s\cos\theta'\\0&1\end{pmatrix}.
 \]
-For a landmark at $\bell$, with $\vect{d}=\bell-\p$ and
-$q=\norm{\vect{d}}^2$, the range--bearing model \eqref{eq:h} has
+With $q=\norm{\vect{d}}^2$, the range--bearing model has
 \[
   H=\frac{\partial h}{\partial\x}=\begin{pmatrix}-d_x/\sqrt q&-d_y/\sqrt q
   &0\\ d_y/q&-d_x/q&-1\end{pmatrix}.
@@ -422,8 +431,10 @@ convergence is the \emph{iterated} EKF.
 \end{proposition}
 
 \begin{proof}
-The first claim: the logarithm of the product of the two densities is
-$-J(\x)$ plus a constant, by \eqref{eq:gaussdensity}, so the product is
+The first claim: the logarithm of a Gaussian density is
+$\log\Normal(\x;\bmu,\Sigma)=-\tfrac12(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)$
+plus a constant \eqref{eq:gaussdensity}, so the logarithm of the product
+of the two densities is $-J(\x)$ plus a constant, and the product is
 largest where $J$ is smallest.
 
 Gauss--Newton linearises the residual,
@@ -647,8 +658,9 @@ more robust estimator, for instance a particle filter or a GNSS fix.
 \item\label{ex:cosvar} Let $\theta\sim\Normal(0,\sigma^2)$ and
   $y=\cos\theta$. What mean and variance does linearisation at $0$ give for
   $y$? Compute the true ones, and evaluate both for $\sigma=0.8$.
-\item\label{ex:rangebias} Using \cref{prop:secondorder}, show that the mean
-  of the range to a landmark is biased upwards by about
+\item\label{ex:rangebias} Using \cref{prop:secondorder},
+$\E[g(X)]\approx g(\bmu)+\tfrac12\tr\bigl(\nabla^2g(\bmu)\,\Sigma\bigr)$
+for $X\sim\Normal(\bmu,\Sigma)$, show that the mean of the range to a landmark is biased upwards by about
   $\sigma_\perp^2/(2r)$, where $\sigma_\perp^2$ is the position variance
   perpendicular to the line of sight. Why perpendicular?
 \item\label{ex:gate} With a gate at the $99\%$ quantile of $\chi^2_2$,

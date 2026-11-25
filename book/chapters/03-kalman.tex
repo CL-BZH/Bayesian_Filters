@@ -583,8 +583,11 @@ $\Cov(\varepsilon_s,-\nu_{t+1})=\diag(\sigma_s^2,\sigma_c^2)$ for
 independent noises.
 This is the computation of \cref{sec:errors} again: an error on the
 distance moves the robot along its heading, and an error on the heading,
-here the compass error, moves it sideways by $s_t$ per radian. $G_t$ is
-the upper $2\times2$ block of the matrix $V$ of \eqref{eq:firstorder}.
+here the compass error, moves it sideways by $s_t$ per radian. $G_t$ is the upper $2\times2$ block of the matrix
+$V=\bigl(\begin{smallmatrix}\cos\theta'&-s\sin\theta'\\\sin\theta'&s\cos\theta'\\0&1\end{smallmatrix}\bigr)$
+of \eqref{eq:firstorder}, whose columns give the effects on the pose of a
+distance error and of a heading error, with the heading $\theta'$ replaced
+by the compass reading $c_{t+1}$.
 One more approximation is made, beyond the first order: the compass noise
 $\nu_{t+1}$ enters both the known input $c_{t+1}$ and the noise $\w_t$, so
 $\w_t$ is not exactly independent of the input. The effect is small
@@ -841,7 +844,9 @@ is a cheap and effective guard.
   i.e.\ $\Cov(\x-\hx,\y)=0$.
 \item\label{ex:fusion} Two independent sensors measure the same scalar,
   with variances $r_1$ and $r_2$, and there is no prior ($\bar P=\infty$).
-  Using \cref{prop:information}, show that the optimal estimate is the
+  Using \cref{prop:information} (precisions add,
+$P^{-1}=\bar P^{-1}+H\T R^{-1}H$, and $K=PH\T R^{-1}$), show that the
+optimal estimate is the
   inverse-variance weighted average and give its variance. What happens
   when $r_2\to\infty$?
 \item\label{ex:steadynum} Use \cref{prop:steady} to compute the

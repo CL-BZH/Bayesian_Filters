@@ -182,8 +182,10 @@ Both remain true when every term is conditioned on the same extra
 variables, which is how they are used below.
 
 \begin{theorem}{Bayes filter}{bayes}
-Under \ref{A1}--\ref{A2}, with controls fixed in advance or computed from
-the measurements (the two cases of \cref{prop:joint}),
+Under \ref{A1}--\ref{A2} (given the current pose and control, the next
+pose does not depend on the past; given the pose, the measurement does
+not depend on anything else), with controls fixed in advance or computed
+from the measurements (the two cases of \cref{prop:joint}),
 \begin{align}
   \belbar(\x_{t+1})&=\int p(\x_{t+1}\mid\x_t,\uu_t)\,\bel(\x_t)\,
   \mathrm d\x_t, \label{eq:predict}\\
@@ -758,8 +760,10 @@ only through its difference with the mean, so
   p(\p_{t+1}\mid\p_t)=\Normal(\p_{t+1};\,\p_t+\vect d_t,\,\Sigma_t)
   =g(\p_{t+1}-\p_t-\vect d_t).
 \]
-Call the new position $\p$ and the old one $\vect q$, and go line by
-line from \eqref{eq:predict}:
+Call the new position $\p$ and the old one $\vect q$. The prediction
+\eqref{eq:predict} is
+$\belbar(\p)=\int p(\p\mid\vect q)\,\bel(\vect q)\,\mathrm d\vect q$;
+go line by line from it:
 \begin{align*}
   \belbar(\p)
   &=\int g(\p-\vect q-\vect d_t)\,\bel(\vect q)\,\mathrm d\vect q
@@ -794,8 +798,9 @@ robot more precisely than a cell anyway. \Cref{app:gridshift} explains
 this sharing with figures, and notebook~01 shows the code of the
 prediction and measures how fast a grid belief spreads.
 
-The update \eqref{eq:update} multiplies the predicted density by the
-likelihood and renormalises. On the grid, write $\bar b_i$ for the
+The update \eqref{eq:update},
+$\bel(\p)=\eta\,p(\z\mid\p)\,\belbar(\p)$, multiplies the predicted
+density by the likelihood and renormalises. On the grid, write $\bar b_i$ for the
 predicted probability of the cell $C_i$, and integrate
 \eqref{eq:update} over that cell:
 \begin{align*}

@@ -249,7 +249,10 @@ is the squared Mahalanobis norm: the squared size of $\vect e$ counted in
 standard deviations of a noise of covariance $A$.
 
 \begin{proposition}{The Kalman filter solves a least-squares problem}{batch}
-For the linear-Gaussian model of \cref{def:lgmodel}, the trajectory
+For the linear-Gaussian model of \cref{def:lgmodel},
+$\x_{t+1}=F_t\x_t+B_t\uu_t+\w_t$ and $\z_t=H_t\x_t+\vv_t$, with
+$\x_0\sim\Normal(\hx_0,P_0)$, $\w_t\sim\Normal(\vect0,Q_t)$,
+$\vv_t\sim\Normal(\vect0,R_t)$, all independent, the trajectory
 $\x^\star_{0:T}$ that minimises
 \[
   J(\x_{0:T})=\tfrac12\norm{\x_0-\hx_0}_{P_0}^2+\tfrac12\sum_{t=0}^{T-1}
@@ -297,9 +300,17 @@ X^\star=\x^\star_{0:T}$.
 
 \emph{The posterior is Gaussian.} The posterior is proportional to
 $e^{-J}$, that is to
-$e^{-\frac12(\vect X-\vect X^\star)\T A(\vect X-\vect X^\star)}$: by
-\eqref{eq:gaussdensity} it is the Gaussian density with mean $\vect
-X^\star$ and covariance $A^{-1}$, whose mode is its mean. The mean of one block of
+$e^{-\frac12(\vect X-\vect X^\star)\T A(\vect X-\vect X^\star)}$. A
+Gaussian density with mean $\bmu$ and covariance $\Sigma$ is
+\eqref{eq:gaussdensity}
+\[
+  \Normal(\x;\bmu,\Sigma)=\det(2\pi\Sigma)^{-1/2}
+  e^{-\frac12(\x-\bmu)\T\Sigma^{-1}(\x-\bmu)},
+\]
+so, with $\bmu=\vect X^\star$ and $\Sigma=A^{-1}$, the posterior is this
+density up to a constant factor, and the factor is $1$ since both
+integrate to $1$: the posterior is the Gaussian density with mean
+$\vect X^\star$ and covariance $A^{-1}$, whose mode is its mean. The mean of one block of
 a random vector is the corresponding block of its mean, so
 $\x^\star_T=\E[\x_T\mid\z_{1:T},\uu]$, which is the mean of
 $\bel(\x_T)$: $\hx_T$ by \cref{thm:kf}.
@@ -406,8 +417,8 @@ place, or localising with a camera, is a smoothing problem.
 \addcontentsline{toc}{section}{Exercises}
 
 \begin{enumerate}[label=\textbf{7.\arabic*},ref=7.\arabic*]
-\item\label{ex:smoothvar} For the scalar random walk of
-  \cref{prop:steady}, compare the variance of the filtered estimate
+\item\label{ex:smoothvar} For the scalar random walk of \cref{prop:steady}, $x_{t+1}=x_t+w_t$ and
+$z_t=x_t+v_t$ with the noise variances $q$ and $r$, compare the variance of the filtered estimate
   $\hat x_t$ in steady state with that of the smoothed estimate of
   $x_t$ given measurements on both sides, far from the ends. Use the
   information form: what does the measurement at $t+1$ add?
