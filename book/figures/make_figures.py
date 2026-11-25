@@ -264,6 +264,43 @@ def fig_quadtree():
     save(fig, "appE_quadtree")
 
 
+def fig_quadtree_classify():
+    """Classifying a cell against a polygon edge: not met (test the centre), crossed (mixed), only touched."""
+    from matplotlib.patches import Polygon, Rectangle
+    lawn = np.array([[0.3, 0.4], [6.5, 0.4], [8.0, 2.5], [6.5, 4.2], [3.0, 4.2], [0.6, 3.8]])
+    blue, orange, ink, grey = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK, viz.MUTED
+    fig, ax = plt.subplots(figsize=(W * 0.72, W * 0.4))
+    ax.add_patch(Polygon(lawn, closed=True, fc="#cdeadb", ec=ink, lw=1.3))
+    ax.text(3.2, 0.8, "lawn $L$", fontsize=8)
+    c = 1.2
+    for x0, y0 in ((1.4, 2.4), (6.9, 0.9), (4.0, 4.2)):
+        ax.add_patch(Rectangle((x0, y0), c, c, fc="none", ec=blue, lw=1.8, zorder=4))
+    # (a) not met: the centre and a half-line that crosses the edge once
+    cx, cy = 2.0, 3.0
+    ax.plot([cx], [cy], "o", color=blue, ms=3.5, zorder=5)
+    ax.annotate("", (9.3, cy), (cx, cy), arrowprops=dict(arrowstyle="->", color=grey, lw=0.9, ls="--"))
+    xc = 8.0 - (cy - 2.5) / 1.7 * 1.5
+    ax.plot([xc], [cy], "x", color=ink, ms=5, mew=1.3, zorder=5)
+    ax.text(1.4, 3.65, "(a) not met", fontsize=8, va="bottom", color=blue)
+    ax.text(xc + 0.15, cy + 0.12, "one crossing:\nthe centre is in", fontsize=7, va="bottom")
+    # (b) crossed: a lawn point a, an off-lawn point b
+    pa, pb = (7.0, 1.45), (7.95, 1.95)
+    ax.plot([pa[0], pb[0]], [pa[1], pb[1]], color=orange, lw=1.4, zorder=5)
+    # where the segment meets the edge from (6.5, 0.4) to (8.0, 2.5)
+    M = np.array([[pb[0] - pa[0], -1.5], [pb[1] - pa[1], -2.1]])
+    u, _ = np.linalg.solve(M, np.array([6.5 - pa[0], 0.4 - pa[1]]))
+    ax.plot([pa[0] + u * (pb[0] - pa[0])], [pa[1] + u * (pb[1] - pa[1])], "x", color=ink, ms=5, mew=1.3, zorder=7)
+    for (px, py), lab, ha in ((pa, "$a$", "right"), (pb, "$b$", "left")):
+        ax.plot([px], [py], "o", color=orange, ms=3.5, zorder=6)
+        ax.text(px + (-0.1 if ha == "right" else 0.1), py, lab, fontsize=8, ha=ha, va="center")
+    ax.text(6.9, 0.8, "(b) crossed", fontsize=8, va="top", color=blue)
+    # (c) touched: the edge runs along the bottom side of the cell
+    ax.text(4.0, 5.5, "(c) touched", fontsize=8, va="bottom", color=blue)
+    ax.set_xlim(0.1, 9.6); ax.set_ylim(0.2, 6.0); ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appE_quadtree_classify")
+
+
 def fig_quadtree_grids():
     """The cells at depth k are the cells of the grid of side s_k; the quadrants of cell (i, j) are (2i or 2i+1, 2j or 2j+1)."""
     from matplotlib.patches import Rectangle
@@ -1416,6 +1453,7 @@ if __name__ == "__main__":
     fig_potato()
     fig_quadtree()
     fig_quadtree_grids()
+    fig_quadtree_classify()
     fig_quadtree_chain()
     fig_shift_1d()
     fig_shift_2d()

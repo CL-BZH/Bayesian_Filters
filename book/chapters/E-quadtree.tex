@@ -13,7 +13,7 @@ find the cell of a point (\cref{sec:qt-find}), and discusses a grid
 filter whose cells are the cells of a quadtree (\cref{sec:qt-filter}).
 The numbers quoted are printed by the script
 \code{book/figures/make\_figures.py}, which also draws
-\cref{fig:qtgrids,fig:qtchain,fig:quadtree}.
+\cref{fig:qtgrids,fig:qtchain,fig:qtclassify,fig:quadtree}.
 
 \section{Splitting squares}
 \label{sec:qt-def}
@@ -63,49 +63,82 @@ in leaf, is not split: $C$ lies inside it.}
 \label{fig:qtchain}
 \end{figure}
 
-Three facts follow from the construction.
-\begin{itemize}[nosep]
-  \item The process stops: a cell at depth $k$ (obtained by $k$ splits
-        from $Q_0$) has the side $s_k=s_0/2^k$, and cells of side $h$,
-        at depth $m$, are never split.
-  \item The leaves cover $Q_0$ without overlapping (except along their
-        sides): this is true of $\{Q_0\}$, and a split replaces a cell by
-        four cells that cover it in the same way.
-  \item The cells at depth $k$ all belong to one grid. Measure the
-        coordinates from the lower-left corner of $Q_0$, and cut $Q_0$
-        into the uniform grid of side $s_k$: its $2^k\times2^k$ cells
-        are the squares
-        \[
-          [\,i\,s_k,(i+1)\,s_k\,]\times[\,j\,s_k,(j+1)\,s_k\,],
-          \qquad 0\le i,j<2^k .
-        \]
-        Every cell at depth $k$ is one of them (\cref{fig:qtgrids}). At depth $0$, the only
-        cell is $Q_0$, the single cell of the grid of side $s_0$. If a
-        cell at depth $k$ is the square above, then, since
-        $s_k=2\,s_{k+1}$, its lower-left quadrant is
-        $[\,2i\,s_{k+1},(2i+1)\,s_{k+1}\,]\times[\,2j\,s_{k+1},(2j+1)\,s_{k+1}\,]$,
-        a cell of the grid of side $s_{k+1}$, and so are the three
-        others (replace $2i$ by $2i+1$, or $2j$ by $2j+1$). So the
-        quadtree never makes a cell that straddles two cells of these
-        grids: in \cref{fig:qtchain}, the cells of side $2h$ are cells
-        of the grid of side $2h$.
-\end{itemize}
-Each leaf is therefore an in cell, an out cell, or a mixed cell of side
-$h$ (\cref{fig:quadtree}a).
+The cells of the construction all come from a few grids. Write $G_k$
+for the uniform grid of side $s_k=s_0/2^k$ on $Q_0$: with the
+coordinates measured from the lower-left corner of $Q_0$, its
+$2^k\times2^k$ cells are the squares
+\[
+  [\,i\,s_k,(i+1)\,s_k\,]\times[\,j\,s_k,(j+1)\,s_k\,],
+  \qquad 0\le i,j<2^k
+\]
+(\cref{fig:qtgrids}). The grid $G_m$, of side $s_m=h$, is the uniform
+grid of \cref{ch:bayes}, and $G_0$ has the single cell $Q_0$. A cell is
+\emph{at depth $k$} if it is obtained from $Q_0$ by $k$ splits.
 
-\emph{The quadtree knows the lawn as well as the uniform grid of side
-$h$.} The uniform grid of side $h$ is the finest the quadtree ever goes,
-and the quadtree keeps a large cell whole only when it is entirely in or
-entirely out. Then all the small cells inside it have that same status,
-so nothing is lost by not splitting it. Let us check this. Take a cell $C$ of the uniform grid of side $h$ (the grid of side $s_m$
-above); we show that
-\begin{itemize}[nosep]
-  \item if $C$ is mixed, $C$ is a leaf of the quadtree;
-  \item if $C$ is in, it lies inside an in leaf, and if it is out, inside
-        an out leaf.
-\end{itemize}
+\begin{proposition}{Basic properties of the quadtree}{qtbasic}
+\begin{enumerate}[nosep,label=(\alph*)]
+  \item A cell at depth $k$ has the side $s_k$. The construction stops,
+        and no cell is deeper than $m$.
+  \item The leaves cover $Q_0$, and two leaves overlap at most along
+        their sides.
+  \item Every cell at depth $k$ is a cell of the grid $G_k$.
+  \item Every leaf is an in cell, an out cell, or a mixed cell of
+        side $h$.
+\end{enumerate}
+\end{proposition}
 
-\emph{Two facts about statuses.} If a cell $B$ contains a cell $C$:
+\begin{proof}
+(a) A split halves the side, so $k$ splits give the side $s_0/2^k=s_k$.
+Only cells of side larger than $h=s_m$ are split, that is cells at depth
+less than $m$, so no cell is deeper than $m$, and the construction ends.
+
+(b) This is true at the start, when the only leaf is $Q_0$. A split
+replaces a leaf by its four quadrants, which cover it and overlap only
+along their sides, so it stays true after every split.
+
+(c) At depth $0$, the only cell is $Q_0$, the cell of $G_0$. Suppose that
+a cell at depth $k$ is the cell $(i,j)$ of $G_k$, the square above. Since
+$s_k=2\,s_{k+1}$, its lower-left quadrant is
+\[
+  [\,2i\,s_{k+1},(2i+1)\,s_{k+1}\,]\times[\,2j\,s_{k+1},(2j+1)\,s_{k+1}\,],
+\]
+the cell $(2i,2j)$ of $G_{k+1}$, and the three others are the cells
+$(2i+1,2j)$, $(2i,2j+1)$ and $(2i+1,2j+1)$ (\cref{fig:qtgrids}c). So the
+cells at depth $k+1$ are cells of $G_{k+1}$ too, and the property holds
+at every depth.
+
+(d) A leaf is a cell that was not split. If it is mixed, it was not
+split because its side is not larger than $h$, so by (a) its side is $h$.
+\end{proof}
+
+By (c), the quadtree never makes a cell that straddles two cells of these
+grids: in \cref{fig:qtchain}, the cells of side $2h$ are cells of
+$G_{m-1}$.
+
+\emph{What the quadtree is for.} The mask of \cref{ch:bayes} is built on
+$G_m$: each cell says ``lawn'' or ``not lawn''. The quadtree has far
+fewer cells (\cref{sec:qt-count}). The next proposition shows that it
+loses nothing: its leaves describe the lawn as well as the cells of
+$G_m$.
+
+\begin{proposition}{The quadtree is as precise as the uniform grid}{qtexact}
+Let $C$ be a cell of $G_m$, the uniform grid of side $h$.
+\begin{enumerate}[nosep,label=(\alph*)]
+  \item If $C$ is mixed, $C$ is a leaf.
+  \item If $C$ is in, it lies inside an in leaf; if $C$ is out, it lies
+        inside an out leaf.
+\end{enumerate}
+Consequently, a mask on the leaves, built as in \cref{ch:bayes}, gives
+the same answer at every point as the mask on $G_m$.
+\end{proposition}
+
+The idea: the quadtree keeps a large cell whole only when it is entirely
+in or entirely out, and then all the cells of $G_m$ inside it have that
+same status, so not splitting it loses nothing; where the lawn is mixed,
+the quadtree splits down to the side $h$, like $G_m$.
+
+\begin{proof}
+\emph{Step 1: nested cells.} If a cell $B$ contains a cell $C$:
 \begin{itemize}[nosep]
   \item if $C$ is mixed, so is $B$: $C$ has a lawn point and an off-lawn
         point, and both are points of $B$;
@@ -113,40 +146,53 @@ above); we show that
         of $C$ is a point of $B$.
 \end{itemize}
 
-\emph{The cells that contain $C$.} For each depth $k$ from $0$ to $m$,
-let $A_k$ be the cell of the uniform grid of side $s_k$ that contains
-$C$. Then $A_0=Q_0$, $A_m=C$, and each $A_{k+1}$ is the quadrant of
-$A_k$ that contains $C$:
+\emph{Step 2: the cells that can contain $C$.} For each depth $k$ from
+$0$ to $m$, let $A_k$ be the cell of $G_k$ that contains $C$. Then
+$A_0=Q_0$, $A_m=C$, and each $A_{k+1}$ is the quadrant of $A_k$ that
+contains $C$:
 \[
   Q_0=A_0\supset A_1\supset\dots\supset A_m=C .
 \]
-By the third fact above, the cells of the quadtree at depth $k$ are cells
-of the grid of side $s_k$, so the only cells of the quadtree that can
-contain $C$ are these $A_k$. The construction goes down this chain: it
-starts at $A_0$, and whenever it splits $A_k$, the quadrant $A_{k+1}$
-becomes a cell of the tree.
+By \cref{prop:qtbasic}(c), the cells of the quadtree at depth $k$ are
+cells of $G_k$, so the only cells of the quadtree that can contain $C$
+are these $A_k$. The construction goes down this chain: it starts at
+$A_0$, and whenever it splits $A_k$, the quadrant $A_{k+1}$ becomes a
+cell of the tree.
 
-\emph{If $C$ is mixed} (\cref{fig:qtchain}a), every $A_k$ contains $C$,
-so every $A_k$ is mixed. Down the chain, each $A_k$ with $k<m$ is a mixed
-cell of side larger than $h$, so it is split and $A_{k+1}$ enters the
-tree. So $A_m=C$ enters the tree, and, having the side $h$, it is not
-split: $C$ is a leaf.
+\emph{Step 3: $C$ mixed} (\cref{fig:qtchain}a). Every $A_k$ contains $C$,
+so by Step~1 every $A_k$ is mixed. Down the chain, each $A_k$ with $k<m$
+is a mixed cell of side larger than $h$, so it is split and $A_{k+1}$
+enters the tree. So $A_m=C$ enters the tree, and, having the side $h$, it
+is not split: $C$ is a leaf. This proves (a).
 
-\emph{If $C$ is in} (\cref{fig:qtchain}b), go down the chain while the
+\emph{Step 4: $C$ in} (\cref{fig:qtchain}b). Go down the chain while the
 cells are split, and let $A_j$ be the first that is not: it is a leaf,
-and it contains $C$. It is not mixed: a mixed leaf has the side $h$
-(mixed cells of larger side are split), so it would be $A_m=C$ itself,
-which is in. It is not out either, since it contains the lawn points of
-$C$. So $A_j$ is an in leaf that contains $C$. The same argument, with
-``in'' and ``out'' exchanged, puts an out cell $C$ inside an out leaf.
+and it contains $C$. It is not mixed: by \cref{prop:qtbasic}(d) a mixed
+leaf has the side $h$, so it would be $A_m=C$ itself, which is in. It is
+not out either, since it contains the lawn points of $C$. So $A_j$ is an
+in leaf that contains $C$. The same argument, with ``in'' and ``out''
+exchanged, puts an out cell $C$ inside an out leaf. This proves (b).
 
-\emph{The same mask.} A mask on the leaves, built as in \cref{ch:bayes},
-therefore gives the same answer at every point as the mask on the
-uniform grid. Take a point, and the cell $C$ of the uniform grid that
-contains it. If $C$ is mixed, it is itself a leaf, marked in the same
-way by both masks. If $C$ is in, both masks say ``lawn'': the uniform
-grid through $C$, the quadtree through the in leaf that contains $C$.
-If $C$ is out, both say ``not lawn''.
+\emph{Step 5: the two masks.} Take a point, and the cell $C$ of $G_m$
+that contains it. If $C$ is mixed, it is itself a leaf by (a), marked in
+the same way by both masks. If $C$ is in, both masks say ``lawn'': the
+uniform grid through $C$, the quadtree through the in leaf that contains
+$C$, by (b). If $C$ is out, both say ``not lawn''.
+\end{proof}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/appE_quadtree_classify.pdf}
+\caption{Classifying a cell against an edge that is a polygon. (a) The
+edge does not meet the cell, so all its points have the status of the
+centre; a half-line from the centre crosses the edge once, an odd number
+of times, so the centre is on the lawn and the cell is in. (b) The edge
+crosses the cell: the segment from the lawn point $a$ to the off-lawn
+point $b$ meets the edge (cross) inside the cell; the cell is mixed.
+(c) The edge only runs along a side of the cell, which is out; the rule
+calls it mixed all the same.}
+\label{fig:qtclassify}
+\end{figure}
 
 \begin{figure}[t]
 \centering
@@ -161,19 +207,52 @@ and the upper bound of \cref{prop:qtcount}.}
 \label{fig:quadtree}
 \end{figure}
 
-\emph{Classifying a cell.} How to decide whether a cell is in, out or
-mixed depends on how the edge is stored. For a mower, the edge is a
-polygon recorded with the RTK GPS (the box ``Boundary wire or geofence''
-in \cref{ch:bayes}). A cell that the edge does not meet is in or out,
-because a segment from a lawn point to an off-lawn point inside the cell
-would have to cross the edge; testing one point of the cell, its centre
-for instance, with a point-in-polygon test, says which. A cell that the
-edge meets is treated as mixed. This is safe: a mixed cell always meets
-the edge, by the same segment argument, and a cell that only touches the
-edge without being mixed is split for nothing, which costs a few cells
-but changes no answer. For \cref{fig:quadtree}, whose edge is a formula,
-the script tests points along the sides of each cell and treats the tree
-exactly.
+\emph{Classifying a cell.} The construction must decide, for every cell
+it meets, whether the cell is in, out or mixed. A cell has infinitely
+many points, so they cannot all be tested; the edge gives the answer
+instead. For a mower the edge is a polygon, recorded with the RTK GPS
+(the box ``Boundary wire or geofence'' in \cref{ch:bayes}), and the
+program uses this rule:
+\begin{itemize}[nosep]
+  \item if the edge meets the cell (one of the segments of the polygon
+        meets the square), call the cell mixed;
+  \item otherwise, test the centre of the cell, and call the cell in if
+        the centre is on the lawn, out if it is not.
+\end{itemize}
+The test of the centre is the \emph{point-in-polygon test}: follow a
+half-line from the point, and count how many times it crosses the
+polygon; an odd number means that the point is inside, an even number
+that it is outside, since each crossing goes in or out
+(\cref{fig:qtclassify}a).
+
+\emph{Why the rule is right.} It rests on one fact: \emph{a cell that the
+edge does not meet is in or out}. Suppose that such a cell had a lawn
+point $a$ and an off-lawn point $b$. The segment from $a$ to $b$ lies in
+the cell, since a square contains the segment between any two of its
+points. Going along it from $a$ to $b$, take the last point that is on
+the lawn: it is on the lawn ($L$ is closed), and points just after it are
+not, so it is a point of the edge, and it lies in the cell
+(\cref{fig:qtclassify}b). That contradicts the assumption. So all the
+points of the cell have the same status, which the centre gives. Two
+consequences:
+\begin{itemize}[nosep]
+  \item every cell that the rule calls in or out is in or out, as called;
+  \item every mixed cell meets the edge, so the rule calls it mixed.
+\end{itemize}
+
+\emph{Where the rule errs, and why it does not matter.} A cell that the
+edge meets without crossing it, for example along one of its sides, is
+in or out, but the rule calls it mixed (\cref{fig:qtclassify}c). If its
+side is larger than $h$, it is split for nothing: its quadrants are
+classified in turn, which costs a few leaves. If its side is $h$, it
+stays a leaf called mixed, and the mask of \cref{ch:bayes}, by its centre
+or by its fraction of lawn, still marks it correctly. So the quadtree
+built with the rule may have a few more leaves, but its mask gives the
+same answers. The rule is also the one of \cref{prop:qtcount}: split
+every cell of side larger than $h$ that meets the edge. (For
+\cref{fig:quadtree}, whose edges are given by formulas instead of a
+polygon, the script uses tests suited to the formulas; its comments
+explain them.)
 
 \section{How many leaves}
 \label{sec:qt-count}
@@ -263,8 +342,7 @@ $2.5$ & $1\,351$ & $16\,384$ & $7\,277$ & $4\,485$\\
 \end{center}
 For large cells the quadtree gains nothing: almost every cell is near the
 edge. Each halving of $h$ then about doubles the number of leaves and
-quadruples the number of lawn cells of the uniform grid (\cref{fig:quadtree},
-right), so the ratio doubles: $1.6$ at $h=10$, $2.8$ at $h=5$, $5.4$ at
+quadruples the number of lawn cells of the uniform grid (\cref{fig:quadtree}b), so the ratio doubles: $1.6$ at $h=10$, $2.8$ at $h=5$, $5.4$ at
 $h=2.5$.
 
 The bound is about three times too large. Step~2 allows four cells per
