@@ -538,8 +538,14 @@ step, of length $s_t$ along the compass heading $\psi_t$, and $\w_t$ is a
 Gaussian noise independent of $\p_t$. Take the noise round,
 $\w_t\sim\Normal(\vect0,\sigma^2I)$, with the same spread $\sigma$ in
 every direction, as the grid filter of \cref{ch:bayes} does ($\sigma=1.2$
-for its steps of $4$). Put the robot at the centre of its leaf. Then $\p_{t+1}$
-is Gaussian with the mean $\vect\mu=\vect c_\ell+\vect d_t$ and the
+for its steps of $4$). The condition $\p_t\in\ell$ does not fix $\p_t$, so approximate it by
+putting the robot at the centre of its leaf, $\p_t=\vect c_\ell$:
+\[
+  T_{\ell\ell'}\approx\Pr(\p_{t+1}\in\ell'\mid\p_t=\vect c_\ell).
+\]
+Given $\p_t=\vect c_\ell$, the only random term in
+$\p_{t+1}=\vect c_\ell+\vect d_t+\w_t$ is $\w_t$, so $\p_{t+1}$ is
+Gaussian with the mean $\vect\mu=\vect c_\ell+\vect d_t$ and the
 covariance $\sigma^2I$. Its two coordinates are independent, because the
 covariance is diagonal, and for a Gaussian $X$ with mean $\mu$ and
 standard deviation $\sigma$,
