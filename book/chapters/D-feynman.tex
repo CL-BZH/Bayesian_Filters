@@ -217,10 +217,39 @@ the exponent:
 Then $I=F(1)$, and $F(0)=0$ because the integrand is $0$ at $a=0$.
 The derivative of the integrand is
 $\partial_a\bigl((x^a-1)/\ln x\bigr)=x^a$: the obstacle cancels.
-Hypotheses of \cref{prop:diffint}, on $S=(0,1)$: for $a\in J$,
-$0<x^a\le x^{-1/2}$, which is integrable on $(0,1)$, so (3) holds with
-$g(x)=x^{-1/2}$; and $(x^a-1)/\ln x=\int_0^ax^b\,\mathrm db$ is bounded
-in absolute value by $\abs a\,x^{-1/2}$, so (1) holds. Hence
+
+\emph{Checking the hypotheses of \cref{prop:diffint}}, on $S=(0,1)$.
+One fact does most of the work: for $x$ in $(0,1)$, $\ln x<0$, so
+$x^b=e^{b\ln x}$ \emph{decreases} as $b$ increases. Every $b$ in $J$ has
+$b>-\tfrac12$, so
+\[
+  0<x^b<x^{-1/2}\qquad\text{for all }b\in J\text{ and }x\in(0,1),
+\]
+and $x^{-1/2}$ is integrable on $(0,1)$:
+$\int_0^1x^{-1/2}\,\mathrm dx=\bigl[2\sqrt x\bigr]_0^1=2$.
+\begin{enumerate}[nosep]
+  \item[(1)] \emph{Each $x\mapsto(x^a-1)/\ln x$ is integrable.} Write the
+        numerator as the integral of its derivative in the exponent:
+        \[
+          x^a-1=\int_0^a\frac{\mathrm d}{\mathrm db}x^b\,\mathrm db
+          =\int_0^ax^b\ln x\,\mathrm db,
+          \qquad\text{so}\qquad
+          \frac{x^a-1}{\ln x}=\int_0^ax^b\,\mathrm db
+        \]
+        ($\ln x\neq0$ on $(0,1)$). The variable $b$ runs between $0$
+        and $a$, both in $J$, so $x^b<x^{-1/2}$ there, and an integral
+        over an interval of length $\abs a$ of a function below
+        $x^{-1/2}$ is at most $\abs a\,x^{-1/2}$:
+        \[
+          \Bigl|\frac{x^a-1}{\ln x}\Bigr|\le\abs a\,x^{-1/2},
+        \]
+        which is integrable.
+  \item[(2)] \emph{Each $a\mapsto(x^a-1)/\ln x$ is differentiable}, with
+        the derivative $x^a\ln x/\ln x=x^a$.
+  \item[(3)] \emph{One bound for all $a$}: $\abs{\partial_af}=x^a<x^{-1/2}$
+        for every $a\in J$, so $g(x)=x^{-1/2}$ works.
+\end{enumerate}
+Hence
 \[
   F'(a)=\int_0^1x^a\,\mathrm dx=\frac1{a+1},
   \qquad
