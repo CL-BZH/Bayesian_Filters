@@ -456,13 +456,45 @@ coordinates measured from the corner of $Q_0$, but it stores about
 $A/h^2$ cells. This is the trade: memory proportional to $P/h$, for a
 search in $\log_2(s_0/h)$ steps.
 
-The particle filter of \cref{ch:particle} needs exactly this search: a
-particle in an out leaf is off the lawn and gets zero likelihood, a
-particle in an in leaf is on the lawn, and only for a particle in a mixed leaf is a finer test needed: the
-point-in-polygon test of \cref{sec:qt-def}, against the pieces of the
-edge that cross that leaf. In three dimensions, the same construction with eight
-children per cell is the \emph{octree}, on which the OctoMap library
-builds its 3-D occupancy maps (Hornung et al., in the references).
+\emph{What a filter does with it.} The particle filter of
+\cref{ch:particle} gives the likelihood $0$ to a particle that is off the
+lawn (more than 5 units outside it, in that chapter). At every update it
+must therefore decide, for each of its particles, whether the particle is
+on the lawn. With the quadtree, it finds the leaf of the particle, in at
+most $m$ steps, and then:
+\begin{itemize}[nosep]
+  \item in an \emph{out} leaf, the particle is off the lawn: likelihood
+        $0$;
+  \item in an \emph{in} leaf, it is on the lawn: nothing more to check;
+  \item in a \emph{mixed} leaf, the leaf alone does not tell, since it
+        holds points of both kinds, and the particle itself must be
+        tested.
+\end{itemize}
+That last test only needs the few pieces of the edge that cross the
+leaf. Store, for each mixed leaf, those pieces and the status of its
+centre (computed once, when the tree is built). Then follow the segment
+from the centre to the particle. It stays inside the leaf, since a
+square contains the segment between any two of its points, so only those
+pieces of the edge can cross it, and each crossing changes the status,
+as in the point-in-polygon test of \cref{sec:qt-def}. An even number of
+crossings: the particle has the status of the centre; an odd number: the
+other one.
+
+In three dimensions, the same construction with eight children per cell
+is the \emph{octree}, on which the OctoMap library builds its 3-D
+occupancy maps (Hornung et al., in the references).
+
+\section{A grid filter on a quadtree}
+\label{sec:qt-filter}
+
+The grid filter of \cref{ch:bayes} can use the leaves as its cells. This
+section writes its two steps on the leaves, and then shows why the leaves
+of the \emph{map} are not the right cells for the \emph{belief}.
+
+The belief is a probability $b_\ell$ for each leaf $\ell$, spread evenly
+inside the leaf, as on a uniform grid; the out leaves have $b_\ell=0$ and
+need not be stored. Write $\vect c_\ell$ for the centre of the leaf
+$\ell$.
 
 \begin{figure}[t]
 \centering
@@ -478,18 +510,6 @@ $\sigma=1.2$ (to scale), the moved robot stays well inside the leaf:
 $T_{\ell\ell}\approx1$, and the belief does not move.}
 \label{fig:qtpredict}
 \end{figure}
-
-\section{A grid filter on a quadtree}
-\label{sec:qt-filter}
-
-The grid filter of \cref{ch:bayes} can use the leaves as its cells. This
-section writes its two steps on the leaves, and then shows why the leaves
-of the \emph{map} are not the right cells for the \emph{belief}.
-
-The belief is a probability $b_\ell$ for each leaf $\ell$, spread evenly
-inside the leaf, as on a uniform grid; the out leaves have $b_\ell=0$ and
-need not be stored. Write $\vect c_\ell$ for the centre of the leaf
-$\ell$.
 
 \emph{Update.} As in \cref{ch:bayes}, $b_\ell\leftarrow\eta\,
 p(\z\mid\vect c_\ell)\,b_\ell$, with $\eta$ chosen so that the $b_\ell$
