@@ -561,10 +561,21 @@ probability that the second falls in $[y_0,y_1]$
   \Bigl[\Phi\Bigl(\frac{y_1-\mu_y}{\sigma}\Bigr)
        -\Phi\Bigl(\frac{y_0-\mu_y}{\sigma}\Bigr)\Bigr].
 \]
-Only the leaves $\ell'$ near $\vect\mu$ receive anything: if $\ell'$
-lies entirely more than $4\sigma$ to the right of $\mu_x$, the first
-factor is at most $1-\Phi(4)=\Phi(-4)\approx3\times10^{-5}$, and the same
-holds on the other three sides. The probability sent to out leaves is dropped and the rest is
+\emph{Only the leaves near $\vect\mu$ receive anything.} Take a leaf
+$\ell'$ far from $\vect\mu$, for example one whose left side is more than
+$4\sigma$ to the right of $\mu_x$, $x_0>\mu_x+4\sigma$ (so $\vect\mu$ is
+not in it). Its first factor is then
+\[
+  \Phi\Bigl(\frac{x_1-\mu_x}{\sigma}\Bigr)
+  -\Phi\Bigl(\frac{x_0-\mu_x}{\sigma}\Bigr)
+  \le1-\Phi\Bigl(\frac{x_0-\mu_x}{\sigma}\Bigr)
+  <1-\Phi(4)=\Phi(-4)\approx3\times10^{-5},
+\]
+since $\Phi$ is at most $1$ and increasing, and the second factor is at
+most $1$: such a leaf receives less than $3\times10^{-5}$. The same holds
+for a leaf more than $4\sigma$ to the left of $\vect\mu$, above it or
+below it. So $T_{\ell\ell'}$ needs to be computed only for the few leaves
+that meet the square of side $8\sigma$ centred at $\vect\mu$. The probability sent to out leaves is dropped and the rest is
 renormalised, which is the mask of \cref{ch:bayes}. On a uniform grid,
 the same formula is the prediction of the grid filter with all the mass
 of each cell put at its centre, a reading that \cref{sec:gs-problem}
