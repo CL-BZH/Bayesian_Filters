@@ -596,16 +596,30 @@ time. Two things then go wrong in a large leaf.
         Step after step it stays there, while the robot leaves the leaf after
 five steps: the belief is left behind (the rounding of
 \cref{sec:gs-problem}, at its worst).
-  \item \emph{The belief cannot be sharp.} A belief concentrated on a few
-        units cannot be represented inside a leaf of side $40$: there it
-        is spread evenly over the whole leaf.
-\end{itemize} The resolution of the
-belief should follow the \emph{belief}. One way is to let the
+  \item \emph{The belief cannot be sharp.} The filter stores one number
+        per leaf, the probability that the robot is in it, and reads it
+        as spread evenly over the leaf. Suppose the measurements place
+        the robot within about $2$ units of a point, a standard
+        deviation of $2$. On the uniform grid of side $4$ the belief
+        covers a few cells around that point. In a leaf of side $40$ all
+        of it is one number, spread over the whole leaf: the position
+        along $x$ is then uniform on an interval of length $40$, with the standard deviation $40/\sqrt{12}\approx11.5$ units instead of
+$2$ (a uniform distribution on an interval of length $L$ has the variance
+$L^2/12$). Inside a large leaf, the filter cannot know the robot
+        better than ``somewhere in this leaf''.
+\end{itemize}
+\emph{Small cells where the robot is.} The map and the belief need small
+cells in different places. The map needs them along the edge, where
+``lawn'' changes to ``not lawn'', and the quadtree of the map puts them
+there. The belief needs them where the robot probably is, wherever that
+is on the lawn, and that place moves with the robot. So the cells of the
+belief should be chosen from the belief, not from the map. One way is to let the
 probabilities drive the splitting: after each update, split a leaf whose
 probability is above a threshold, down to the side $h$, and merge four
-sibling leaves whose total probability is below another threshold. The
-mask still decides which leaves are out, and a leaf is split when it is
-mixed or when it carries much probability. Thrun, Burgard and Fox call a
+sibling leaves whose total probability is below another threshold. The mask still decides which leaves are out, and a leaf is split when it
+is mixed or when it carries much probability.
+
+Thrun, Burgard and Fox call a
 decomposition fixed in advance \emph{static} and one that follows the
 belief \emph{dynamic} (Section~4.1.4 of \emph{Probabilistic Robotics},
 where the dynamic decomposition is a \emph{density tree}). They also
