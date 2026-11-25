@@ -13,7 +13,7 @@ find the cell of a point (\cref{sec:qt-find}), and discusses a grid
 filter whose cells are the cells of a quadtree (\cref{sec:qt-filter}).
 The numbers quoted are printed by the script
 \code{book/figures/make\_figures.py}, which also draws
-\cref{fig:qtgrids,fig:qtchain,fig:qtclassify,fig:quadtree}.
+\cref{fig:qtgrids,fig:qtchain,fig:qtclassify,fig:quadtree,fig:qtarcs,fig:qtpredict}.
 
 \section{Splitting squares}
 \label{sec:qt-def}
@@ -258,8 +258,24 @@ explain them.)
 \label{sec:qt-count}
 
 A uniform grid of side $h$ has about $A/h^2$ cells on a lawn of area
-$A$: halving $h$ multiplies their number by $4$. The leaves of a
-quadtree are governed by the length of the edge instead.
+$A$: halving $h$ multiplies their number by $4$. This section shows that
+the number of leaves of a quadtree is governed by the length of the edge
+instead, and grows only like $1/h$ (\cref{prop:qtcount}); it then
+checks the count on the potato lawn, and says when the quadtree is worth
+its cost.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appE_quadtree_arcs.pdf}
+\caption{Steps 2 and 3 of the proof of \cref{prop:qtcount}. (a) An arc
+shorter than the side $s$ spans less than $s$ along $x$ and along $y$, so
+it meets at most two columns and two rows: at most four cells (here
+three, shaded). (b) A curve of length $\ell$ is cut into
+$n=\lfloor\ell/s\rfloor+1$ arcs of equal length, shorter than $s$
+(alternating colours); each meets at most four cells, so the curve meets
+at most $4n$ cells.}
+\label{fig:qtarcs}
+\end{figure}
 
 \begin{proposition}{Number of leaves}{qtcount}
 Suppose that the edge is made of $r$ closed curves of total length $P$,
@@ -278,29 +294,38 @@ removes one leaf and adds four, so it adds three. Hence
   \text{number of leaves}=1+3\times\text{number of splits}.
 \]
 
-\emph{Step 2: a short arc meets at most four cells of a grid.} Fix a
-side $s$ and the uniform grid of cells of side $s$. Let $\gamma$ be an
-arc of length smaller than $s$. Any two of its points are at a distance
-smaller than $s$, since the straight distance between two points is at
-most the length of any curve that joins them. So the $x$-coordinates of
-the points of $\gamma$ lie in an interval $[a,b]$ with $b-a<s$. The
-interval $[js,(j+1)s]$ of the grid meets $[a,b]$ when $js\le b$ and
-$(j+1)s\ge a$, that is when $a/s-1\le j\le b/s$; this interval of values
-of $j$ has length $(b-a)/s+1<2$, so it contains at most two integers.
-The same holds for the $y$-coordinates, and $\gamma$ meets at most
-$2\times2=4$ cells.
+\emph{Step 2: an arc shorter than $s$ meets at most four cells of the
+grid of side $s$} (\cref{fig:qtarcs}a). Fix a side $s$ and the uniform
+grid of cells of side $s$, and let $\gamma$ be an arc of length smaller
+than $s$.
+\begin{itemize}[nosep]
+  \item Any two points of $\gamma$ are at a distance smaller than $s$:
+        the straight distance between two points is at most the length
+        of any curve that joins them. So the $x$-coordinates of the
+        points of $\gamma$ fill an interval $[a,b]$ with $b-a<s$.
+  \item The columns of the grid are the strips
+        $j\,s\le x\le(j+1)\,s$. The columns that meet $[a,b]$ are
+        consecutive, and there are at most two of them: if three, $j$,
+        $j+1$ and $j+2$, met it, then $a\le(j+1)\,s$, the right end of
+        the column $j$, and $b\ge(j+2)\,s$, the left end of the column
+        $j+2$, so $b-a\ge s$.
+  \item In the same way, $\gamma$ meets at most two rows. A cell is in
+        one column and one row, so $\gamma$ meets at most $2\times2=4$
+        cells.
+\end{itemize}
 
-\emph{Step 3: a curve meets few cells.} Cut a curve of length $\ell$
-into $n=\lfloor\ell/s\rfloor+1$ arcs of equal length $\ell/n$, which is
+\emph{Step 3: a curve of length $\ell$ meets at most $4(\ell/s+1)$ cells
+of the grid of side $s$} (\cref{fig:qtarcs}b). Cut the curve into $n=\lfloor\ell/s\rfloor+1$ arcs of equal length $\ell/n$, which is
 smaller than $s$ because $n>\ell/s$. By Step~2 each arc meets at most $4$
 cells, so the curve meets at most $4n\le4(\ell/s+1)$ cells. Adding over
 the $r$ curves of the edge, whose lengths add up to $P$, at most
 $4(P/s+r)$ cells of the grid of side $s$ meet the edge.
 
-\emph{Step 4: adding over the depths.} The split cells have the sides
-$s_k=s_0/2^k$ with $0\le k\le m-1$, and at each depth they are cells of
-the grid of side $s_k$ that meet the edge, so by Step~3 there are at most
-$4(P/s_k+r)$ of them. The sum of the $1/s_k$ is a geometric sum:
+\emph{Step 4: adding over the depths.} The split cells have the sides $s_k=s_0/2^k$ with $0\le k\le m-1$. At
+the depth $k$ they are distinct cells of the grid $G_k$
+(\cref{prop:qtbasic}(c)), and all of them meet the edge, since that is
+the rule for splitting; so by Step~3 there are at most $4(P/s_k+r)$ of
+them. The sum of the $1/s_k$ is a geometric sum:
 \[
   \sum_{k=0}^{m-1}\frac1{s_k}=\frac1{s_0}\sum_{k=0}^{m-1}2^k
   =\frac{2^m-1}{s_0}=\frac1h-\frac1{s_0}<\frac1h ,
@@ -322,7 +347,11 @@ logarithm of $s_0/h$.
 
 \emph{The potato lawn.} Its edge is the outer curve, of length $798.7$,
 and the edge of the tree, of length $2\pi\times16=100.5$: $r=2$ and
-$P=899.2$. The area of the lawn is $A=44\,084$, and $s_0=320$.
+$P=899.2$. The area of the lawn is $A=44\,084$, and $s_0=320$. For each
+$h$, the table gives the number of leaves of the quadtree, the number of
+cells of the uniform grid of side $h$, on the whole square $Q_0$ and
+counting only those that meet the lawn (the ones a filter would store),
+and the bound of \cref{prop:qtcount}.
 \begin{center}
 \small
 \begin{tabular}{@{}rrrrr@{}}
@@ -341,56 +370,102 @@ $2.5$ & $1\,351$ & $16\,384$ & $7\,277$ & $4\,485$\\
 \end{tabular}
 \end{center}
 For large cells the quadtree gains nothing: almost every cell is near the
-edge. Each halving of $h$ then about doubles the number of leaves and
-quadruples the number of lawn cells of the uniform grid (\cref{fig:quadtree}b), so the ratio doubles: $1.6$ at $h=10$, $2.8$ at $h=5$, $5.4$ at
-$h=2.5$.
+edge. As $h$ shrinks, each halving of $h$ about doubles the number of
+leaves and quadruples the number of lawn cells of the uniform grid
+(\cref{fig:quadtree}b), so their ratio, lawn cells of the uniform grid
+per leaf, about doubles too: $494/313=1.6$ at $h=10$, $1\,871/661=2.8$
+at $h=5$, $7\,277/1\,351=5.4$ at $h=2.5$.
 
-The bound is about three times too large. Step~2 allows four cells per
-arc of length $s$, the worst case; a typical arc of length $s$ meets
-fewer. The script finds between $1.25\,P/h$ and $1.29\,P/h$ mixed leaves
-at the values of $h$ of the table. This agrees with a classical result of integral geometry,
+\emph{Why the bound is about three times too large.} Step~2 allows four
+cells for each arc of length $s$, the worst case; a typical arc meets
+fewer. How many, on average, is a classical result of integral geometry,
 quoted here without proof (it is Buffon's needle problem): averaged over
-the position and orientation of a grid of side $s$, a curve of length
-$\ell$ crosses $2\ell/(\pi s)$ of its vertical lines and as many
-horizontal ones, and each crossing takes it into a new cell, which gives
-about $4P/(\pi h)\approx1.27\,P/h$ cells along the edge. Putting this
-count in Step~4 instead of $4P/s_k$ gives about
-$1+3\times1.27\,P/h\approx3.8\,P/h$ leaves: about $1\,370$ for $h=2.5$,
-against $1\,351$ in the table.
+the position and the orientation of a grid of side $s$, a curve of length
+$\ell$ crosses $2\ell/(\pi s)$ of its vertical lines and as many of its
+horizontal lines. Each crossing takes the curve into a new cell, so it
+meets about $4\ell/(\pi s)\approx1.27\,\ell/s$ cells. For the edge and
+the side $h$, that is $1.27\,P/h$ mixed leaves, and the script finds
+between $1.25\,P/h$ and $1.29\,P/h$ at the values of $h$ of the table.
+Putting $1.27\,P/s_k$ instead of $4(P/s_k+r)$ in Step~4:
+\[
+  \text{number of splits}\approx\sum_{k=0}^{m-1}1.27\,\frac P{s_k}
+  <1.27\,\frac Ph,
+  \qquad
+  \text{number of leaves}\approx1+3\times1.27\,\frac Ph\approx3.8\,\frac Ph ,
+\]
+which is about $3.8\times899.2/2.5\approx1\,370$ for $h=2.5$, against
+$1\,351$ in the table.
 
-A leaf costs more memory than a cell of a uniform grid, which is an
-entry of an array: it needs its position and size, or the links of the
-tree. The quadtree pays off when the cells are small compared with the
-lawn, that is when $h$ is much smaller than $A/P$ (here $49$), which is
-when $A/h^2$ is much larger than $P/h$.
+\emph{When the quadtree pays off.} A leaf costs more memory than a cell
+of a uniform grid, which is just an entry of an array: it needs its
+position and size, or the links of the tree. The uniform grid stores
+about $A/h^2$ cells, the quadtree about $3.8\,P/h$ leaves, a ratio of
+\[
+  \frac{A/h^2}{3.8\,P/h}=\frac{A}{3.8\,P\,h}.
+\]
+The quadtree pays off when this ratio is large, that is when $h$ is much
+smaller than $A/P$, here $44\,084/899.2=49$: when the cells are small
+compared with the lawn.
 
 \section{Finding the leaf of a point}
 \label{sec:qt-find}
 
-To find the leaf that contains a point $\p$, start at the root; at a
-cell that has been split, compare the coordinates of $\p$ with those of
-the centre of the cell, which tells in which quadrant $\p$ lies (two
-comparisons), and move to that quadrant; stop at a leaf. Each step goes
-one level down, so at most $m=\log_2(s_0/h)$ steps are needed: $7$ for
-$h=2.5$. A uniform grid finds the cell of $\p$ in one step, by dividing
-its coordinates by $h$, but it stores $A/h^2$ cells. This is the trade:
-memory proportional to $P/h$ for a search in $\log_2(s_0/h)$ steps.
+A filter must often find the leaf that contains a point $\p=(x,y)$: for
+the update, or to test a particle. This section shows that it takes at
+most $m=\log_2(s_0/h)$ steps.
+
+Start at the root, and repeat at each cell that has been split, with the
+centre $(x_c,y_c)$:
+\begin{itemize}[nosep]
+  \item the quadrant that contains $\p$ is on the right if $x\ge x_c$, on
+        the left otherwise, at the top if $y\ge y_c$, at the bottom
+        otherwise: two comparisons;
+  \item move to that quadrant.
+\end{itemize}
+Stop at a leaf. The cells visited are the cells of the tree that contain
+$\p$, the chain $A_0\supset A_1\supset\cdots$ of \cref{fig:qtchain}, and
+each step goes one level down. No cell is deeper than $m$
+(\cref{prop:qtbasic}(a)), so at most $m$ steps are needed: $7$ for
+$h=2.5$, since $320/2.5=128=2^7$. A uniform grid finds the cell of $\p$
+in one step, the cell $(\lfloor x/h\rfloor,\lfloor y/h\rfloor)$ with the
+coordinates measured from the corner of $Q_0$, but it stores about
+$A/h^2$ cells. This is the trade: memory proportional to $P/h$, for a
+search in $\log_2(s_0/h)$ steps.
 
 The particle filter of \cref{ch:particle} needs exactly this search: a
 particle in an out leaf is off the lawn and gets zero likelihood, a
-particle in an in leaf is on the lawn, and only for a particle in a mixed
-leaf is a finer test needed, against the pieces of the edge that cross
-that leaf. In three dimensions, the same construction with eight
+particle in an in leaf is on the lawn, and only for a particle in a mixed leaf is a finer test needed: the
+point-in-polygon test of \cref{sec:qt-def}, against the pieces of the
+edge that cross that leaf. In three dimensions, the same construction with eight
 children per cell is the \emph{octree}, on which the OctoMap library
 builds its 3-D occupancy maps (Hornung et al., in the references).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appE_quadtree_predict.pdf}
+\caption{The prediction on the leaves. (a) The robot is put at the centre
+$\vect c_\ell$ of its leaf $\ell$ (blue) and moved by $\vect d_t$ to
+$\vect\mu$; the dashed circles are at $\sigma$ and $2\sigma$. The
+transition probability to the leaf $\ell'$ (orange) is the probability
+that $x$ falls in $[x_0,x_1]$ (shaded area under the curve below) times
+the probability that $y$ falls in $[y_0,y_1]$ (shaded area under the
+curve on the left). (b) In a leaf of side $40$, with a step of $4$ and
+$\sigma=1.2$ (to scale), the moved robot stays well inside the leaf:
+$T_{\ell\ell}\approx1$, and the belief does not move.}
+\label{fig:qtpredict}
+\end{figure}
 
 \section{A grid filter on a quadtree}
 \label{sec:qt-filter}
 
-The grid filter can use the leaves as its cells. The belief is a
-probability $b_\ell$ for each leaf $\ell$, spread evenly inside the leaf,
-as on a uniform grid; the out leaves have $b_\ell=0$ and need not be
-stored. Write $\vect c_\ell$ for the centre of the leaf $\ell$.
+The grid filter of \cref{ch:bayes} can use the leaves as its cells. This
+section writes its two steps on the leaves, and then shows why the leaves
+of the \emph{map} are not the right cells for the \emph{belief}.
+
+The belief is a probability $b_\ell$ for each leaf $\ell$, spread evenly
+inside the leaf, as on a uniform grid; the out leaves have $b_\ell=0$ and
+need not be stored. Write $\vect c_\ell$ for the centre of the leaf
+$\ell$.
 
 \emph{Update.} As in \cref{ch:bayes}, $b_\ell\leftarrow\eta\,
 p(\z\mid\vect c_\ell)\,b_\ell$, with $\eta$ chosen so that the $b_\ell$
@@ -398,9 +473,15 @@ add up to $1$. Taking the likelihood at the centre replaces its average
 over the leaf by one value, which is accurate when the likelihood
 changes little across the leaf.
 
-\emph{Prediction.} By the law of total probability over the leaf that
-contains $\p_t$ (the version of \eqref{eq:predict} for cells),
-$\bar b_{\ell'}=\sum_\ell T_{\ell\ell'}\,b_\ell$ with
+\emph{Prediction.} The new probability of a leaf $\ell'$ follows from the
+law of total probability over the leaf $\ell$ that contains $\p_t$ (the
+version of \eqref{eq:predict} for cells):
+\[
+  \bar b_{\ell'}=\Pr(\p_{t+1}\in\ell')
+  =\sum_\ell\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)\,\Pr(\p_t\in\ell)
+  =\sum_\ell T_{\ell\ell'}\,b_\ell ,
+\]
+with the \emph{transition probabilities}
 $T_{\ell\ell'}=\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)$. Take the model of
 \cref{prop:conv} with the round noise $\Normal(\vect0,\sigma^2I)$ used by
 the code, and put the robot at the centre of its leaf. Then $\p_{t+1}$
@@ -409,8 +490,10 @@ covariance $\sigma^2I$. Its two coordinates are independent, because the
 covariance is diagonal, and for a Gaussian $X$ with mean $\mu$ and
 standard deviation $\sigma$,
 $\Pr(a\le X\le b)=\Phi\bigl((b-\mu)/\sigma\bigr)-\Phi\bigl((a-\mu)/\sigma\bigr)$,
-where $\Phi$ is the distribution function of the standard Gaussian. So,
-for the leaf $\ell'=[x_0,x_1]\times[y_0,y_1]$,
+where $\Phi$ is the distribution function of the standard Gaussian. So, for the leaf $\ell'=[x_0,x_1]\times[y_0,y_1]$, $T_{\ell\ell'}$ is
+the probability that the first coordinate falls in $[x_0,x_1]$ times the
+probability that the second falls in $[y_0,y_1]$
+(\cref{fig:qtpredict}a):
 \[
   T_{\ell\ell'}=
   \Bigl[\Phi\Bigl(\frac{x_1-\mu_x}{\sigma}\Bigr)
@@ -421,17 +504,29 @@ for the leaf $\ell'=[x_0,x_1]\times[y_0,y_1]$,
 Only the leaves $\ell'$ near $\vect\mu$ receive anything: if $\ell'$
 lies entirely more than $4\sigma$ to the right of $\mu_x$, the first
 factor is at most $1-\Phi(4)=\Phi(-4)\approx3\times10^{-5}$, and the same
-holds on the other three sides. The probability sent to out leaves is
-dropped and the rest is renormalised, which is the mask of
-\cref{ch:bayes}. On a uniform grid the same formula is the shift and the
-blur of \cref{prop:conv}, done cell by cell.
+holds on the other three sides. The probability sent to out leaves is dropped and the rest is
+renormalised, which is the mask of \cref{ch:bayes}. On a uniform grid,
+the same formula is the prediction of \cref{prop:conv} with all the mass
+of each cell at its centre: the first reading of \cref{sec:gs-problem}.
 
 \emph{The weakness.} Both steps put the robot at the centre of its leaf,
 so they are only as fine as the leaves. The quadtree of the lawn has its
 small leaves along the edge, which is where the \emph{map} needs detail,
 but large leaves inside the lawn, where the robot spends most of its
-time. A belief concentrated on a few units cannot be represented inside
-a leaf of side $40$: there it is spread evenly over the whole leaf. The resolution of the
+time. Two things then go wrong in a large leaf.
+\begin{itemize}[nosep]
+  \item \emph{The belief cannot move.} Take a leaf of side $40$, a step
+        of $4$ and $\sigma=1.2$ (\cref{fig:qtpredict}b): the mean
+        $\vect\mu=\vect c_\ell+\vect d_t$ is $4$ from the centre, and
+        $16$ from the nearest side of the leaf, more than $13\sigma$; so
+        $T_{\ell\ell}\approx1$, and the mass of the leaf stays in it.
+        Step after step it stays there, while the robot leaves the leaf
+        after five steps: the rounding of \cref{sec:gs-problem}, at its
+        worst.
+  \item \emph{The belief cannot be sharp.} A belief concentrated on a few
+        units cannot be represented inside a leaf of side $40$: there it
+        is spread evenly over the whole leaf.
+\end{itemize} The resolution of the
 belief should follow the \emph{belief}. One way is to let the
 probabilities drive the splitting: after each update, split a leaf whose
 probability is above a threshold, down to the side $h$, and merge four

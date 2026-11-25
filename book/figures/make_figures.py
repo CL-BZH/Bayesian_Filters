@@ -301,6 +301,133 @@ def fig_quadtree_classify():
     save(fig, "appE_quadtree_classify")
 
 
+def fig_quadtree_arcs():
+    """Step 2 and 3 of the leaf count: a short arc meets at most 4 cells; a curve is cut into short arcs."""
+    from matplotlib.patches import Rectangle
+    blue, orange, ink, grey = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK, viz.MUTED
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(W, W * 0.4), gridspec_kw={"width_ratios": [1, 1.45]})
+
+    def length(x, y):
+        return np.hypot(np.diff(x), np.diff(y)).sum()
+
+    def cells_met(x, y):
+        return {(int(np.floor(u)), int(np.floor(v))) for u, v in zip(x, y)}
+
+    # (a) an arc shorter than s
+    t = np.linspace(0, 1, 400)
+    x = 1.7 + 0.6 * t + 0.06 * np.sin(np.pi * t)
+    y = 1.65 + 0.6 * t - 0.06 * np.sin(np.pi * t)
+    for i, j in cells_met(x, y):
+        ax1.add_patch(Rectangle((i, j), 1, 1, fc=blue, alpha=0.18, lw=0))
+    for i in range(4):
+        for j in range(3):
+            ax1.add_patch(Rectangle((i, j + 0.5), 1, 1, fc="none", ec=grey, lw=0.6) if False else
+                          Rectangle((i, j), 1, 1, fc="none", ec=grey, lw=0.6))
+    ax1.plot(x, y, color=orange, lw=2)
+    xa, xb = x.min(), x.max()
+    ya, yb = y.min(), y.max()
+    ax1.annotate("", (xb, -0.18), (xa, -0.18), arrowprops=dict(arrowstyle="<->", color=ink, lw=0.8))
+    ax1.text((xa + xb) / 2, -0.25, "$[a,b]$, $b-a<s$", ha="center", va="top", fontsize=7.5)
+    for u in (xa, xb):
+        ax1.plot([u, u], [-0.12, ya if u == xa else yb], color=ink, lw=0.5, ls=":")
+    ax1.annotate("", (4.15, yb), (4.15, ya), arrowprops=dict(arrowstyle="<->", color=ink, lw=0.8))
+    ax1.text(4.22, (ya + yb) / 2, "$<s$", ha="left", va="center", fontsize=7.5)
+    ax1.annotate("", (1, 3.12), (0, 3.12), arrowprops=dict(arrowstyle="<->", color=ink, lw=0.8))
+    ax1.text(0.5, 3.18, "$s$", ha="center", va="bottom", fontsize=7.5)
+    ax1.set_title(f"(a) an arc of length {length(x, y):.2f}$\\,s$: 2 columns, 2 rows", fontsize=8)
+    ax1.set_xlim(-0.1, 4.6); ax1.set_ylim(-0.6, 3.4)
+
+    # (b) a curve cut into arcs shorter than s
+    t = np.linspace(0, 1, 4000)
+    x = 0.4 + 5.2 * t
+    y = 2.0 + 1.25 * np.sin(2 * np.pi * 0.9 * t + 0.3) * (1 - 0.3 * t)
+    L = length(x, y)
+    n = int(np.floor(L)) + 1
+    cum = np.r_[0, np.cumsum(np.hypot(np.diff(x), np.diff(y)))]
+    cuts = np.searchsorted(cum, np.linspace(0, L, n + 1))
+    cuts[-1] = len(x) - 1
+    met = cells_met(x, y)
+    for i, j in met:
+        ax2.add_patch(Rectangle((i, j), 1, 1, fc=blue, alpha=0.18, lw=0))
+    for i in range(6):
+        for j in range(4):
+            ax2.add_patch(Rectangle((i, j), 1, 1, fc="none", ec=grey, lw=0.6))
+    for k in range(n):
+        sl = slice(cuts[k], cuts[k + 1] + 1)
+        ax2.plot(x[sl], y[sl], color=orange if k % 2 == 0 else ink, lw=2)
+    ax2.plot(x[cuts], y[cuts], "o", color=ink, ms=3, zorder=5)
+    ax2.set_title(f"(b) length $\\ell={L:.1f}\\,s$, cut into $n={n}$ arcs: "
+                  f"{len(met)} cells, at most $4n={4 * n}$", fontsize=8)
+    ax2.set_xlim(-0.1, 6.1); ax2.set_ylim(-0.6, 4.2)
+    for ax in (ax1, ax2):
+        ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appE_quadtree_arcs")
+
+
+def fig_quadtree_predict():
+    """Prediction on the leaves: T = product of two 1-D Gaussian probabilities; large leaves trap the belief."""
+    from matplotlib.patches import Rectangle, Circle
+    from scipy.stats import norm
+    blue, orange, ink, grey = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK, viz.MUTED
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(W, W * 0.47), gridspec_kw={"width_ratios": [1.25, 1]})
+    # (a) the transition probability to one leaf
+    ax = ax1
+    leaves = [(0, 0, 1), (1, 0, 1), (0, 1, 1), (1, 1, 1), (2, 0, 2), (0, 2, 2),
+              (2, 2, 1), (3, 2, 1), (2, 3, 1), (3, 3, 1)]
+    for x0, y0, sd in leaves:
+        ax.add_patch(Rectangle((x0, y0), sd, sd, fc="none", ec=grey, lw=0.7))
+    ax.add_patch(Rectangle((1, 1), 1, 1, fc="none", ec=blue, lw=1.8))
+    ax.add_patch(Rectangle((3, 2), 1, 1, fc=orange, alpha=0.3, ec=orange, lw=1.5))
+    c, mu, sig = np.array([1.5, 1.5]), np.array([3.1, 2.5]), 0.45
+    ax.plot(*c, "o", color=blue, ms=3.5); ax.text(c[0] - 0.08, c[1] - 0.1, "$\\mathbf{c}_\\ell$", ha="right", va="top", fontsize=8)
+    ax.text(1.06, 1.94, "$\\ell$", ha="left", va="top", fontsize=8.5, color=blue)
+    ax.text(3.94, 2.94, "$\\ell'$", ha="right", va="top", fontsize=8.5, color=orange)
+    ax.annotate("", mu, c, arrowprops=dict(arrowstyle="->", color=ink, lw=1.0))
+    ax.text(2.2, 2.15, "$\\mathbf{d}_t$", fontsize=8)
+    ax.plot(*mu, "+", color=ink, ms=7, mew=1.3); ax.text(mu[0] + 0.07, mu[1] + 0.08, "$\\boldsymbol{\\mu}$", fontsize=8)
+    for k in (1, 2):
+        ax.add_patch(Circle(mu, k * sig, fc="none", ec=ink, lw=0.7, ls="--"))
+    # marginal curves: x below, y on the left
+    xs = np.linspace(0, 4, 400); px = norm.pdf(xs, mu[0], sig); px = px / px.max() * 0.9
+    base = -0.25
+    ax.plot(xs, base - px, color=ink, lw=1.0)
+    m = (xs >= 3) & (xs <= 4)
+    ax.fill_between(xs[m], base - px[m], base, color=orange, alpha=0.35, lw=0)
+    ax.plot([0, 4], [base, base], color=grey, lw=0.6)
+    ax.text(3.5, base - 1.05, "$x_0$ to $x_1$", ha="center", va="top", fontsize=7.5)
+    ys = np.linspace(0, 4, 400); py = norm.pdf(ys, mu[1], sig); py = py / py.max() * 0.9
+    ax.plot(base - py, ys, color=ink, lw=1.0)
+    m = (ys >= 2) & (ys <= 3)
+    ax.fill_betweenx(ys[m], base - py[m], base, color=orange, alpha=0.35, lw=0)
+    ax.plot([base, base], [0, 4], color=grey, lw=0.6)
+    ax.text(base - 0.95, 2.5, "$y_0$\nto\n$y_1$", ha="right", va="center", fontsize=7.5)
+    for xv in (3, 4):
+        ax.plot([xv, xv], [base, 2], color=orange, lw=0.6, ls=":")
+    for yv in (2, 3):
+        ax.plot([base, 3], [yv, yv], color=orange, lw=0.6, ls=":")
+    ax.set_title("(a) $T_{\\ell\\ell'}$ = shaded area below $\\times$ shaded area left", fontsize=8)
+    ax.set_xlim(-1.6, 4.1); ax.set_ylim(-1.45, 4.1)
+    # (b) a large leaf: the mean stays inside it
+    ax = ax2
+    ax.add_patch(Rectangle((0, 0), 4, 4, fc="none", ec=blue, lw=1.8))
+    for x0, y0, sd in ((4, 0, 2), (4, 2, 2)):
+        ax.add_patch(Rectangle((x0, y0), sd, sd, fc="none", ec=grey, lw=0.7))
+    c = np.array([2.0, 2.0]); mu = c + np.array([0.4, 0.0]); sig = 0.12
+    ax.plot(*c, "o", color=blue, ms=3.5); ax.text(c[0] - 0.08, c[1] - 0.1, "$\\mathbf{c}_\\ell$", ha="right", va="top", fontsize=8)
+    ax.annotate("", mu, c, arrowprops=dict(arrowstyle="->", color=ink, lw=1.0))
+    ax.plot(*mu, "+", color=ink, ms=7, mew=1.3)
+    ax.add_patch(Circle(mu, 2 * sig, fc="none", ec=ink, lw=0.7, ls="--"))
+    ax.text(2.0, 1.0, "leaf of side 40\nstep of 4, $\\sigma=1.2$:\n$T_{\\ell\\ell}\\approx1$", ha="center",
+            va="center", fontsize=7.5)
+    ax.set_title("(b) a large leaf keeps its mass", fontsize=8)
+    ax.set_xlim(-0.2, 6.2); ax.set_ylim(-1.45, 4.1)
+    for a_ in (ax1, ax2):
+        a_.set_aspect("equal"); a_.axis("off")
+    plt.tight_layout()
+    save(fig, "appE_quadtree_predict")
+
+
 def fig_quadtree_grids():
     """The cells at depth k are the cells of the grid of side s_k; the quadrants of cell (i, j) are (2i or 2i+1, 2j or 2j+1)."""
     from matplotlib.patches import Rectangle
@@ -1453,6 +1580,8 @@ if __name__ == "__main__":
     fig_potato()
     fig_quadtree()
     fig_quadtree_grids()
+    fig_quadtree_predict()
+    fig_quadtree_arcs()
     fig_quadtree_classify()
     fig_quadtree_chain()
     fig_shift_1d()
