@@ -366,7 +366,12 @@ $12P/h=12\times899.2/2.5=4\,316$.
 \emph{The potato lawn.} Its edge is made of two closed curves: the outer
 curve, of length $798.7$, and the circle around the tree, of length
 $2\pi\times16=100.5$. So $r=2$ and $P=899.2$; each further hole would add
-one closed curve. The area of the lawn is $A=44\,084$, and $s_0=320$. For each
+one closed curve. The area of the lawn is $A=44\,084$. The root $Q_0$ is the square
+$[-160,160]^2$ on which the grid filter of \cref{ch:bayes} works: it
+contains the lawn, which spans $-149$ to $146$ along $x$ and $-113$ to
+$96$ along $y$, and its side is $s_0=320$. Each value of $h$ in the
+table is $320/2^m$, from $h=40$ ($m=3$) to $h=2.5$ ($m=7$), as the
+definition requires. For each
 $h$, the table gives the number of leaves of the quadtree, the number of
 cells of the uniform grid of side $h$, on the whole square $Q_0$ and
 counting only those that meet the lawn (the ones a filter would store),
