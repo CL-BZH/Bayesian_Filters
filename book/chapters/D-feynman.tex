@@ -52,9 +52,22 @@ For each $x$, $q_n(x)\to\partial_af(a,x)$ by (2), so $\partial_af(a,\cdot)$
 is measurable as a limit of measurable functions. By the mean value
 theorem, $q_n(x)=\partial_af(\xi_n,x)$ for some $\xi_n$ between $a$ and
 $a+h_n$, so $\abs{q_n(x)}\le g(x)$ by (3). Dominated convergence then
-gives $\int_Sq_n\to\int_S\partial_af(a,x)\,\mathrm dx$. This holds for
-every such sequence $(h_n)$, so $F$ is differentiable at $a$ with the
-stated derivative.
+gives $\int_Sq_n\to\int_S\partial_af(a,x)\,\mathrm dx$. Write $L=\int_S\partial_af(a,x)\,\mathrm dx$. We have shown: for every
+sequence $h_n\to0$ with $h_n\neq0$ and $a+h_n\in J$, the difference
+quotient $\bigl(F(a+h_n)-F(a)\bigr)/h_n$ tends to $L$.
+
+It remains to pass from sequences to the limit as $h\to0$, which is what
+differentiability asks for; sequences were needed because dominated
+convergence is a statement about sequences. Suppose that the quotient did
+not tend to $L$ as $h\to0$. Then there would be an $\varepsilon>0$ such
+that, however small $\delta>0$, some $h$ with $0<\abs h<\delta$ and
+$a+h\in J$ gives a quotient at distance at least $\varepsilon$ from $L$.
+Taking $\delta=1/n$ for $n=1,2,\dots$ gives such an $h_n$ for each $n$:
+a sequence with $h_n\to0$, $h_n\neq0$, $a+h_n\in J$, whose quotients all
+stay at distance at least $\varepsilon$ from $L$, and so do not tend to
+$L$. This contradicts what was shown. So the quotient tends to $L$ as
+$h\to0$: $F$ is differentiable at $a$, and $F'(a)=L$, the stated
+derivative. Since $a$ was any point of $J$, this holds on all of $J$.
 \end{proof}
 
 A complex-valued $f$ is handled by applying the proposition to its real
