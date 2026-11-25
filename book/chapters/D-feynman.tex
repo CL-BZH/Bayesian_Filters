@@ -140,9 +140,15 @@ in the sense used in this appendix, does not exist. What does exist is
 the limit of the integrals over $(0,R)$ as $R\to\infty$: the positive and
 negative arches cancel more and more, and
 $\int_0^R\sin x/x\,\mathrm dx$ tends to a limit (it is $\pi/2$, though
-the value is not needed here). Such a limit of integrals over growing
-intervals is called an \emph{improper integral}; it is not the integral of
-an integrable function, and \cref{prop:diffint} says nothing about it.
+the value is not needed here). Such a limit of integrals over growing intervals is called an
+\emph{improper integral}. The name comes from the Riemann integral, which
+is defined only for bounded functions on bounded intervals: an integral
+over $(0,\infty)$ is then always defined as such a limit. The Lebesgue
+integral needs no limit, but it exists only when $\int\abs f<\infty$.
+The two agree whenever that holds; an improper integral can also
+converge without it, through cancellation, as here, and then it is not
+the integral of an integrable function, and \cref{prop:diffint} says
+nothing about it.
 
 And the formula does fail. With $a>0$ and
 $F(a)=\lim_{R\to\infty}\int_0^R\sin(ax)/x\,\mathrm dx$, the substitution
