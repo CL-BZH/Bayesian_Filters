@@ -129,13 +129,35 @@ is $0$ (dot). No integrable $g$ can lie above all the curves of (a).}
 
 \emph{An integral that is not one: $\int_0^\infty\sin(ax)/x\,\mathrm dx$.}
 Hypothesis (1) can fail too. The function $\sin x/x$ is not integrable on
-$(0,\infty)$: on each interval $[k\pi,(k+1)\pi]$ the function $\abs{\sin
-x}$ has the integral $2$ and $1/x\ge1/((k+1)\pi)$, so
+$(0,\infty)$, that is, $\int_0^\infty\abs{\sin x}/x\,\mathrm dx=\infty$.
+Cut $(0,\infty)$ into the intervals $[k\pi,(k+1)\pi]$, $k=0,1,2,\dots$,
+on each of which $\sin x$ keeps one sign: one arch each.
+
+\emph{One arch.} On $[k\pi,(k+1)\pi]$, $x\le(k+1)\pi$, so
+$1/x\ge1/((k+1)\pi)$; and with $u=x-k\pi$, which runs over $[0,\pi]$,
+$\abs{\sin x}=\abs{\sin(u+k\pi)}=\abs{\sin u}=\sin u$. So
+\begin{align*}
+  \int_{k\pi}^{(k+1)\pi}\frac{\abs{\sin x}}x\,\mathrm dx
+  &\ge\frac1{(k+1)\pi}\int_{k\pi}^{(k+1)\pi}\abs{\sin x}\,\mathrm dx
+  &&x\le(k+1)\pi\\
+  &=\frac1{(k+1)\pi}\int_0^\pi\sin u\,\mathrm du
+  &&u=x-k\pi\\
+  &=\frac1{(k+1)\pi}\bigl[-\cos u\bigr]_0^\pi
+   =\frac{1-(-1)}{(k+1)\pi}=\frac2{(k+1)\pi} .
+\end{align*}
+
+\emph{All the arches.} Adding them, with $n=k+1$,
 \[
   \int_0^\infty\frac{\abs{\sin x}}x\,\mathrm dx
-  \ge\sum_{k=0}^\infty\frac2{(k+1)\pi}=\infty,
+  =\sum_{k=0}^\infty\int_{k\pi}^{(k+1)\pi}\frac{\abs{\sin x}}x\,\mathrm dx
+  \ge\frac2\pi\sum_{n=1}^\infty\frac1n=\infty,
 \]
-like the harmonic series. So the integral of $\sin x/x$ over $(0,\infty)$,
+because the harmonic series diverges: grouping its terms as
+$1+\tfrac12+(\tfrac13+\tfrac14)+(\tfrac15+\dots+\tfrac18)+\cdots$, each
+group of $2^j$ terms, from $1/(2^j+1)$ to $1/2^{j+1}$, is at least
+$2^j\times1/2^{j+1}=\tfrac12$, and there are infinitely many groups.
+
+So the integral of $\sin x/x$ over $(0,\infty)$,
 in the sense used in this appendix, does not exist. What does exist is
 the limit of the integrals over $(0,R)$ as $R\to\infty$: the positive and
 negative arches cancel more and more, and
