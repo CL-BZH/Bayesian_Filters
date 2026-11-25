@@ -280,7 +280,9 @@ at most $4n$ cells.}
 \end{figure}
 
 \begin{proposition}{Number of leaves}{qtcount}
-Suppose that the edge is made of $r$ closed curves of total length $P$,
+Suppose that the edge is made of $r$ closed curves (curves that end
+where they start, such as a circle or the outline of a polygon) of total
+length $P$,
 and build the quadtree by splitting every cell of side larger than $h$
 that meets the edge (this splits at least the mixed cells). Then the
 number of leaves is at most
@@ -347,9 +349,10 @@ of cells of a uniform grid. The term $12rm$ grows only like the
 logarithm of $s_0/h$.
 \end{inwords}
 
-\emph{The potato lawn.} Its edge is the outer curve, of length $798.7$,
-and the edge of the tree, of length $2\pi\times16=100.5$: $r=2$ and
-$P=899.2$. The area of the lawn is $A=44\,084$, and $s_0=320$. For each
+\emph{The potato lawn.} Its edge is made of two closed curves: the outer
+curve, of length $798.7$, and the circle around the tree, of length
+$2\pi\times16=100.5$. So $r=2$ and $P=899.2$; each further hole would add
+one closed curve. The area of the lawn is $A=44\,084$, and $s_0=320$. For each
 $h$, the table gives the number of leaves of the quadtree, the number of
 cells of the uniform grid of side $h$, on the whole square $Q_0$ and
 counting only those that meet the lawn (the ones a filter would store),
