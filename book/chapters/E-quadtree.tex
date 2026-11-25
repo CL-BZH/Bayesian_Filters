@@ -598,13 +598,14 @@ five steps: the belief is left behind (the rounding of
 \cref{sec:gs-problem}, at its worst).
   \item \emph{The belief cannot be sharp.} The filter stores one number
         per leaf, the probability that the robot is in it, and reads it
-        as spread evenly over the leaf. Suppose the measurements place
-        the robot within about $2$ units of a point, a standard
-        deviation of $2$. On the uniform grid of side $4$ the belief
-        covers a few cells around that point. In a leaf of side $40$ all
+        as spread evenly over the leaf. Suppose that, after a few good measurements, the belief is a narrow
+bump: a Gaussian around some point, with a standard deviation of $2$
+units along each axis, so that the robot is very probably within $4$
+units of that point. On the uniform grid of side $4$, this bump covers a
+few cells around the point. In a leaf of side $40$ all
         of it is one number, spread over the whole leaf: the position
         along $x$ is then uniform on an interval of length $40$, with the standard deviation $40/\sqrt{12}\approx11.5$ units instead of
-$2$ (a uniform distribution on an interval of length $L$ has the variance
+the $2$ of the bump (a uniform distribution on an interval of length $L$ has the variance
 $L^2/12$). Inside a large leaf, the filter cannot know the robot
         better than ``somewhere in this leaf''.
 \end{itemize}
