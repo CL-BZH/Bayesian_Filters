@@ -75,13 +75,65 @@ and imaginary parts. The companion book proves a more general form, with
 a parameter in a normed space and a Lipschitz bound in place of (3)
 (Theorem~17.20 there).
 
-Hypothesis (3) is the one to check, and it can fail. The integral
-$F(a)=\int_0^\infty\sin(ax)/x\,\mathrm dx$ (an improper integral, not an
-integrable function) does not depend on $a>0$: the substitution $y=ax$
-turns it into $F(1)$. So $F'(a)=0$. Differentiating under the integral
-sign anyway would give $\int_0^\infty\cos(ax)\,\mathrm dx$, which does
-not exist. Here $\partial_af=\cos(ax)$ has no integrable bound on
-$(0,\infty)$.
+\emph{Hypothesis (3) is the one to check.} Hypotheses (1) and (2) are
+about one $a$, or one $x$, at a time, and they are usually clear.
+Hypothesis (3) asks for more: a single integrable function $g$ that bounds
+$\partial_af(a,\cdot)$ for \emph{all} $a\in J$ at once. It forbids the
+derivative from carrying its mass off to infinity as $a$ varies, and that
+can happen.
+
+\emph{An example where (3) fails.} Take $J=(-1,1)$, $S=(0,\infty)$ and
+\[
+  f(a,x)=a^3x\,e^{-a^2x^2}.
+\]
+Hypotheses (1) and (2) hold: for each $a$ the function of $x$ is
+integrable, and for each $x$ the function of $a$ is differentiable. For
+$a\neq0$,
+\[
+  F(a)=a^3\int_0^\infty x\,e^{-a^2x^2}\,\mathrm dx
+  =a^3\Bigl[-\frac{e^{-a^2x^2}}{2a^2}\Bigr]_0^\infty
+  =a^3\cdot\frac1{2a^2}=\frac a2 ,
+\]
+and $F(0)=0$, so $F(a)=a/2$ on all of $J$, and $F'(0)=\tfrac12$. But
+\[
+  \partial_af(a,x)=x\,e^{-a^2x^2}\bigl(3a^2-2a^4x^2\bigr)
+\]
+is $0$ at $a=0$, for every $x$, so $\int_S\partial_af(0,x)\,\mathrm dx=0$:
+the formula of \cref{prop:diffint} gives $0$ instead of $\tfrac12$.
+Hypothesis (3) is what fails. For $x>1$, the value $a=1/x$ is in $J$,
+and there $\partial_af=x\,e^{-1}(3/x^2-2/x^2)=e^{-1}/x$; so any $g$ that
+bounds $\abs{\partial_af(a,x)}$ for all $a\in J$ has $g(x)\ge e^{-1}/x$
+for $x>1$, and $\int_1^\infty\mathrm dx/x=\infty$: no such $g$ is
+integrable. The picture: for small $a$, the derivative is a bump around
+$x\approx1/a$, which runs off to infinity as $a\to0$, and its mass goes
+with it.
+
+\emph{An integral that is not one: $\int_0^\infty\sin(ax)/x\,\mathrm dx$.}
+Hypothesis (1) can fail too. The function $\sin x/x$ is not integrable on
+$(0,\infty)$: on each interval $[k\pi,(k+1)\pi]$ the function $\abs{\sin
+x}$ has the integral $2$ and $1/x\ge1/((k+1)\pi)$, so
+\[
+  \int_0^\infty\frac{\abs{\sin x}}x\,\mathrm dx
+  \ge\sum_{k=0}^\infty\frac2{(k+1)\pi}=\infty,
+\]
+like the harmonic series. So the integral of $\sin x/x$ over $(0,\infty)$,
+in the sense used in this appendix, does not exist. What does exist is
+the limit of the integrals over $(0,R)$ as $R\to\infty$: the positive and
+negative arches cancel more and more, and
+$\int_0^R\sin x/x\,\mathrm dx$ tends to a limit (it is $\pi/2$, though
+the value is not needed here). Such a limit of integrals over growing
+intervals is called an \emph{improper integral}; it is not the integral of
+an integrable function, and \cref{prop:diffint} says nothing about it.
+
+And the formula does fail. With $a>0$ and
+$F(a)=\lim_{R\to\infty}\int_0^R\sin(ax)/x\,\mathrm dx$, the substitution
+$y=ax$ turns $\int_0^R\sin(ax)/x\,\mathrm dx$ into
+$\int_0^{aR}\sin y/y\,\mathrm dy$, which has the same limit as
+$R\to\infty$; so $F(a)=F(1)$ for every $a>0$, and $F'(a)=0$.
+Differentiating under the integral sign anyway would give
+$\int_0^\infty\cos(ax)\,\mathrm dx$, which does not exist even as an
+improper integral: $\int_0^R\cos(ax)\,\mathrm dx=\sin(aR)/a$ keeps
+oscillating as $R\to\infty$.
 
 \section{The device}
 \label{sec:feyn-idea}
