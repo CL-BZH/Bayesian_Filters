@@ -511,6 +511,38 @@ def fig_quadtree_chain():
     save(fig, "appE_quadtree_chain")
 
 
+def fig_feyn_escape():
+    """Appendix D: the derivative of a^3 x exp(-a^2 x^2) is a bump that runs off to infinity as a -> 0."""
+    from scipy.integrate import quad
+    cols = [viz.COLORS["EKF"], viz.COLORS["UKF"], viz.COLORS["PF"], viz.COLORS["KF"]]
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(W, W * 0.36), gridspec_kw={"width_ratios": [1.6, 1]})
+    x = np.linspace(0, 40, 4000)
+    for a, c in zip((0.4, 0.2, 0.1, 0.05), cols):
+        d = x * np.exp(-a**2 * x**2) * (3 * a**2 - 2 * a**4 * x**2)
+        ax1.plot(x, d, color=c, lw=1.6, label=f"$a={a}$")
+    ax1.axhline(0, color=viz.INK_2, lw=0.6)
+    ax1.set_xlabel("$x$"); ax1.set_ylabel("$\\partial_a f(a,x)$")
+    ax1.set_title("(a) the derivative, for smaller and smaller $a$", fontsize=8.5)
+    ax1.legend(fontsize=7.5, frameon=False)
+    ax1.set_xlim(0, 40)
+    a = np.linspace(-1, 1, 401)
+    ints = [quad(lambda t, b=b: t * np.exp(-b * b * t * t) * (3 * b * b - 2 * b**4 * t * t), 0, np.inf, limit=200)[0]
+            if abs(b) > 1e-9 else 0.0 for b in a]
+    ints = np.array(ints)
+    ax2.plot(a[a < 0], ints[a < 0], color=viz.COLORS["EKF"], lw=1.6)
+    ax2.plot(a[a > 0], ints[a > 0], color=viz.COLORS["EKF"], lw=1.6)
+    ax2.plot([0], [0], "o", color=viz.COLORS["UKF"], ms=4, zorder=5)
+    ax2.plot([0], [0.5], "o", mfc="white", mec=viz.COLORS["EKF"], ms=4, zorder=5)
+    ax2.axhline(0.5, color=viz.INK_2, lw=0.6, ls=":")
+    ax2.text(0.05, 0.08, "$a=0$: the integral is $0$", fontsize=7.5, color=viz.COLORS["UKF"])
+    ax2.text(-0.95, 0.56, "$F'(a)=1/2$", fontsize=7.5)
+    ax2.set_xlabel("$a$"); ax2.set_ylabel("$\\int_0^\\infty\\partial_a f(a,x)\\,\\mathrm{d}x$")
+    ax2.set_ylim(-0.1, 0.7)
+    ax2.set_title("(b) the integral of the derivative", fontsize=8.5)
+    plt.tight_layout()
+    save(fig, "appD_escape")
+
+
 # ---------------------------------------------------------------- appendix F
 def fig_shift_1d():
     """Sharing in one dimension: where the mass of one cell goes; then what one cell receives, k = 0 and k = 1."""
@@ -1578,6 +1610,7 @@ if __name__ == "__main__":
     fig_dead_reckoning()
     fig_grid()
     fig_potato()
+    fig_feyn_escape()
     fig_quadtree()
     fig_quadtree_grids()
     fig_quadtree_predict()

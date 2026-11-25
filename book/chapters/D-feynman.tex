@@ -106,9 +106,26 @@ Hypothesis (3) is what fails. For $x>1$, the value $a=1/x$ is in $J$,
 and there $\partial_af=x\,e^{-1}(3/x^2-2/x^2)=e^{-1}/x$; so any $g$ that
 bounds $\abs{\partial_af(a,x)}$ for all $a\in J$ has $g(x)\ge e^{-1}/x$
 for $x>1$, and $\int_1^\infty\mathrm dx/x=\infty$: no such $g$ is
-integrable. The picture: for small $a$, the derivative is a bump around
-$x\approx1/a$, which runs off to infinity as $a\to0$, and its mass goes
-with it.
+integrable. \Cref{fig:feynescape} shows what happens. With $y=ax$, the derivative is
+$\partial_af(a,x)=a\,y(3-2y^2)e^{-y^2}$: the same shape for every $a$,
+stretched along $x$ by $1/a$ and squeezed in height by $a$. Its peak is at
+$x\approx0.52/a$, with the height $0.98\,a$. As $a\to0$, the bump gets
+lower and wider and runs off to infinity, while its integral stays at
+$\tfrac12$ (the stretch $1/a$ and the squeeze $a$ cancel). At each fixed
+$x$, the derivative tends to $0$, and at $a=0$ it is $0$ everywhere: in
+the limit, the mass has gone to infinity and is lost.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/appD_escape.pdf}
+\caption{The example $f(a,x)=a^3x\,e^{-a^2x^2}$. (a) The derivative
+$\partial_af(a,\cdot)$ for $a=0.4$, $0.2$, $0.1$, $0.05$: the same shape,
+lower and wider each time $a$ is halved, moving to the right. (b) Its
+integral over $x$ is $\tfrac12=F'(a)$ for every $a\neq0$ (open circle at
+$a=0$), but at $a=0$ the derivative is the zero function, whose integral
+is $0$ (dot). No integrable $g$ can lie above all the curves of (a).}
+\label{fig:feynescape}
+\end{figure}
 
 \emph{An integral that is not one: $\int_0^\infty\sin(ax)/x\,\mathrm dx$.}
 Hypothesis (1) can fail too. The function $\sin x/x$ is not integrable on
