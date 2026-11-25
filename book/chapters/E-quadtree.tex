@@ -44,9 +44,24 @@ Three facts follow from the construction.
   \item The leaves cover $Q_0$ without overlapping (except along their
         sides): this is true of $\{Q_0\}$, and a split replaces a cell by
         four cells that cover it in the same way.
-  \item A cell at depth $k$ is a cell of the uniform grid of side $s_k$
-        that starts at a corner of $Q_0$: the quadrants of a cell of that
-        grid are cells of the grid of half the side.
+  \item The cells at depth $k$ all belong to one grid. Measure the
+        coordinates from the lower-left corner of $Q_0$, and cut $Q_0$
+        into the uniform grid of side $s_k$: its $2^k\times2^k$ cells
+        are the squares
+        \[
+          [\,i\,s_k,(i+1)\,s_k\,]\times[\,j\,s_k,(j+1)\,s_k\,],
+          \qquad 0\le i,j<2^k .
+        \]
+        Every cell at depth $k$ is one of them. At depth $0$, the only
+        cell is $Q_0$, the single cell of the grid of side $s_0$. If a
+        cell at depth $k$ is the square above, then, since
+        $s_k=2\,s_{k+1}$, its lower-left quadrant is
+        $[\,2i\,s_{k+1},(2i+1)\,s_{k+1}\,]\times[\,2j\,s_{k+1},(2j+1)\,s_{k+1}\,]$,
+        a cell of the grid of side $s_{k+1}$, and so are the three
+        others (replace $2i$ by $2i+1$, or $2j$ by $2j+1$). So the
+        quadtree never makes a cell that straddles two cells of these
+        grids: in \cref{fig:qtchain}, the cells of side $2h$ are cells
+        of the grid of side $2h$.
 \end{itemize}
 Each leaf is therefore an in cell, an out cell, or a mixed cell of side
 $h$ (\cref{fig:quadtree}a).
@@ -68,9 +83,8 @@ in leaf, is not split: $C$ lies inside it.}
 $h$.} The uniform grid of side $h$ is the finest the quadtree ever goes,
 and the quadtree keeps a large cell whole only when it is entirely in or
 entirely out. Then all the small cells inside it have that same status,
-so nothing is lost by not splitting it. Let us check this. Take a cell
-$C$ of the uniform grid of side $h$ that starts at a corner of $Q_0$; we
-show that
+so nothing is lost by not splitting it. Let us check this. Take a cell $C$ of the uniform grid of side $h$ (the grid of side $s_m$
+above); we show that
 \begin{itemize}[nosep]
   \item if $C$ is mixed, $C$ is a leaf of the quadtree;
   \item if $C$ is in, it lies inside an in leaf, and if it is out, inside
