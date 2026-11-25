@@ -13,7 +13,7 @@ find the cell of a point (\cref{sec:qt-find}), and discusses a grid
 filter whose cells are the cells of a quadtree (\cref{sec:qt-filter}).
 The numbers quoted are printed by the script
 \code{book/figures/make\_figures.py}, which also draws
-\cref{fig:qtchain,fig:quadtree}.
+\cref{fig:qtgrids,fig:qtchain,fig:quadtree}.
 
 \section{Splitting squares}
 \label{sec:qt-def}
@@ -36,6 +36,33 @@ whose nodes are all the cells met on the way, each split cell being the
 parent of its four quadrants; $Q_0$ is its \emph{root}.
 \end{definition}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/appE_quadtree_grids.pdf}
+\caption{The grids of side $s_k$ on $Q_0$, each cell labelled by its
+indices $(i,j)$: it is the square
+$[\,i\,s_k,(i+1)\,s_k\,]\times[\,j\,s_k,(j+1)\,s_k\,]$. The dashed cell is
+split; its quadrants (blue, inside the blue frame) are cells of the grid
+of the next depth. (a)~$Q_0=(0,0)$ is split. (b)~Its quadrants are the
+four cells of the grid of side $s_1$; the cell $(1,0)$ is split. (c)~Its
+quadrants are the cells $(2,0)$, $(3,0)$, $(2,1)$, $(3,1)$ of the grid of
+side $s_2$: the indices $(i,j)=(1,0)$ become $(2i,2j)$, $(2i+1,2j)$,
+$(2i,2j+1)$ and $(2i+1,2j+1)$.}
+\label{fig:qtgrids}
+
+\vspace{1.5ex}
+\centering
+\includegraphics[width=0.75\linewidth]{figures/appE_quadtree_chain.pdf}
+\caption{The cells of the quadtree that contain a cell $C$ of the uniform
+grid of side $h$, on a round lawn with $Q_0$ of side $8h$: in leaves
+(dark), mixed leaves (light), out leaves (white); the blue squares are
+the chain $A_0\supset A_1\supset\dots$ (a) $C$ is mixed, so $A_1$ and
+$A_2$, which contain it, are mixed and are split, down to $C$, which is a
+leaf. (b) $C$ is in; $A_0$ and $A_1$ are mixed and split, and $A_2$, an
+in leaf, is not split: $C$ lies inside it.}
+\label{fig:qtchain}
+\end{figure}
+
 Three facts follow from the construction.
 \begin{itemize}[nosep]
   \item The process stops: a cell at depth $k$ (obtained by $k$ splits
@@ -52,7 +79,7 @@ Three facts follow from the construction.
           [\,i\,s_k,(i+1)\,s_k\,]\times[\,j\,s_k,(j+1)\,s_k\,],
           \qquad 0\le i,j<2^k .
         \]
-        Every cell at depth $k$ is one of them. At depth $0$, the only
+        Every cell at depth $k$ is one of them (\cref{fig:qtgrids}). At depth $0$, the only
         cell is $Q_0$, the single cell of the grid of side $s_0$. If a
         cell at depth $k$ is the square above, then, since
         $s_k=2\,s_{k+1}$, its lower-left quadrant is
@@ -65,19 +92,6 @@ Three facts follow from the construction.
 \end{itemize}
 Each leaf is therefore an in cell, an out cell, or a mixed cell of side
 $h$ (\cref{fig:quadtree}a).
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.9\linewidth]{figures/appE_quadtree_chain.pdf}
-\caption{The cells of the quadtree that contain a cell $C$ of the uniform
-grid of side $h$, on a round lawn with $Q_0$ of side $8h$: in leaves
-(dark), mixed leaves (light), out leaves (white); the blue squares are
-the chain $A_0\supset A_1\supset\dots$ (a) $C$ is mixed, so $A_1$ and
-$A_2$, which contain it, are mixed and are split, down to $C$, which is a
-leaf. (b) $C$ is in; $A_0$ and $A_1$ are mixed and split, and $A_2$, an
-in leaf, is not split: $C$ lies inside it.}
-\label{fig:qtchain}
-\end{figure}
 
 \emph{The quadtree knows the lawn as well as the uniform grid of side
 $h$.} The uniform grid of side $h$ is the finest the quadtree ever goes,

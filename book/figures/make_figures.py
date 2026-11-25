@@ -264,6 +264,45 @@ def fig_quadtree():
     save(fig, "appE_quadtree")
 
 
+def fig_quadtree_grids():
+    """The cells at depth k are the cells of the grid of side s_k; the quadrants of cell (i, j) are (2i or 2i+1, 2j or 2j+1)."""
+    from matplotlib.patches import Rectangle
+    blue, orange, ink, grey = viz.COLORS["EKF"], viz.COLORS["UKF"], viz.INK, viz.MUTED
+    fig, axes = plt.subplots(1, 3, figsize=(W, W * 0.38))
+    split = {0: (0, 0), 1: (1, 0)}                       # the cell split at depth k, as (i, j)
+    for ax, k in zip(axes, (0, 1, 2)):
+        n = 2 ** k
+        sk = 1 / n
+        quads = set()
+        if k - 1 in split:
+            pi, pj = split[k - 1]
+            quads = {(2 * pi + di, 2 * pj + dj) for di in (0, 1) for dj in (0, 1)}
+        for i in range(n):
+            for j in range(n):
+                q = (i, j) in quads
+                ax.add_patch(Rectangle((i * sk, j * sk), sk, sk, fc=blue if q else "none",
+                                       alpha=0.22 if q else 1, ec=grey, lw=0.6))
+                ax.text((i + 0.5) * sk, (j + 0.5) * sk, f"$({i},{j})$", ha="center", va="center", fontsize=7.5)
+        if k - 1 in split:
+            pi, pj = split[k - 1]
+            ps = 2 * sk
+            ax.add_patch(Rectangle((pi * ps, pj * ps), ps, ps, fc="none", ec=blue, lw=2.2, zorder=3))
+        if k in split:
+            i, j = split[k]
+            ax.add_patch(Rectangle((i * sk, j * sk), sk, sk, fc="none", ec=orange, lw=1.8, ls="--", zorder=4))
+        ax.add_patch(Rectangle((0, 0), 1, 1, fc="none", ec=ink, lw=1.2, zorder=2))
+        for t in range(n + 1):
+            lab = "$0$" if t == 0 else (f"$s_{k}$" if t == 1 else f"${t}s_{k}$")
+            ax.text(t * sk, -0.03, lab, ha="center", va="top", fontsize=7)
+            if t > 0:
+                ax.text(-0.03, t * sk, lab, ha="right", va="center", fontsize=7)
+        side = "$s_0$" if k == 0 else f"$s_{k}=s_0/{n}$"
+        ax.set_title(f"({'abc'[k]}) depth {k}: side {side}", fontsize=8.5)
+        ax.set_xlim(-0.16, 1.05); ax.set_ylim(-0.12, 1.03); ax.set_aspect("equal"); ax.axis("off")
+    plt.tight_layout()
+    save(fig, "appE_quadtree_grids")
+
+
 def fig_quadtree_chain():
     """The cells of the quadtree that contain a grid cell C: all mixed if C is mixed; stop at an in leaf if C is in."""
     from matplotlib.patches import Circle, Rectangle
@@ -1376,6 +1415,7 @@ if __name__ == "__main__":
     fig_grid()
     fig_potato()
     fig_quadtree()
+    fig_quadtree_grids()
     fig_quadtree_chain()
     fig_shift_1d()
     fig_shift_2d()
