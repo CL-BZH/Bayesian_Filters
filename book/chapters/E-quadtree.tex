@@ -517,18 +517,28 @@ add up to $1$. Taking the likelihood at the centre replaces its average
 over the leaf by one value, which is accurate when the likelihood
 changes little across the leaf.
 
-\emph{Prediction.} The new probability of a leaf $\ell'$ follows from the
-law of total probability over the leaf $\ell$ that contains $\p_t$ (the
-version of \eqref{eq:predict} for cells):
+\emph{Prediction.} The prediction step of \cref{ch:bayes},
+$\belbar(\x_{t+1})=\int p(\x_{t+1}\mid\x_t,\uu_t)\,\bel(\x_t)\,\mathrm d\x_t$,
+becomes a sum over the leaves. The new probability of a leaf $\ell'$
+follows from the law of total probability over the leaf $\ell$ that
+contains $\p_t$:
 \[
   \bar b_{\ell'}=\Pr(\p_{t+1}\in\ell')
   =\sum_\ell\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)\,\Pr(\p_t\in\ell)
   =\sum_\ell T_{\ell\ell'}\,b_\ell ,
 \]
 with the \emph{transition probabilities}
-$T_{\ell\ell'}=\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)$. Take the model of
-\cref{prop:conv} with the round noise $\Normal(\vect0,\sigma^2I)$ used by
-the code, and put the robot at the centre of its leaf. Then $\p_{t+1}$
+$T_{\ell\ell'}=\Pr(\p_{t+1}\in\ell'\mid\p_t\in\ell)$. For the motion, use the model of the grid filter (\cref{prop:conv}): the
+robot moves by
+\[
+  \p_{t+1}=\p_t+\vect d_t+\w_t ,
+\]
+where $\vect d_t=s_t(\cos\psi_t,\sin\psi_t)$ is the displacement of the
+step, of length $s_t$ along the compass heading $\psi_t$, and $\w_t$ is a
+Gaussian noise independent of $\p_t$. Take the noise round,
+$\w_t\sim\Normal(\vect0,\sigma^2I)$, with the same spread $\sigma$ in
+every direction, as the grid filter of \cref{ch:bayes} does ($\sigma=1.2$
+for its steps of $4$). Put the robot at the centre of its leaf. Then $\p_{t+1}$
 is Gaussian with the mean $\vect\mu=\vect c_\ell+\vect d_t$ and the
 covariance $\sigma^2I$. Its two coordinates are independent, because the
 covariance is diagonal, and for a Gaussian $X$ with mean $\mu$ and
@@ -550,8 +560,10 @@ lies entirely more than $4\sigma$ to the right of $\mu_x$, the first
 factor is at most $1-\Phi(4)=\Phi(-4)\approx3\times10^{-5}$, and the same
 holds on the other three sides. The probability sent to out leaves is dropped and the rest is
 renormalised, which is the mask of \cref{ch:bayes}. On a uniform grid,
-the same formula is the prediction of \cref{prop:conv} with all the mass
-of each cell at its centre: the first reading of \cref{sec:gs-problem}.
+the same formula is the prediction of the grid filter with all the mass
+of each cell put at its centre, a reading that \cref{sec:gs-problem}
+shows leads to rounding: a step shorter than half a cell, with a small
+$\sigma$, leaves the mass where it was.
 
 \emph{The weakness.} Both steps put the robot at the centre of its leaf,
 so they are only as fine as the leaves. The quadtree of the lawn has its
@@ -564,9 +576,9 @@ time. Two things then go wrong in a large leaf.
         $\vect\mu=\vect c_\ell+\vect d_t$ is $4$ from the centre, and
         $16$ from the nearest side of the leaf, more than $13\sigma$; so
         $T_{\ell\ell}\approx1$, and the mass of the leaf stays in it.
-        Step after step it stays there, while the robot leaves the leaf
-        after five steps: the rounding of \cref{sec:gs-problem}, at its
-        worst.
+        Step after step it stays there, while the robot leaves the leaf after
+five steps: the belief is left behind (the rounding of
+\cref{sec:gs-problem}, at its worst).
   \item \emph{The belief cannot be sharp.} A belief concentrated on a few
         units cannot be represented inside a leaf of side $40$: there it
         is spread evenly over the whole leaf.
